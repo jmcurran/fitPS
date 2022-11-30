@@ -36,7 +36,7 @@
 #'
 #' @references Coulson, S. A., Buckleton, J. S., Gummer, A. B., and Triggs,
 #'   C.M., "Glass on clothing and shoes of members of the general population and
-#'   people suspected of breaking crimes", Science &Justice 2001: 41(1): 39--48.
+#'   people suspected of breaking crimes", Science & Justice 2001: 41(1): 39--48.
 #'
 #'   Evett, I. W. and Buckleton, J. S., "The interpretation of glass evidence. A
 #'   practical approach", Journal of the Forensic Science Society 1990: 30(4):

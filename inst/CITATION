@@ -1,0 +1,14 @@
+citHeader("To cite fitPS in publications use:")
+
+citEntry(
+  entry    = "manual",
+  title    = "fitPS: Fit Zeta Distributions to Forensic Data",
+  author   = "Curran, J. M.",
+  year     = "2023",
+  note    = "R package version 0.2-2",
+  url      = "https://CRAN.R-project.org/package=fitPS",
+  textVersion = paste(
+    "Curran, J. M. (2023) fitPS: Fit Zeta Distributions to Forensic Data.\n
+    R package version 0.2-2. https://CRAN.R-project.org/package=fitPS"
+  )
+)

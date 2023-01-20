@@ -4,12 +4,18 @@
 \alias{plot.psFit}
 \title{S3 plot method for an object of class \code{psFit}}
 \usage{
-\method{plot}{psFit}(x, ylim = c(0, 1), ...)
+\method{plot}{psFit}(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95, ...)
 }
 \arguments{
 \item{x}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
 
 \item{ylim}{the limits of the y-axis}
+
+\item{conf}{if \code{TRUE}, then confidence intervals (based on the standard
+error of the shape parameter) are drawn on the plot}
+
+\item{conf.level}{the confidence level for the confidence intervals. Must be
+between 0.75 and 0.99.}
 
 \item{...}{other arguments passed to \code{plot}}
 }

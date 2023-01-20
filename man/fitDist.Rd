@@ -40,9 +40,10 @@ to rapidly compute this quantity, hence their use of linear interpolation.
 The function returns an object of class \code{psFit} which is a \code{list}
 contains four elements:
 \itemize{
-\item{\code{psData}}{ - an object of class \code{psData}--see \code{\link{readData}},}
-\item{\code{fit}}{ - the fitted object from \code{\link[stats]{nlminb}},}
-\item{\code{shape}}{ - the maximum likelihood estimate of the shape parameter,}
+\item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
+\item{\code{fit}}{ -- the fitted object from \code{\link[stats]{nlminb}},}
+\item{\code{shape}}{ -- the maximum likelihood estimate of the shape parameter,}
+\item{\code{varshape}}{ - the maximum likelihood estimate of the shape parameter,}
 \item{\code{fitted}}{ - a named \code{vector} containing the first \code{nterms of
 the fitted distribution.}}
 }.

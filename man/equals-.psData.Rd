@@ -22,5 +22,8 @@ same. See \code{\link{readData}} for a description of the \code{psData} class.
 \examples{
 p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))
 p1 = makePSData(n = 0:2, count = c(98, 1, 1), type = "P")
-p == p1
+p2 = makePSData(n = 0:2, count = c(97, 2, 1), type = "P")
+p == p1 ## TRUE
+p == p2 ## FALSE
+p1 == p2 ## FALSE
 }

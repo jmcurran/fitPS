@@ -74,8 +74,11 @@ readData = function(fileName, ...){
              pull() |>
              as.integer()
              )
-  result = result |>
-    dplyr::select(c(n, rn)) ## rearrange the order of the variables
+  # result = result |>
+  #   dplyr::select(c(n, rn)) ## rearrange the order of the variables
+  ## The code above works, but somehow bothers R CHECK. Going for the blunt
+  ## approach
+  result = result[, c(2, 1)]
 
   type = if(vars == "p"){
     "P"

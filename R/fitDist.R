@@ -81,15 +81,31 @@ fitDist = function(x, nterms = 10,
     -sum(VGAM::dzeta(rep(obsData, x$data$rn), shape = shape, log = TRUE))
   }
 
-  fit = nlminb(start = start,
-               objective = logLik,
-               lower = 1)
+  # fit = nlminb(start = start,
+  #              objective = logLik,
+  #              lower = 1)
 
-  shape = fit$par
-  N = length(nvals)
-  var.shape = -VGAM::zeta(shape)^2/(N * (VGAM::zeta(shape, 1)^2 -
-                                        VGAM::zeta(shape) * VGAM::zeta(shape, 2)))
+  fit = optim(par = start,
+              fn = logLik,
+              method = "L-BFGS-B",
+              lower = 1,
+              hessian = TRUE)
 
+  shape = fit$par ## NOTE VGAM's dzeta is parameterised in terms of
+                  ## s = alpha - 1. This has consequences in the formula below
+  N = sum(x$data$rn)
+
+  vshape = function(shape){
+    z = VGAM::zeta(shape + 1)
+    zprime = VGAM::zeta(shape + 1, 1)
+    zprimeprime = VGAM::zeta(shape + 1, 2)
+    numer = z^2
+    denom = N *(z * zprimeprime - zprime^2)
+
+    return(numer / denom)
+  }
+
+  var.shape = vshape(shape)
 
   fitted = VGAM::dzeta(nvals, shape = shape)
   names(fitted) = if(x$type == 'P'){

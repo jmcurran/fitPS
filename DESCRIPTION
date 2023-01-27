@@ -1,8 +1,8 @@
 Package: fitPS
 Type: Package
 Title: Fit Zeta Distributions to Forensic Data 
-Version: 0.2-2
-Date: 2023-01-19
+Version: 0.2-3
+Date: 2023-01-27
 Authors@R: person("James", "Curran", email = "j.curran@auckland.ac.nz",
                   role = c("aut", "cre"))
 Description: Fits zeta distributions (discrete power laws) to data that arises

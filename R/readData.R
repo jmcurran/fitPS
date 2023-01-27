@@ -63,7 +63,7 @@ readData = function(fileName, ...){
   }
 
   if(nrow(dataf) < 1){
-    stop("You heed at least one observation to fit the distribution")
+    stop("You need at least one observation to fit the distribution")
   }
 
   result = data.frame(rn = as.integer(dataf$count))
@@ -74,6 +74,8 @@ readData = function(fileName, ...){
              pull() |>
              as.integer()
              )
+  result = result |>
+    dplyr::select(c(n, rn)) ## rearrange the order of the variables
 
   type = if(vars == "p"){
     "P"

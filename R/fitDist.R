@@ -49,7 +49,7 @@
 #' @param start a starting value for the optimiser
 #' @param ... other parameters - not currently used.
 #'
-#' @importFrom stats nlminb runif
+#' @importFrom stats optim runif
 #' @importFrom VGAM dzeta
 #'
 #' @return an object of class \code{psFit}--see Details.

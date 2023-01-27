@@ -25,7 +25,7 @@
 #' s1
 #'
 #' @seealso readData
-makePSData = makeData = function(n, count, type = c("P", "S")){
+makePSData = function(n, count, type = c("P", "S")){
   type = match.arg(type)
 
   dataf = data.frame(n = n, rn = count)
@@ -51,5 +51,8 @@ makePSData = makeData = function(n, count, type = c("P", "S")){
   class(result) = "psData"
 
   return(result)
-
 }
+
+#' @export
+#' @describeIn makePSData Create a survey data set manually
+makeData = makePSData

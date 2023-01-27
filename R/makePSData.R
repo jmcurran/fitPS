@@ -10,6 +10,9 @@
 #' groups of glass on their clothing, or the number of people who had a group of glass of
 #' size \eqn{n}{n}.
 #' @param type either \code{"P"} or \code{"S"}
+#' @param notes a character string which allows extra information
+#'   about the data to be stored, such as the source, or reference. \code{NULL}
+#'   by default.
 #'
 #' @return an object of type \code{psData}---see \code{\link{readData}} for more
 #' details.
@@ -25,7 +28,7 @@
 #' s1
 #'
 #' @seealso readData
-makePSData = function(n, count, type = c("P", "S")){
+makePSData = function(n, count, type = c("P", "S"), notes = NULL){
   type = match.arg(type)
 
   dataf = data.frame(n = n, rn = count)
@@ -47,7 +50,8 @@ makePSData = function(n, count, type = c("P", "S")){
   }
 
   result = list(type = type,
-                data = dataf)
+                data = dataf,
+                notes = notes)
   class(result) = "psData"
 
   return(result)

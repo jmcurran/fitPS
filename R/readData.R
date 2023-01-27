@@ -14,15 +14,22 @@
 #'
 #' @param fileName the name of the file to be read. Must be either a modern
 #' (xlsx) Excel file or a csv file.
+#' @param notes any additional information about the data, such as the source
+#' or a reference.
 #' @param ... any additional parameters which will be passed to either
 #' \code{read_excel} or \code{read.csv} depending on the extension of your
 #' input file.
 #'
 #' @return an object of class \code{psData} which is a list containing member
-#' variable \code{type} which is either \code{P} or \code{S}, and a variable
-#' \code{data} that is a \code{data.frame} which contains columns
+#' variables:
+#' \itemize{
+#'   \item{\code{type}}{ -- either \code{"P"} or \code{"S"}}
+#'   \item{\code{data}}{ -- a \code{data.frame} which contains columns
 #' \code{n} and \code{rn}, representing the number of groups/fragments, and the
-#' number of times that was seen, respectively.
+#' number of times that was seen, respectively.}
+#'   \item{\code{notes}}{ --- a character string which allows extra information
+#'   about the data to be stored, such as the source, or reference.}
+#' }
 #'
 #' @import dplyr
 #' @importFrom utils read.csv
@@ -35,7 +42,7 @@
 #' p
 #' s = readData(system.file("extdata", "s.xlsx", package = "fitPS"))
 #' s
-readData = function(fileName, ...){
+readData = function(fileName, notes = NULL, ...){
   extn = tools::file_ext(fileName)
 
   if(extn == "xlsx"){
@@ -100,7 +107,8 @@ readData = function(fileName, ...){
   }
 
   result = list(type = type,
-                data = result)
+                data = result,
+                notes = notes)
   class(result) = "psData"
 
   return(result)

@@ -7,6 +7,9 @@
 #' @param lhs an object of class \code{psData}.
 #' @param rhs an object of class \code{psData}.
 #'
+#' @details NOTE: the \code{notes} member variable is ignored in this function
+#' as it is unlikely that a user would want to see if the notes are the same.
+#'
 #' @return TRUE if the two objects are equal
 #' @export
 #'

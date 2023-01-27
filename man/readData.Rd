@@ -4,11 +4,14 @@
 \alias{readData}
 \title{Read count data from file}
 \usage{
-readData(fileName, ...)
+readData(fileName, notes = NULL, ...)
 }
 \arguments{
 \item{fileName}{the name of the file to be read. Must be either a modern
 (xlsx) Excel file or a csv file.}
+
+\item{notes}{any additional information about the data, such as the source
+or a reference.}
 
 \item{...}{any additional parameters which will be passed to either
 \code{read_excel} or \code{read.csv} depending on the extension of your
@@ -16,10 +19,15 @@ input file.}
 }
 \value{
 an object of class \code{psData} which is a list containing member
-variable \code{type} which is either \code{P} or \code{S}, and a variable
-\code{data} that is a \code{data.frame} which contains columns
+variables:
+\itemize{
+  \item{\code{type}}{ -- either \code{"P"} or \code{"S"}}
+  \item{\code{data}}{ -- a \code{data.frame} which contains columns
 \code{n} and \code{rn}, representing the number of groups/fragments, and the
-number of times that was seen, respectively.
+number of times that was seen, respectively.}
+  \item{\code{note}}{ --- a character string which allows extra information
+  about the data to be stored, such as the source, or reference.}
+}
 }
 \description{
 Reads observed counts of either the number of groups or the size of the

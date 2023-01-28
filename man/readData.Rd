@@ -10,8 +10,8 @@ readData(fileName, notes = NULL, ...)
 \item{fileName}{the name of the file to be read. Must be either a modern
 (xlsx) Excel file or a csv file.}
 
-\item{notes}{any additional information about the data, such as the source
-or a reference.}
+\item{notes}{any additional information about the data, such as the source or
+a reference.}
 
 \item{...}{any additional parameters which will be passed to either
 \code{read_excel} or \code{read.csv} depending on the extension of your
@@ -19,14 +19,15 @@ input file.}
 }
 \value{
 an object of class \code{psData} which is a list containing member
-variables:
+  variables:
 \itemize{
   \item{\code{type}}{ -- either \code{"P"} or \code{"S"}}
   \item{\code{data}}{ -- a \code{data.frame} which contains columns
 \code{n} and \code{rn}, representing the number of groups/fragments, and the
 number of times that was seen, respectively.}
-  \item{\code{note}}{ --- a character string which allows extra information
-  about the data to be stored, such as the source, or reference.}
+  \item{\code{notes}}{ --- either a \code{\link[utils]{bibentry}} or a character
+  string which allows extra information about the data to be stored, such as
+  the source, or reference.}
 }
 }
 \description{
@@ -39,8 +40,8 @@ count column should contain a positive (non-zero) count for each number of
 groups. Similarly, if the file contains S counts, then the S column can
 contain labels 1, 2, \ldots representing the observation of 1, 2, \ldots
 fragments in a group. Note that zeros are neither allowed, or useful, in the
-file as they both simply result in log-likelihood terms of zero, and therefore
-make no difference.
+file as they both simply result in log-likelihood terms of zero, and
+therefore make no difference.
 }
 \examples{
 p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))

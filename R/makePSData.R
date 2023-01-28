@@ -10,9 +10,9 @@
 #' groups of glass on their clothing, or the number of people who had a group of glass of
 #' size \eqn{n}{n}.
 #' @param type either \code{"P"} or \code{"S"}
-#' @param notes a character string which allows extra information
-#'   about the data to be stored, such as the source, or reference. \code{NULL}
-#'   by default.
+#' @param notes a \code{\link[utils]{bibentry}} or a character
+#'   string which allows extra information about the data to be stored, such as
+#'   the source, or reference. \code{NULL} by default.
 #'
 #' @return an object of type \code{psData}---see \code{\link{readData}} for more
 #' details.

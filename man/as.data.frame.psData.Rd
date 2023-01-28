@@ -19,7 +19,7 @@ of rows in the \code{data.frame} is equal to \code{sum(x$data$rn)}.
 \description{
 Converts an object of class \code{psData}---see \code{\link{readData}}---to a
 \code{data.frame} that can be used with in functions in other packages such as
-\code{\link[VGAM::vglm]{VGAM::vglm}} to fit more complicated models.
+\code{\link[VGAM]{vglm}} to fit more complicated models.
 }
 \details{
 If \code{x} is a \code{psData} object of type \code{"P"}, i.e. it

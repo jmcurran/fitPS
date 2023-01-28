@@ -2,7 +2,7 @@
 #'
 #' Converts an object of class \code{psData}---see \code{\link{readData}}---to a
 #' \code{data.frame} that can be used with in functions in other packages such as
-#' \code{\link[VGAM::vglm]{VGAM::vglm}} to fit more complicated models.
+#' \code{\link[VGAM]{vglm}} to fit more complicated models.
 #'
 #' @param x an object of class \code{psData}---see \code{\link{readData}}for more
 #' details.

@@ -19,6 +19,10 @@ Tests to see if two objects of class \code{psData} are equal. That is
 their \code{type} is the same, and the data contained in \code{data} is the
 same. See \code{\link{readData}} for a description of the \code{psData} class.
 }
+\details{
+NOTE: the \code{notes} member variable is ignored in this function
+as it is unlikely that a user would want to see if the notes are the same.
+}
 \examples{
 p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))
 p1 = makePSData(n = 0:2, count = c(98, 1, 1), type = "P")

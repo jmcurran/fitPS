@@ -5,9 +5,9 @@
 \alias{makeData}
 \title{Create a survey data set manually}
 \usage{
-makePSData(n, count, type = c("P", "S"))
+makePSData(n, count, type = c("P", "S"), notes = NULL)
 
-makeData(n, count, type = c("P", "S"))
+makeData(n, count, type = c("P", "S"), notes = NULL)
 }
 \arguments{
 \item{n}{Either the number of groups of glass or the size of different groups
@@ -18,6 +18,10 @@ groups of glass on their clothing, or the number of people who had a group of gl
 size \eqn{n}{n}.}
 
 \item{type}{either \code{"P"} or \code{"S"}}
+
+\item{notes}{a \code{\link[utils]{bibentry}} or a character
+string which allows extra information about the data to be stored, such as
+the source, or reference. \code{NULL} by default.}
 }
 \value{
 an object of type \code{psData}---see \code{\link{readData}} for more

@@ -1,0 +1,29 @@
+---
+title: "Fitting a Zeta distribution to a P survey&mdash;number of groups data"
+output: rmarkdown::html_vignette
+bibliography: '`r system.file("REFERENCES.bib", package="fitPS")`'
+vignette: >
+  %\VignetteIndexEntry{Fitting a Zeta distribution to a P survey&mdash;number of groups data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+suppressWarnings(suppressPackageStartupMessages({library(fitPS)}))
+```
+
+In this example we see how to use `fitPS` to fit a Zeta distribution to some data from a survey where the number of groups of glass found is recorded. The data in this example comes from @roux2001 who surveyed the footwear of 776 individuals in south-eastern Australia, and is summarised in the table below.
+
+```{r results='asis', echo=FALSE}
+knitr::kable(Psurveys$roux$data, 
+             col.names = c("$n$", "$r_n$"),
+             align = "rr")
+```
+

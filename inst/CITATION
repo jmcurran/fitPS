@@ -6,9 +6,9 @@ bibentry(
   author   = "J. M. Curran",
   year     = "2023",
   note    = "R package version 0.2-4",
-  url      = "https://CRAN.R-project.org/package=fitPS",
+  url      = "https://github.com/jmcurran/fitPS",
   textVersion = paste(
     "Curran, J. M. (2023) fitPS: Fit Zeta Distributions to Forensic Data.\n
-    R package version 0.2-4. https://CRAN.R-project.org/package=fitPS"
+    R package version 0.2-4. https://github.com/jmcurran/fitPS"
   )
 )

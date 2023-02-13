@@ -19,11 +19,15 @@ knitr::opts_chunk$set(
 suppressWarnings(suppressPackageStartupMessages({library(fitPS)}))
 ```
 
-In this example we see how to use `fitPS` to fit a Zeta distribution to some data from a survey where the number of groups of glass found is recorded. The data in this example comes from @roux2001 who surveyed the footwear of 776 individuals in south-eastern Australia, and is summarised in the table below.
-
+In this example we will learn how to use `fitPS` to fit a Zeta distribution to some data from a survey where the number of groups of glass found is recorded. The data in this example comes from @roux2001 who surveyed the footwear of 776 individuals in south-eastern Australia, and is summarised in the table below.
 ```{r results='asis', echo=FALSE}
 knitr::kable(Psurveys$roux$data, 
              col.names = c("$n$", "$r_n$"),
              align = "rr")
 ```
+This data set is built into the package and can be accessed from the `Psurveys` object. That is, we can type:
+```{r}
+roux = Psurveys$roux
+```
+The 
 

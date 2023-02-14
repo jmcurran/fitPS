@@ -2,10 +2,10 @@ Package: fitPS
 Type: Package
 Title: Fit Zeta Distributions to Forensic Data 
 Version: 0.2-5
-Date: 2023-02-13
+Date: 2023-02-14
 Authors@R: person("James", "Curran", email = "j.curran@auckland.ac.nz",
                   role = c("aut", "cre"))
-Description: Fits zeta distributions (discrete power laws) to data that arises
+Description: Fits Zeta distributions (discrete power laws) to data that arises
     from forensic surveys of clothing on the presence of glass and paint in
     various populations. The general method is described to some extent in
     Coulson, S.A., Buckleton, J.S., Gummer, A.B., and Triggs, C.M. (2001) 

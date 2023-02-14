@@ -4,9 +4,13 @@
 #' @param level the confidence level required---restricted to [0.75, 1)
 #'
 #' @return a list with two items: \code{wald} and \code{prof} containing the
-#' Wald and profile likelihood confidence intervals respectively for the shape
-#' parameter of the fitted Zeta distribution. In general these should be relatively
-#' close to each other.
+#'   Wald and profile likelihood confidence intervals respectively for the shape
+#'   parameter of the fitted Zeta distribution. In general these should be
+#'   relatively close to each other. **NOTE** These values are for the
+#'   \pkg{VGAM} parameterisation of the Zeta distribution which uses
+#'   \eqn{s^\prime = s - 1}{s' = s - 1}. This means they can be used without
+#'   alteration in \code{\link[VGAM]{dzeta}}.
+#'
 #'
 #' @examples
 #' data(Psurveys)

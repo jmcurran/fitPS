@@ -29,5 +29,26 @@ This data set is built into the package and can be accessed from the `Psurveys` 
 ```{r}
 roux = Psurveys$roux
 ```
-The 
+The data is stored as an object of class `psData`. This probably will not be of importance to most users. If you are interested in the details, then these can be found in the **Value** section of the help page for `readData`. There is an S3 `print` method for objects of time, meaning that if we print the object---either by typing its name at the command prompt, or by explicitly calling `print`---then we will get formatted printing of the information contained within the object. Specifically:
+
+  * the values of $n$ and $r_n$ will be printed out in tabular format (where $n$ is the number of groups or the size of the groups, and $r_n$ is the number of times $n$ has been observed in the survey), 
+  * the type of survey will be printed---either "Number of Groups" or "Group Size",
+  * and if the object has a reference or notes attached to it, then these will be 
+  printed as well
+
+For example
+```{r}
+roux
+```
+
+It is very simple to fit a Zeta distribution to this data set. We do this using the `fitDist` function. 
+```{r}
+fit = fitDist(roux)
+```
+The function returns an object of class `psFit`, the details of which can be found in the help page for `fitDist`. There are both S3 `print` and S3 `plot` methods for objects of this
+class. The `print` method method displays an estimate of the shape parameter $s$, an estimate of the standard deviation---the standard error---of the estimate of $s$ ($\widehat{\mathrm{sd}}(\hat{s})=\mathrm{se}(\hat{s})$). It also displays the first 10 fitted probabilities from the model by default. The number of probabilities shown can be altered by changing the value of `nterms`. We will do this here to only display the first six probabilities (from $P_0$ to $P_5$).
+```{r}
+print(fit, nterms = 6)
+```
+
 

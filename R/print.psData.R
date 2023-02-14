@@ -7,13 +7,12 @@
 #' @importFrom knitr kable
 #' @return No return value, called for side effects
 #' @export
-
 print.psData = function(x, ...){
   print(knitr::kable(x$data, format = "simple"), ...)
   if(x$type == "P"){
-    cat("\nNumber of groups data\n\n")
+    cat("\nNumber of Groups\n\n")
   }else{
-    cat("\nGroup size data\n\n")
+    cat("\nGroup Size\n\n")
   }
   if(!is.null(x$notes)){
     print(x$notes, ...)

@@ -4,7 +4,15 @@
 \alias{plot.psFit}
 \title{S3 plot method for an object of class \code{psFit}}
 \usage{
-\method{plot}{psFit}(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95, ...)
+\method{plot}{psFit}(
+  x,
+  ylim = c(0, 1),
+  conf = FALSE,
+  conf.level = 0.95,
+  ci.type = c("wald", "prof"),
+  log.scale = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
@@ -17,7 +25,18 @@ error of the shape parameter) are drawn on the plot}
 \item{conf.level}{the confidence level for the confidence intervals. Must be
 between 0.75 and 0.99.}
 
-\item{...}{other arguments passed to \code{plot}}
+\item{ci.type}{Specifies the type of confidence interval. If \code{conf ==
+TRUE}, then then \code{ci.type} can be either \code{"wald"} \code{"prof"} (or
+an abbreviation), depending on whether the Wald interval or the profile
+likelihood interval should be used. Note that these are intervals on the shape
+parameter and not the density heights. Therefore the intervals around the
+probabilities should not really be thought of as confidence intervals but
+rather something more similar to a "sensitivity" interval.}
+
+\item{log.scale}{if \code{TRUE} the \eqn{y}{y}-axis is changed to a
+logarithmic axis.}
+
+\item{...}{other arguments passed to \code{plot}.}
 }
 \value{
 No return value, called for side effects
@@ -29,4 +48,9 @@ S3 plot method for an object of class \code{psFit}
 p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))
 fit = fitDist(p)
 plot(fit)
+
+## An example with Wald generated intervals
+plot(fit, conf = TRUE)
+
+plot(fit, conf = TRUE, ci.type = "p")
 }

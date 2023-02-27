@@ -4,12 +4,17 @@
 \alias{confint.psFit}
 \title{S3 confint method for objects of class psFit}
 \usage{
-\method{confint}{psFit}(x, level = 0.95)
+\method{confint}{psFit}(object, parm, level = 0.95, ...)
 }
 \arguments{
-\item{x}{an object of class \code{psFit}---see fitDist for more details}
+\item{object}{an object of class \code{psFit}---see fitDist for more details}
+
+\item{parm}{added for compatibility. Should be left empty as it is ignored.}
 
 \item{level}{the confidence level required---restricted to [0.75, 1)}
+
+\item{...}{in theory other parameters to be passed to \code{confint}, but in
+reality ignored.}
 }
 \value{
 a list with two items: \code{wald} and \code{prof} containing the

@@ -4,7 +4,7 @@
 \alias{predict.psFit}
 \title{S3 predict method for an object of class \code{psFit}}
 \usage{
-\method{predict}{psFit}(x, newdata, interval = c("none", "confidence"), level = 0.95, ...)
+\method{predict}{psFit}(x, newdata, interval = c("none", "prof", "wald"), level = 0.95, ...)
 }
 \arguments{
 \item{x}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
@@ -12,19 +12,25 @@
 \item{newdata}{an optional vector of integers at which to calculate
 \eqn{\Pr(X = x)}{Pr(X = x)}}
 
-\item{interval}{either \code{"none"} or \code{"confidence"}, can be
-abbreviated. If \code{"confidence"} then the bounds of a 100 * \code{level}
-confidence interval for each predicted probability is provided.}
+\item{interval}{either \code{"none"}, \code{"prof"}, or \code{"wald"} and can
+be abbreviated. If \code{"prof"} or \code{"wald"}  then an interval, based
+on the bounds of a 100 * \code{level} confidence interval for the shape
+parameter, is given for each predicted probability. The interval is provided
+based on either a Profile Likelihood, or a Wald, confidence interval
+for the shape, and therefore cannot really be regarded as a confidence
+interval for the probabilities. The intervals might be more sensibly regarded
+as a measure of how sensitive the probabilities are to the choice of shape
+parameter.}
 
-\item{level}{the level of a confidence interval. Ignored if
-\code{interval == "none"}.}
+\item{level}{the level of a confidence interval. Ignored if \code{interval ==
+"none"}.}
 
 \item{...}{other arguments passed to \code{predict}---not used}
 }
 \value{
 either a named vector of fitted probabilities, or a \code{data.frame}
-with columns \code{predicted}, \code{lower}, and \code{upper} and the row names
-set to show what terms are being calculatd
+  with columns \code{predicted}, \code{lower}, and \code{upper} and the row
+  names set to show what terms are being calculatd
 }
 \description{
 S3 predict method for an object of class \code{psFit}

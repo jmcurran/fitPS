@@ -4,10 +4,10 @@
 \alias{fitted.psData}
 \title{S3 fitted method for an object of class \code{psFit}}
 \usage{
-\method{fitted}{psData}(x, ...)
+\method{fitted}{psData}(object, ...)
 }
 \arguments{
-\item{x}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
+\item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
 
 \item{...}{other arguments passed to \code{fitted}f---not used}
 }

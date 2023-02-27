@@ -70,15 +70,18 @@
 #' fit = fitDist(p)
 #' fit
 fitDist = function(x, nterms = 10,
-                   start = 1 + runif(1),
+                   start = runif(1),
                    ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
     stop("x must be an object of class psData")
   }
 
-  if(start <= 1){
-    stop("The Zeta function is undefined for shape = 1. Choose a start value > 1.")
+  if(start <= 0){
+    msg = paste0("The Zeta function is undefined for shape = 1.",
+                 "This software uses s = shape - 1",
+                 "Choose a start value > 0.", collapse = "\n")
+    stop(msg)
   }
 
   obsData = if(x$type == 'P'){ ## the main difference is that the values need 1 added
@@ -98,7 +101,7 @@ fitDist = function(x, nterms = 10,
   fit = optim(par = start,
               fn = logLik,
               method = "L-BFGS-B",
-              lower = 1,
+              lower = 0,
               hessian = TRUE)
 
   shape = fit$par ## NOTE VGAM's dzeta is parameterised in terms of
@@ -129,7 +132,8 @@ fitDist = function(x, nterms = 10,
     fit = fit,
     shape = shape,
     var.shape = var.shape,
-    fitted = fitted
+    fitted = fitted,
+    zeroInflated = FALSE
   )
 
   class(result) = "psFit"

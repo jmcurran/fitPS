@@ -4,7 +4,7 @@
 \alias{fitDist}
 \title{Fit a Zeta Distribution to Forensic Data}
 \usage{
-fitDist(x, nterms = 10, start = 1 + runif(1), ...)
+fitDist(x, nterms = 10, start = runif(1), ...)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from

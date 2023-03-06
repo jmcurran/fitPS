@@ -40,6 +40,11 @@
 #'   the fitted value with \code{\link[VGAM]{dzeta}}, then you should use the
 #'   stored value \eqn{s^\prime}{s'}.
 #'
+#'   If \code{start} is not specified, then it is chosen randomly from (0.5, 1).
+#'   The reason the lower value is not zero is that small starting values seem
+#'   to cause instability in the likelihood. If you specify your own starting
+#'   value, it would be sensible to keep it above 0.5.
+#'
 #' @seealso \code{\link{plot.psFit}}, \code{\link{print.psFit}},
 #'   \code{\link{probfun}}.
 #'
@@ -70,11 +75,19 @@
 #' fit = fitDist(p)
 #' fit
 fitDist = function(x, nterms = 10,
-                   start = runif(1),
+                   start = runif(1, 0.5, 1),
                    ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
     stop("x must be an object of class psData")
+  }
+
+  if(length(x$data$n) < 2){
+    if(x$type == "S"){
+      stop("There has to be at least one value higher than 1")
+    }else{
+      stop("There has to be at least one value higher than 0")
+    }
   }
 
   if(start <= 0){
@@ -98,11 +111,13 @@ fitDist = function(x, nterms = 10,
   #              objective = logLik,
   #              lower = 1)
 
-  fit = optim(par = start,
-              fn = logLik,
-              method = "L-BFGS-B",
-              lower = 0,
-              hessian = TRUE)
+  try({
+    fit = optim(par = start,
+                fn = logLik,
+                method = "L-BFGS-B",
+                lower = 0,
+                hessian = TRUE)
+  }, browser())
 
   shape = fit$par ## NOTE VGAM's dzeta is parameterised in terms of
                   ## s = alpha - 1. This has consequences in the formula below

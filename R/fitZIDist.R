@@ -1,5 +1,5 @@
 fitZIDist = function(x, nterms = 10,
-                   start = c(0, 0) + runif(2),
+                   start = c(0, 0.5) + runif(2),
                    ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
@@ -50,7 +50,7 @@ fitZIDist = function(x, nterms = 10,
               upper  = c(1 - .Machine$double.eps, Inf),
               hessian = TRUE)
 
-  fitted = d.one.inflated.zeta(nvals, shape = shape, p = fit$par[1])
+  fitted = d.one.inflated.zeta(nvals, shape = fit$par[2], p = fit$par[1])
   names(fitted) = if(x$type == 'P'){
     paste0("P", nvals - 1)
   }else{

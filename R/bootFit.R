@@ -25,7 +25,7 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
 
   ## just evaluate the progress bar options once instead of calling it everywhere
   if(progressBar){
-    obp = do.call(get("pboptions", asNamespace("pbapply")), pbopts)
+    opb = do.call(get("pboptions", asNamespace("pbapply")), pbopts)
     on.exit(pbapply::pboptions(opb))
   }
 
@@ -69,7 +69,7 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
           return(c(fit$pi, fit$shape))
         })
       }
-      results = do.call("rbind", results)
+      results = as.data.frame(do.call("rbind", results))
       names(results) = c("pi", "shape")
     }
     parallel::stopCluster(cl)
@@ -101,7 +101,7 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
           return(c(fit$pi, fit$shape))
         })
       }
-      results = do.call("rbind", results)
+      results = as.data.frame(do.call("rbind", results))
       names(results) = c("pi", "shape")
     }
   }

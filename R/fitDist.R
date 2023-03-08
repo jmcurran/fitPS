@@ -104,7 +104,8 @@ fitDist = function(x, nterms = 10,
             }
 
   logLik = function(shape){
-    -sum(VGAM::dzeta(rep(obsData, x$data$rn), shape = shape, log = TRUE))
+    #-sum(VGAM::dzeta(rep(obsData, x$data$rn), shape = shape, log = TRUE))
+    -sum(x$data$rn * VGAM::dzeta(obsData, shape = shape, log = TRUE))
   }
 
   # fit = nlminb(start = start,

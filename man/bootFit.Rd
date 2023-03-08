@@ -2,10 +2,20 @@
 % Please edit documentation in R/bootFit.R
 \name{bootFit}
 \alias{bootFit}
-\title{importFrom pbapply pblapply pbsapply}
+\title{importFrom pbapply pblapply pbsapply pboptions
+importFrom parallel detectCores makeCluster parApply, parLapply parSapply stopCluster}
 \usage{
-bootFit(x, B = 2000, model = c("zeta", "zi.zeta"), progress.bar = FALSE)
+bootFit(
+  x,
+  B = 2000,
+  model = c("zeta", "zi.zeta"),
+  silent = FALSE,
+  parallel = TRUE,
+  progressBar = FALSE,
+  pbopts = list(type = "txt")
+)
 }
 \description{
-importFrom pbapply pblapply pbsapply
+importFrom pbapply pblapply pbsapply pboptions
+importFrom parallel detectCores makeCluster parApply, parLapply parSapply stopCluster
 }

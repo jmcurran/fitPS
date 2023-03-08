@@ -4,7 +4,7 @@
 \alias{fitDist}
 \title{Fit a Zeta Distribution to Forensic Data}
 \usage{
-fitDist(x, nterms = 10, start = runif(1), ...)
+fitDist(x, nterms = 10, start = runif(1, 0.5, 1), ...)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from
@@ -61,6 +61,11 @@ the fitted distribution.}}
   printed value is \eqn{s = s^\prime + 1}{s = s' + 1}. If you intend to use
   the fitted value with \code{\link[VGAM]{dzeta}}, then you should use the
   stored value \eqn{s^\prime}{s'}.
+
+  If \code{start} is not specified, then it is chosen randomly from (0.5, 1).
+  The reason the lower value is not zero is that small starting values seem
+  to cause instability in the likelihood. If you specify your own starting
+  value, it would be sensible to keep it above 0.5.
 }
 \examples{
 p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))

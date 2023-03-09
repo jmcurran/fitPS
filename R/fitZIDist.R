@@ -1,5 +1,5 @@
 fitZIDist.old = function(x, nterms = 10,
-                   start = c(0, 0.5) + runif(2),
+                   start = c(0.5, 1),
                    ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
@@ -74,7 +74,7 @@ fitZIDist.old = function(x, nterms = 10,
 }
 
 fitZIDist = function(x, nterms = 10,
-                     start = c(0, 0.5) + runif(2),
+                     start = c(0.5, 1),
                      ...){
   nvals = 1:nterms
   if(!is(x, "psData")){

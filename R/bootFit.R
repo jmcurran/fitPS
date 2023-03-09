@@ -8,13 +8,14 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
   yvals = rep(x$data$n, x$data$rn)
   n = length(yvals)
 
-  to.psData = function(y){
+  to.psData = function(y, type){
     tbl = table(y)
     counts = as.vector(tbl)
 
-    r = x
-    r$data = data.frame(n =  as.numeric(names(tbl)),
-                        rn =  counts)
+    r = list(data = data.frame(n =  as.numeric(names(tbl)),
+                               rn =  counts))
+    r$type = type
+    class(r) = "psData"
 
     return(r)
   }
@@ -38,9 +39,9 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
     }
 
     boot.y = if(progressBar){
-      pbapply::pbapply(X = boot.y, MARGIN = 1, FUN = to.psData, cl = cl)
+      pbapply::pbapply(X = boot.y, MARGIN = 1, FUN = to.psData, type = x$type, cl = cl)
     }else{
-      parallel::parApply(cl = cl, X = boot.y, MARGIN = 1, FUN = to.psData)
+      parallel::parApply(cl = cl, X = boot.y, MARGIN = 1, FUN = to.psData, type = x$type)
     }
 
     if(!silent){
@@ -75,9 +76,9 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
     parallel::stopCluster(cl)
   }else{
     boot.y = if(progressBar){
-        pbapply::apply(boot.y, 1, to.psData)
+        pbapply::pbapply(boot.y, 1, to.psData, type = x$type)
       }else{
-        apply(boot.y, 1, to.psData)
+        apply(boot.y, 1, to.psData, type = x$type)
       }
     if(model == "zeta"){
       results = if(progressBar){

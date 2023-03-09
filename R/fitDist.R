@@ -75,7 +75,7 @@
 #' fit = fitDist(p)
 #' fit
 fitDist = function(x, nterms = 10,
-                   start = runif(1, 0.5, 1),
+                   start = 1,
                    ...){
   nvals = 1:nterms
   if(!is(x, "psData")){

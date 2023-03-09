@@ -2,8 +2,10 @@
 % Please edit documentation in R/bootFit.R
 \name{bootFit}
 \alias{bootFit}
-\title{importFrom pbapply pblapply pbsapply pboptions
-importFrom parallel detectCores makeCluster parApply, parLapply parSapply stopCluster}
+\title{importFrom doParallel regusterDoParallel
+import foreach
+importFrom pbapply pblapply pbsapply pboptions
+importFrom parallel detectCores makeCluster parApply parLapply parSapply stopCluster}
 \usage{
 bootFit(
   x,
@@ -16,6 +18,8 @@ bootFit(
 )
 }
 \description{
+importFrom doParallel regusterDoParallel
+import foreach
 importFrom pbapply pblapply pbsapply pboptions
-importFrom parallel detectCores makeCluster parApply, parLapply parSapply stopCluster
+importFrom parallel detectCores makeCluster parApply parLapply parSapply stopCluster
 }

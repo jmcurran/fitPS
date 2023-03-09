@@ -1,5 +1,7 @@
+#' importFrom doParallel regusterDoParallel
+#' import foreach
 #' importFrom pbapply pblapply pbsapply pboptions
-#' importFrom parallel detectCores makeCluster parApply, parLapply parSapply stopCluster
+#' importFrom parallel detectCores makeCluster parApply parLapply parSapply stopCluster
 bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
                    silent = FALSE,
                    parallel = TRUE,
@@ -33,6 +35,7 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
   if(parallel){
     ncores = parallel::detectCores()
     cl = parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
 
     if(!silent){
       cat("Creating bootstrapped data sets\n")
@@ -41,7 +44,8 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
     boot.y = if(progressBar){
       pbapply::pbapply(X = boot.y, MARGIN = 1, FUN = to.psData, type = x$type, cl = cl)
     }else{
-      parallel::parApply(cl = cl, X = boot.y, MARGIN = 1, FUN = to.psData, type = x$type)
+      ##parallel::parApply(cl = cl, X = boot.y, MARGIN = 1, FUN = to.psData, type = x$type)
+      foreach(i = 1:nrow(boot.y)) %dopar% to.psData(boot.y[i,], type = x$type)
     }
 
     if(!silent){
@@ -54,9 +58,13 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
           fitDist(y)$shape
         }, cl = cl)
       }else{
-        parallel::parSapply(cl = cl, X = boot.y, FUN = function(y){
-          fitDist(y)$shape
-        })
+        # parallel::parSapply(cl = cl, X = boot.y, FUN = function(y){
+        #   fitDist(y)$shape
+        # })
+        foreach(i = seq_along(boot.y), .combine = 'c') %dopar% {
+          r = fitDist(boot.y[[i]])
+          r$shape
+        }
       }
     }else{
       results = if(progressBar){
@@ -65,10 +73,14 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
           return(c(fit$pi, fit$shape))
         }, cl = cl)
       }else{
-        parallel::parLapply(cl = cl, X = boot.y, fun  = function(y){
-          fit = fitZIDist(y)
-          return(c(fit$pi, fit$shape))
-        })
+        # parallel::parLapply(cl = cl, X = boot.y, fun  = function(y){
+        #   fit = fitZIDist(y)
+        #   return(c(fit$pi, fit$shape))
+        # })
+        foreach(i = seq_along(boot.y)) %dopar% {
+          fit = fitZIDist(boot.y[[i]])
+          c(fit$pi, fit$shape)
+        }
       }
       results = as.data.frame(do.call("rbind", results))
       names(results) = c("pi", "shape")

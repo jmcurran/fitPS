@@ -46,7 +46,7 @@ plot.psFit = function(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95,
   labels = gsub("(P|S)", "", names(x$fitted))
 
   if(!log.scale){
-    b = barplot(xvals,
+    b = barplot(x$fitted,
                 names.arg = labels,
                 ylab = "Probability",
                 xlab = "n",

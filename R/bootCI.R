@@ -1,7 +1,32 @@
+#' Bootstrap confidence intervals or regions
+#'
+#' Use boostrapping to generate confidence intervals, or
+#' confidence regions in the case of the zero-inflated model
+#'
+#' @param x a object of class \code{psFit}---see \code{\link{readDta}} for more
+#' details.
+#' @param B the number of bootstrap samples to take.
+#' @param model which model to fit to the data, either \code{"zeta"} or
+#' \code{"zi.zeta}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default is
+#' \code{"zeta"}.
+#' @param level the confidence level required---restricted to [0.75, 1)
+#'
 #' importFrom doParallel regusterDoParallel
 #' import foreach
 #' importFrom pbapply pblapply pbsapply pboptions
 #' importFrom parallel detectCores makeCluster parApply parLapply parSapply stopCluster
+bootCI = function(x,
+                  level = 0.95,
+                  B = 2000,
+                  model = c("zeta", "zi.zeta"),
+                  silent = FALSE,
+                  parallel = TRUE,
+                  progressBar = FALSE,
+                  pbopts = list(type = "txt"){
+
+}
+
+
 bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
                    silent = FALSE,
                    parallel = TRUE,

@@ -22,6 +22,8 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
     return(r)
   }
 
+  environment(to.psData) = baseenv()
+
   boot.y = matrix(sample(yvals, n * B, replace = TRUE), nrow = B)
 
   model = match.arg(model)

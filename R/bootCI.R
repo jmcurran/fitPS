@@ -11,15 +11,22 @@
 #' \code{"zeta"}.
 #' @param level the confidence level required---restricted to [0.75, 1)
 #'
+#' A smoothed bootstrap approach is taken rather than a simple percentile method.
+#' The kernel density estimation is performed by the \code{ks} package using a smoothed
+#' cross-validated bandwidth selection procedure.
+#'
 #' importFrom doParallel registerDoParallel
 #' import foreach
+#' importFrom ks contourLevels kcde kde Hscv
 #' importFrom pbapply pblapply pbsapply pboptions
 #' importFrom parallel detectCores makeCluster parApply parLapply parSapply stopCluster
+#' importFrom stats approxfun
 bootCI = function(x,
                   level = 0.95,
                   B = 2000,
                   model = c("zeta", "zi.zeta"),
                   silent = FALSE,
+                  plot = FALSE,
                   parallel = FALSE,
                   progressBar = FALSE,
                   pbopts = list(type = "txt")){
@@ -27,8 +34,8 @@ bootCI = function(x,
   psData = x$data
   model = match.arg(model)
 
-  if(level < 0.75 || level >= 1){
-    stop("level must be a value between 0.75 and 1 (not inclusive).")
+  if(any(level < 0.75 | level >= 1)){
+    stop("The entries level must be values between 0.75 and 1 (not inclusive).")
   }
 
   fit = bootFit(x = psData,
@@ -39,10 +46,21 @@ bootCI = function(x,
                 progressBar = progressBar,
                 pbopts = pbopts)
 
-  if(model == "zeta"){
+  ## estimate bandwidth
+  H = Hscv(fit)
 
+
+  if(model == "zeta"){
+    fhat = ks::kcde(fit, H) ## computes the CDF based on the KDE
+    Fx = approxfun(fhat$eval.points, fhat$estimate)
+
+    alpha2 = 0.5 * (1 - level)
+    ci = c(Fx(alpha2), Fx(1 - alpha2))
+    names(ci) = c("lower", "upper")
+    return(ci)
   }else{
-    fhat = ks
+    fhat = ks::kde(fit, H)
+    confRegion = ks::contourLevels(fhat, prob = level)
   }
 
 

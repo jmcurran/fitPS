@@ -1,26 +1,58 @@
 #' Bootstrap confidence intervals or regions
 #'
-#' Use boostrapping to generate confidence intervals, or
-#' confidence regions in the case of the zero-inflated model
+#' Use boostrapping to generate confidence intervals, or confidence regions in
+#' the case of the zero-inflated model.
 #'
 #' @param x a object of class \code{psFit}---see \code{\link{readDta}} for more
-#' details.
+#'   details.
+#' @param level the confidence level required---restricted to [0.75, 1). This
+#'   may be a vector, in which case multiple intervals, or confidence regions
+#'   will be returned.
 #' @param B the number of bootstrap samples to take.
 #' @param model which model to fit to the data, either \code{"zeta"} or
-#' \code{"zi.zeta}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default is
-#' \code{"zeta"}.
-#' @param level the confidence level required---restricted to [0.75, 1)
+#'   \code{"zi.zeta"}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default
+#'   is \code{"zeta"}.
+#' @param silent if \code{TRUE} then no output will be displayed whilst the
+#'   bootstrapping is being undertaken. \code{plot} if \code{TRUE} then the
+#'   contours for the confidence region will be plotted. This only works if
+#'   \code{model = "zi.zeta"}. It is ignored otherwise. \code{parallel} if
+#'   \code{TRUE} then the bootstrapping is performed in parallel. This is
+#'   currently \code{FALSE} by default because, for reasons I do not understand,
+#'   the parallel code is slower than the sequential code.
+#' @param progressBar if \code{TRUE} then progress bars will be displayed to
+#'   show progress on the bootstrapping.
+#' @param pbopts a list of arguments for the \code{\link[pbapply]{pboptions}}
+#'   function that affect the progress bars. Ignored if \code{progressBar =
+#'   FALSE}.
 #'
-#' A smoothed bootstrap approach is taken rather than a simple percentile method.
-#' The kernel density estimation is performed by the \code{ks} package using a smoothed
-#' cross-validated bandwidth selection procedure.
+#' @details This function uses bootstrapping to compute a confidence interval
+#'   for the shape parameter in the case of the zeta model and a confidence
+#'   region in the case of the zero-inflated zeta model. A smoothed bootstrap
+#'   approach is taken rather than a simple percentile method. The kernel
+#'   density estimation is performed by the \code{ks} package using a smoothed
+#'   cross-validated bandwidth selection procedure. WARNING: although this
+#'   function does offer parallel computation, at this point in time it is
+#'   slower that sequential evaluation. Hopefully this will not be the case in the
+#'   future.
 #'
-#' importFrom doParallel registerDoParallel
-#' import foreach
-#' importFrom ks contourLevels kcde kde Hscv
-#' importFrom pbapply pblapply pbsapply pboptions
-#' importFrom parallel detectCores makeCluster parApply parLapply parSapply stopCluster
-#' importFrom stats approxfun
+#' @examples
+#' \dontrun{
+#' data(Psurveys)
+#' roux = Psurveys$roux
+#' confRegion = bootCI(roux, model = "zi.zeta", parallel = FALSE, plot = TRUE)
+#'
+#' ## This will not work unless you have the sp package installed
+#' ## Count how many of the points lie within the 95% confidence region
+#' table(sp::point.in.polygon(fit$pi,fit$shape, confRegion$pi, confRegion$shape))
+#' }
+#' @importFrom doParallel registerDoParallel
+#' @import foreach
+#' @importFrom ks contourLevels kcde kde Hscv
+#' @importFrom pbapply pblapply pbsapply pboptions
+#' @importFrom parallel detectCores makeCluster parApply parLapply parSapply
+#'   stopCluster
+#' @importFrom stats approxfun
+#' @export
 bootCI = function(x,
                   level = 0.95,
                   B = 2000,
@@ -47,7 +79,7 @@ bootCI = function(x,
                 pbopts = pbopts)
 
   ## estimate bandwidth
-  H = Hscv(fit)
+  H = ks::Hscv(fit)
 
 
   if(model == "zeta"){
@@ -60,10 +92,19 @@ bootCI = function(x,
     return(ci)
   }else{
     fhat = ks::kde(fit, H)
-    confRegion = ks::contourLevels(fhat, prob = level)
+    cont = 100 * (1 - level)
+    confRegion = contourLines(x = fhat$eval.points[[1]],
+                 y = fhat$eval.points[[2]],
+                 z = fhat$estimate, levels = ks::contourLevels(fhat, cont = cont, approx = TRUE))[[1]]
+
+    if(plot){
+      plot(fit, pch = 'x', colour = 'grey')
+      polygon(confRegion$x, confRegion$y, border = "red", lwd = 2)
+    }
+
+    names(confRegion) = c("pi", "shape")
+    return(confRegion)
   }
-
-
 }
 
 
@@ -154,11 +195,20 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
     }
     parallel::stopCluster(cl)
   }else{
+    if(!silent){
+      cat("Creating bootstrapped data sets\n")
+    }
+
     boot.y = if(progressBar){
         pbapply::pbapply(boot.y, 1, to.psData, type = x$type)
       }else{
         apply(boot.y, 1, to.psData, type = x$type)
       }
+
+    if(!silent){
+      cat("Estimating parameters for each bootstrapped data set\n")
+    }
+
     if(model == "zeta"){
       results = if(progressBar){
         pbapply::pbsapply(boot.y, function(y){

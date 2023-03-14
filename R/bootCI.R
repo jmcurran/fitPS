@@ -11,7 +11,7 @@
 #' \code{"zeta"}.
 #' @param level the confidence level required---restricted to [0.75, 1)
 #'
-#' importFrom doParallel regusterDoParallel
+#' importFrom doParallel registerDoParallel
 #' import foreach
 #' importFrom pbapply pblapply pbsapply pboptions
 #' importFrom parallel detectCores makeCluster parApply parLapply parSapply stopCluster
@@ -20,9 +20,31 @@ bootCI = function(x,
                   B = 2000,
                   model = c("zeta", "zi.zeta"),
                   silent = FALSE,
-                  parallel = TRUE,
+                  parallel = FALSE,
                   progressBar = FALSE,
-                  pbopts = list(type = "txt"){
+                  pbopts = list(type = "txt")){
+
+  psData = x$data
+  model = match.arg(model)
+
+  if(level < 0.75 || level >= 1){
+    stop("level must be a value between 0.75 and 1 (not inclusive).")
+  }
+
+  fit = bootFit(x = psData,
+                B = B,
+                model = model,
+                silent = silent,
+                parallel = parallel,
+                progressBar = progressBar,
+                pbopts = pbopts)
+
+  if(model == "zeta"){
+
+  }else{
+    fhat = ks
+  }
+
 
 }
 

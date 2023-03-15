@@ -41,6 +41,9 @@ show progress on the bootstrapping.}
 function that affect the progress bars. Ignored if \code{progressBar =
 FALSE}.}
 }
+\value{
+
+}
 \description{
 Use boostrapping to generate confidence intervals, or confidence regions in
 the case of the zero-inflated model.
@@ -53,8 +56,8 @@ This function uses bootstrapping to compute a confidence interval
   density estimation is performed by the \code{ks} package using a smoothed
   cross-validated bandwidth selection procedure. WARNING: although this
   function does offer parallel computation, at this point in time it is
-  slower that sequential evaluation. Hopefully this will not be the case in the
-  future.
+  slower that sequential evaluation. Hopefully this will not be the case in
+  the future.
 }
 \section{Methods (by class)}{
 \itemize{

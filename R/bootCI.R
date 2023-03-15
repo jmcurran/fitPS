@@ -43,7 +43,7 @@
 #'   list with length equal to the length of \code{level} is returned. The name
 #'   of each element in the list is the level with \code{%} attached. For
 #'   example if \code{level = 0.95}, then the list has a single element named
-#'   \code{`95%`}. Each element of the list consists of a \code{list} with
+#'   \code{"95%"}. Each element of the list consists of a \code{list} with
 #'   elements named \code{pi} and \code{shape} which specify the coordinates of
 #'   the contour for that level. There is a third element named \code{level} which
 #'   gives the height of the kernel density estimate at that contour.

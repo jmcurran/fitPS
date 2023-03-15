@@ -2,6 +2,8 @@
 
 S3method("==",psData)
 S3method(as.data.frame,psData)
+S3method(bootCI,psData)
+S3method(bootCI,psFit)
 S3method(confint,psFit)
 S3method(fitted,psData)
 S3method(plot,psFit)

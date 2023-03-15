@@ -2,22 +2,18 @@
 % Please edit documentation in R/bootCI.R
 \name{bootCI}
 \alias{bootCI}
+\alias{bootCI.psData}
+\alias{bootCI.psFit}
 \title{Bootstrap confidence intervals or regions}
 \usage{
-bootCI(
-  x,
-  level = 0.95,
-  B = 2000,
-  model = c("zeta", "zi.zeta"),
-  silent = FALSE,
-  plot = FALSE,
-  parallel = FALSE,
-  progressBar = FALSE,
-  pbopts = list(type = "txt")
-)
+bootCI(x, ...)
+
+\method{bootCI}{psData}(x, ...)
+
+\method{bootCI}{psFit}(x, ...)
 }
 \arguments{
-\item{x}{a object of class \code{psFit}---see \code{\link{readDta}} for more
+\item{x}{a object of class \code{psFit}---see \code{\link{readData}} for more
 details.}
 
 \item{level}{the confidence level required---restricted to [0.75, 1). This
@@ -60,6 +56,13 @@ This function uses bootstrapping to compute a confidence interval
   slower that sequential evaluation. Hopefully this will not be the case in the
   future.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{bootCI(psData)}: Bootstrap confidence intervals or regions
+
+\item \code{bootCI(psFit)}: Bootstrap confidence intervals or regions
+
+}}
 \examples{
 \dontrun{
 data(Psurveys)

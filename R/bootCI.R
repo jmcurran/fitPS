@@ -3,7 +3,7 @@
 #' Use boostrapping to generate confidence intervals, or confidence regions in
 #' the case of the zero-inflated model.
 #'
-#' @param x a object of class \code{psFit}---see \code{\link{readDta}} for more
+#' @param x a object of class \code{psFit}---see \code{\link{readData}} for more
 #'   details.
 #' @param level the confidence level required---restricted to [0.75, 1). This
 #'   may be a vector, in which case multiple intervals, or confidence regions
@@ -32,8 +32,21 @@
 #'   density estimation is performed by the \code{ks} package using a smoothed
 #'   cross-validated bandwidth selection procedure. WARNING: although this
 #'   function does offer parallel computation, at this point in time it is
-#'   slower that sequential evaluation. Hopefully this will not be the case in the
-#'   future.
+#'   slower that sequential evaluation. Hopefully this will not be the case in
+#'   the future.
+#'
+#' @returns If \code{model == "zeta"}, then either a \code{vector} or a
+#'   \code{data.frame} with elements/columns named \code{"lower"} and
+#'   \code{"upper"} representing the lower and upper bounds of the confidence
+#'   interval(s). Multiple bounds are returned in a \code{data.frame} when
+#'   \code{level} has more than one value. If \code{model == "zi.zeta"} then a
+#'   list with length equal to the length of \code{level} is returned. The name
+#'   of each element in the list is the level with \code{%} attached. For
+#'   example if \code{level = 0.95}, then the list has a single element named
+#'   \code{`95%`}. Each element of the list consists of a \code{list} with
+#'   elements named \code{pi} and \code{shape} which specify the coordinates of
+#'   the contour for that level. There is a third element named \code{level} which
+#'   gives the height of the kernel density estimate at that contour.
 #'
 #' @examples
 #' \dontrun{
@@ -53,24 +66,27 @@
 #'   stopCluster
 #' @importFrom stats approxfun
 #' @export
-bootCI = function(x,
-                  level = 0.95,
-                  B = 2000,
-                  model = c("zeta", "zi.zeta"),
-                  silent = FALSE,
-                  plot = FALSE,
-                  parallel = FALSE,
-                  progressBar = FALSE,
-                  pbopts = list(type = "txt")){
+bootCI = function(x, ...){
+  UseMethod("bootCI", x)
+}
 
-  psData = x$data
+bootCI.default = function(x,
+                          level = 0.95,
+                          B = 2000,
+                          model = c("zeta", "zi.zeta"),
+                          silent = FALSE,
+                          plot = FALSE,
+                          parallel = FALSE,
+                          progressBar = FALSE,
+                          pbopts = list(type = "txt")){
+
   model = match.arg(model)
 
   if(any(level < 0.75 | level >= 1)){
     stop("The entries level must be values between 0.75 and 1 (not inclusive).")
   }
 
-  fit = bootFit(x = psData,
+  fit = bootFit(x = x,
                 B = B,
                 model = model,
                 silent = silent,
@@ -86,23 +102,37 @@ bootCI = function(x,
     fhat = ks::kcde(fit, H) ## computes the CDF based on the KDE
     Fx = approxfun(fhat$eval.points, fhat$estimate)
 
-    alpha2 = 0.5 * (1 - level)
-    ci = c(Fx(alpha2), Fx(1 - alpha2))
-    names(ci) = c("lower", "upper")
+    if(length(level) == 1){
+      alpha2 = 0.5 * (1 - level)
+      ci = c(Fx(alpha2), Fx(1 - alpha2))
+      names(ci) = c("lower", "upper")
+    }else{
+      level = sort(level)
+      alpha2 = 0.5 * (1 - level)
+      ci = data.frame(lower = Fx(alpha2),
+                      upper = Fx(1 - alpha2))
+    }
     return(ci)
   }else{
     fhat = ks::kde(fit, H)
-    cont = 100 * (1 - level)
+    cont = sort(100 * level)
     confRegion = contourLines(x = fhat$eval.points[[1]],
                  y = fhat$eval.points[[2]],
-                 z = fhat$estimate, levels = ks::contourLevels(fhat, cont = cont, approx = TRUE))[[1]]
+                 z = fhat$estimate, levels = ks::contourLevels(fhat, cont = cont, approx = TRUE))
+    names(confRegion) = paste0(cont,"%")
+    confRegion = lapply(confRegion, function(l){
+      names(l)[2:3] = c("pi", "shape")
+      return(l)
+    })
 
     if(plot){
-      plot(fit, pch = 'x', colour = 'grey')
-      polygon(confRegion$x, confRegion$y, border = "red", lwd = 2)
+      plot(fit, pch = 'x', col = 'grey')
+      for(cr in seq_along(confRegion)){
+        polygon(confRegion[[cr]]$pi, confRegion[[cr]]$shape, border = "red", lwd = 2)
+      }
     }
 
-    names(confRegion) = c("pi", "shape")
+    #names(confRegion) = c("pi", "shape")
     return(confRegion)
   }
 }
@@ -238,3 +268,16 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
 
   return(results)
 }
+
+#' @describeIn bootCI Bootstrap confidence intervals or regions
+#' @export
+bootCI.psData = function(x, ...){
+  return(bootCI.default(x = x, ...))
+}
+
+#' @describeIn bootCI Bootstrap confidence intervals or regions
+#' @export
+bootCI.psFit = function(x, ...){
+  return(bootCI.default(x = x$data, ...))
+}
+

@@ -8,12 +8,17 @@
 #' @return No return value, called for side effects
 #' @export
 print.psData = function(x, ...){
-  print(knitr::kable(x$data, format = "simple"), ...)
-  if(x$type == "P"){
-    cat("\nNumber of Groups\n\n")
-  }else{
-    cat("\nGroup Size\n\n")
-  }
+  kbl = knitr::kable(x$data, format = "simple",
+                     label = NA,
+                     caption = ifelse(x$type == "P",
+                                "Number of Groups",
+                                "Group Size")
+                    )
+
+  kbl[1] = gsub("^Table[:] +(.*$)", "\\1", kbl[1])
+
+  print(kbl, ...)
+
   if(!is.null(x$notes)){
     print(x$notes, ...)
   }

@@ -39,11 +39,11 @@
 #'   \code{data.frame} with elements/columns named \code{"lower"} and
 #'   \code{"upper"} representing the lower and upper bounds of the confidence
 #'   interval(s). Multiple bounds are returned in a \code{data.frame} when
-#'   \code{level} has more than one value. If \code{model == "zi.zeta"} then a
+#'   \code{level} has more than one value. If \code{model == "zi.zeta"}, then a
 #'   list with length equal to the length of \code{level} is returned. The name
-#'   of each element in the list is the level with \code{%} attached. For
-#'   example if \code{level = 0.95}, then the list has a single element named
-#'   \code{"95%"}. Each element of the list consists of a \code{list} with
+#'   of each element in the list is the level with % attached. For
+#'   example if \code{level == 0.95}, then the list has a single element named
+#'   \code{"95\%"}. Each element of the list consists of a \code{list} with
 #'   elements named \code{pi} and \code{shape} which specify the coordinates of
 #'   the contour for that level. There is a third element named \code{level} which
 #'   gives the height of the kernel density estimate at that contour.
@@ -118,7 +118,8 @@ bootCI.default = function(x,
     cont = sort(100 * level)
     confRegion = contourLines(x = fhat$eval.points[[1]],
                  y = fhat$eval.points[[2]],
-                 z = fhat$estimate, levels = ks::contourLevels(fhat, cont = cont, approx = TRUE))
+                 z = fhat$estimate,
+                 levels = ks::contourLevels(fhat, cont = cont, approx = TRUE))
     names(confRegion) = paste0(cont,"%")
     confRegion = lapply(confRegion, function(l){
       names(l)[2:3] = c("pi", "shape")
@@ -278,6 +279,6 @@ bootCI.psData = function(x, ...){
 #' @describeIn bootCI Bootstrap confidence intervals or regions
 #' @export
 bootCI.psFit = function(x, ...){
-  return(bootCI.default(x = x$data, ...))
+  return(bootCI.default(x = x$psData, ...))
 }
 

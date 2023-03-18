@@ -2,11 +2,25 @@
 % Please edit documentation in R/bootCI.R
 \name{bootCI}
 \alias{bootCI}
+\alias{bootCI.default}
 \alias{bootCI.psData}
 \alias{bootCI.psFit}
 \title{Bootstrap confidence intervals or regions}
 \usage{
 bootCI(x, ...)
+
+\method{bootCI}{default}(
+  x,
+  level = 0.95,
+  B = 2000,
+  model = c("zeta", "zi.zeta"),
+  silent = FALSE,
+  plot = FALSE,
+  parallel = TRUE,
+  progressBar = FALSE,
+  pbopts = list(type = "txt"),
+  ...
+)
 
 \method{bootCI}{psData}(x, ...)
 
@@ -15,6 +29,8 @@ bootCI(x, ...)
 \arguments{
 \item{x}{a object of class \code{psFit}---see \code{\link{readData}} for more
 details.}
+
+\item{...}{other arguments.}
 
 \item{level}{the confidence level required---restricted to [0.75, 1). This
 may be a vector, in which case multiple intervals, or confidence regions
@@ -26,15 +42,20 @@ will be returned.}
 \code{"zi.zeta"}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default
 is \code{"zeta"}.}
 
-\item{silent}{if \code{TRUE} then no output will be displayed whilst the
+\item{silent}{if \code{TRUE}, then no output will be displayed whilst the
 bootstrapping is being undertaken. \code{plot} if \code{TRUE} then the
 contours for the confidence region will be plotted. This only works if
 \code{model = "zi.zeta"}. It is ignored otherwise. \code{parallel} if
-\code{TRUE} then the bootstrapping is performed in parallel. This is
-currently \code{FALSE} by default because, for reasons I do not understand,
-the parallel code is slower than the sequential code.}
+\code{TRUE} then the bootstrapping is performed in parallel.}
 
-\item{progressBar}{if \code{TRUE} then progress bars will be displayed to
+\item{plot}{if \code{TRUE} and \code{model == "zi.zeta"}, then a plot of the
+bootstrapped values will be produced and confidence contour lines will be
+drawn for each value in level.}
+
+\item{parallel}{if \code{TRUE}, then the package will attempt to use multiple
+cores to speed up computation.}
+
+\item{progressBar}{if \code{TRUE}, then progress bars will be displayed to
 show progress on the bootstrapping.}
 
 \item{pbopts}{a list of arguments for the \code{\link[pbapply]{pboptions}}
@@ -48,12 +69,12 @@ If \code{model == "zeta"}, then either a \code{vector} or a
   interval(s). Multiple bounds are returned in a \code{data.frame} when
   \code{level} has more than one value. If \code{model == "zi.zeta"}, then a
   list with length equal to the length of \code{level} is returned. The name
-  of each element in the list is the level with % attached. For
-  example if \code{level == 0.95}, then the list has a single element named
+  of each element in the list is the level with % attached. For example if
+  \code{level == 0.95}, then the list has a single element named
   \code{"95\%"}. Each element of the list consists of a \code{list} with
   elements named \code{pi} and \code{shape} which specify the coordinates of
-  the contour for that level. There is a third element named \code{level} which
-  gives the height of the kernel density estimate at that contour.
+  the contour for that level. There is a third element named \code{level}
+  which gives the height of the kernel density estimate at that contour.
 }
 \description{
 Use boostrapping to generate confidence intervals, or confidence regions in
@@ -65,13 +86,12 @@ This function uses bootstrapping to compute a confidence interval
   region in the case of the zero-inflated zeta model. A smoothed bootstrap
   approach is taken rather than a simple percentile method. The kernel
   density estimation is performed by the \code{ks} package using a smoothed
-  cross-validated bandwidth selection procedure. WARNING: although this
-  function does offer parallel computation, at this point in time it is
-  slower that sequential evaluation. Hopefully this will not be the case in
-  the future.
+  cross-validated bandwidth selection procedure.
 }
 \section{Methods (by class)}{
 \itemize{
+\item \code{bootCI(default)}: Bootstrap confidence intervals or regions
+
 \item \code{bootCI(psData)}: Bootstrap confidence intervals or regions
 
 \item \code{bootCI(psFit)}: Bootstrap confidence intervals or regions

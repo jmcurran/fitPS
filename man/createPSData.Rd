@@ -25,6 +25,6 @@ an object of class \code{psData}. See \code{\link{readData}} for more
 A mechanism for manually creating P or S data sets for use with fitDist.
 }
 \examples{
-p = createData(0:2, c(98, 1, 1), type = "P")
+p = createPSData(0:2, c(98, 1, 1), type = "P")
 p
 }

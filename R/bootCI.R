@@ -12,28 +12,29 @@
 #' @param model which model to fit to the data, either \code{"zeta"} or
 #'   \code{"zi.zeta"}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default
 #'   is \code{"zeta"}.
-#' @param silent if \code{TRUE} then no output will be displayed whilst the
+#' @param silent if \code{TRUE}, then no output will be displayed whilst the
 #'   bootstrapping is being undertaken. \code{plot} if \code{TRUE} then the
 #'   contours for the confidence region will be plotted. This only works if
 #'   \code{model = "zi.zeta"}. It is ignored otherwise. \code{parallel} if
-#'   \code{TRUE} then the bootstrapping is performed in parallel. This is
-#'   currently \code{FALSE} by default because, for reasons I do not understand,
-#'   the parallel code is slower than the sequential code.
-#' @param progressBar if \code{TRUE} then progress bars will be displayed to
+#'   \code{TRUE} then the bootstrapping is performed in parallel.
+#' @param plot if \code{TRUE} and \code{model == "zi.zeta"}, then a plot of the
+#'   bootstrapped values will be produced and confidence contour lines will be
+#'   drawn for each value in level.
+#' @param parallel if \code{TRUE}, then the package will attempt to use multiple
+#'   cores to speed up computation.
+#' @param progressBar if \code{TRUE}, then progress bars will be displayed to
 #'   show progress on the bootstrapping.
 #' @param pbopts a list of arguments for the \code{\link[pbapply]{pboptions}}
 #'   function that affect the progress bars. Ignored if \code{progressBar =
 #'   FALSE}.
+#' @param ... other arguments.
 #'
 #' @details This function uses bootstrapping to compute a confidence interval
 #'   for the shape parameter in the case of the zeta model and a confidence
 #'   region in the case of the zero-inflated zeta model. A smoothed bootstrap
 #'   approach is taken rather than a simple percentile method. The kernel
 #'   density estimation is performed by the \code{ks} package using a smoothed
-#'   cross-validated bandwidth selection procedure. WARNING: although this
-#'   function does offer parallel computation, at this point in time it is
-#'   slower that sequential evaluation. Hopefully this will not be the case in
-#'   the future.
+#'   cross-validated bandwidth selection procedure.
 #'
 #' @returns If \code{model == "zeta"}, then either a \code{vector} or a
 #'   \code{data.frame} with elements/columns named \code{"lower"} and
@@ -41,12 +42,12 @@
 #'   interval(s). Multiple bounds are returned in a \code{data.frame} when
 #'   \code{level} has more than one value. If \code{model == "zi.zeta"}, then a
 #'   list with length equal to the length of \code{level} is returned. The name
-#'   of each element in the list is the level with % attached. For
-#'   example if \code{level == 0.95}, then the list has a single element named
+#'   of each element in the list is the level with % attached. For example if
+#'   \code{level == 0.95}, then the list has a single element named
 #'   \code{"95\%"}. Each element of the list consists of a \code{list} with
 #'   elements named \code{pi} and \code{shape} which specify the coordinates of
-#'   the contour for that level. There is a third element named \code{level} which
-#'   gives the height of the kernel density estimate at that contour.
+#'   the contour for that level. There is a third element named \code{level}
+#'   which gives the height of the kernel density estimate at that contour.
 #'
 #' @examples
 #' \dontrun{
@@ -60,6 +61,9 @@
 #' }
 #' @importFrom doParallel registerDoParallel
 #' @import foreach
+#' @importFrom grDevices contourLines
+#' @importFrom graphics polygon
+#' @importFrom iterators iter
 #' @importFrom ks contourLevels kcde kde Hscv
 #' @importFrom pbapply pblapply pbsapply pboptions
 #' @importFrom parallel detectCores makeCluster parApply parLapply parSapply
@@ -70,15 +74,18 @@ bootCI = function(x, ...){
   UseMethod("bootCI", x)
 }
 
+#' @describeIn bootCI Bootstrap confidence intervals or regions
+#' @export
 bootCI.default = function(x,
                           level = 0.95,
                           B = 2000,
                           model = c("zeta", "zi.zeta"),
                           silent = FALSE,
                           plot = FALSE,
-                          parallel = FALSE,
+                          parallel = TRUE,
                           progressBar = FALSE,
-                          pbopts = list(type = "txt")){
+                          pbopts = list(type = "txt"),
+                          ...){
 
   model = match.arg(model)
 
@@ -94,26 +101,29 @@ bootCI.default = function(x,
                 progressBar = progressBar,
                 pbopts = pbopts)
 
-  ## estimate bandwidth
-  H = ks::Hscv(fit)
-
 
   if(model == "zeta"){
-    fhat = ks::kcde(fit, H) ## computes the CDF based on the KDE
-    Fx = approxfun(fhat$eval.points, fhat$estimate)
+    ## estimate bandwidth
+    h = ks::hscv(fit)
+
+    fhat = ks::kcde(fit, h) ## computes the CDF based on the KDE
+    FxInv = approxfun(fhat$estimate, fhat$eval.points)
 
     if(length(level) == 1){
       alpha2 = 0.5 * (1 - level)
-      ci = c(Fx(alpha2), Fx(1 - alpha2))
+      ci = c(FxInv(alpha2), FxInv(1 - alpha2))
       names(ci) = c("lower", "upper")
     }else{
       level = sort(level)
       alpha2 = 0.5 * (1 - level)
-      ci = data.frame(lower = Fx(alpha2),
-                      upper = Fx(1 - alpha2))
+      ci = data.frame(lower = FxInv(alpha2),
+                      upper = FxInv(1 - alpha2))
     }
     return(ci)
   }else{
+    ## estimate bandwidth
+    H = ks::Hscv(fit)
+
     fhat = ks::kde(fit, H)
     cont = sort(100 * level)
     confRegion = contourLines(x = fhat$eval.points[[1]],
@@ -138,6 +148,17 @@ bootCI.default = function(x,
   }
 }
 
+#' @describeIn bootCI Bootstrap confidence intervals or regions
+#' @export
+bootCI.psData = function(x, ...){
+  return(bootCI.default(x = x, ...))
+}
+
+#' @describeIn bootCI Bootstrap confidence intervals or regions
+#' @export
+bootCI.psFit = function(x, ...){
+  return(bootCI.default(x = x$psData, ...))
+}
 
 bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
                    silent = FALSE,
@@ -184,7 +205,7 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
       pbapply::pbapply(X = boot.y, MARGIN = 1, FUN = to.psData, type = x$type, cl = cl)
     }else{
       ##parallel::parApply(cl = cl, X = boot.y, MARGIN = 1, FUN = to.psData, type = x$type)
-      foreach(i = 1:nrow(boot.y)) %dopar% to.psData(boot.y[i,], type = x$type)
+      foreach(row = iterators::iter(boot.y, by = "row")) %dopar% {to.psData(row, type = x$type)}
     }
 
     if(!silent){
@@ -200,8 +221,8 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
         # parallel::parSapply(cl = cl, X = boot.y, FUN = function(y){
         #   fitDist(y)$shape
         # })
-        foreach(i = seq_along(boot.y), .combine = 'c') %dopar% {
-          r = fitDist(boot.y[[i]])
+        foreach(boot.x=boot.y, .combine = 'c') %dopar% {
+          r = fitDist(boot.x)
           r$shape
         }
       }
@@ -216,8 +237,8 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
         #   fit = fitZIDist(y)
         #   return(c(fit$pi, fit$shape))
         # })
-        foreach(i = seq_along(boot.y)) %dopar% {
-          fit = fitZIDist(boot.y[[i]])
+        foreach(boot.x=boot.y) %dopar% {
+          fit = fitZIDist(boot.x)
           c(fit$pi, fit$shape)
         }
       }
@@ -231,10 +252,10 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
     }
 
     boot.y = if(progressBar){
-        pbapply::pbapply(boot.y, 1, to.psData, type = x$type)
-      }else{
-        apply(boot.y, 1, to.psData, type = x$type)
-      }
+      pbapply::pbapply(boot.y, 1, to.psData, type = x$type)
+    }else{
+      apply(boot.y, 1, to.psData, type = x$type)
+    }
 
     if(!silent){
       cat("Estimating parameters for each bootstrapped data set\n")
@@ -268,17 +289,5 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
   }
 
   return(results)
-}
-
-#' @describeIn bootCI Bootstrap confidence intervals or regions
-#' @export
-bootCI.psData = function(x, ...){
-  return(bootCI.default(x = x, ...))
-}
-
-#' @describeIn bootCI Bootstrap confidence intervals or regions
-#' @export
-bootCI.psFit = function(x, ...){
-  return(bootCI.default(x = x$psData, ...))
 }
 

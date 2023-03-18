@@ -13,7 +13,7 @@
 #'   details
 #'
 #' @examples
-#' p = createData(0:2, c(98, 1, 1), type = "P")
+#' p = createPSData(0:2, c(98, 1, 1), type = "P")
 #' p
 #' @export
 createPSData = function(n, rn, type = c("P", "S"), notes = NULL){

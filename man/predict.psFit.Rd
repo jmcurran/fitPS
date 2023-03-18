@@ -4,10 +4,16 @@
 \alias{predict.psFit}
 \title{S3 predict method for an object of class \code{psFit}}
 \usage{
-\method{predict}{psFit}(x, newdata, interval = c("none", "prof", "wald"), level = 0.95, ...)
+\method{predict}{psFit}(
+  object,
+  newdata,
+  interval = c("none", "prof", "wald"),
+  level = 0.95,
+  ...
+)
 }
 \arguments{
-\item{x}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
+\item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
 
 \item{newdata}{an optional vector of integers at which to calculate
 \eqn{\Pr(X = x)}{Pr(X = x)}}
@@ -39,5 +45,5 @@ S3 predict method for an object of class \code{psFit}
 data(Psurveys)
 roux = Psurveys$roux
 fit = fitDist(roux)
-predict(fit, interval = "conf")
+predict(fit, interval = "prof")
 }

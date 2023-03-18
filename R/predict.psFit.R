@@ -1,6 +1,6 @@
 #' S3 predict method for an object of class \code{psFit}
 #'
-#' @param x an object of class \code{psFit}, usually from \code{\link{fitDist}}
+#' @param object an object of class \code{psFit}, usually from \code{\link{fitDist}}
 #' @param newdata an optional vector of integers at which to calculate
 #'   \eqn{\Pr(X = x)}{Pr(X = x)}
 #' @param interval either \code{"none"}, \code{"prof"}, or \code{"wald"} and can
@@ -23,30 +23,31 @@
 #' data(Psurveys)
 #' roux = Psurveys$roux
 #' fit = fitDist(roux)
-#' predict(fit, interval = "conf")
+#' predict(fit, interval = "prof")
 #' @importFrom stats predict
-predict.psFit = function(x, newdata, interval = c("none", "prof", "wald"),
+#' @export
+predict.psFit = function(object, newdata, interval = c("none", "prof", "wald"),
                          level = 0.95, ...){
 
   interval = match.arg(interval)
   predicted = NULL
 
   if(missing(newdata)){
-    predicted = x$fitted
-    newdata = as.numeric(gsub("^(P|S)([0-9]+)$", "\\2", names(x$fitted)))
+    predicted = object$fitted
+    newdata = as.numeric(gsub("^(P|S)([0-9]+)$", "\\2", names(object$fitted)))
   }
 
   if(any(newdata - floor(newdata) > 0)){
     stop("newdata should only contain integers")
   }
 
-  if(x$psData$type == "S" && any(newdata <= 0)){
-    stop("Can only make predictions for size probabilities for values of x >= 1")
+  if(object$psData$type == "S" && any(newdata <= 0)){
+    stop("Can only make predictions for size probabilities for values of n >= 1")
   }
 
   if(is.null(predicted)){
-    predicted = VGAM::dzeta(newdata + ifelse(x$psData$type == "P", 1, 0),
-                            shape = x$shape)
+    predicted = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+                            shape = object$shape)
   }
 
   if(interval %in% c("prof", "wald")){
@@ -55,17 +56,17 @@ predict.psFit = function(x, newdata, interval = c("none", "prof", "wald"),
     }
 
     zstar = qnorm((1 - level) * 0.5, lower.tail = FALSE)
-    lwr = VGAM::dzeta(newdata + ifelse(x$psData$type == "P", 1, 0),
-                      shape = x$shape - zstar * sqrt(x$var.shape))
-    upr = VGAM::dzeta(newdata + ifelse(x$psData$type == "P", 1, 0),
-                      shape = x$shape + zstar * sqrt(x$var.shape))
+    lwr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+                      shape = object$shape - zstar * sqrt(object$var.shape))
+    upr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+                      shape = object$shape + zstar * sqrt(object$var.shape))
 
     results = data.frame(predicted = predicted, lower = lwr, upper = upr)
-    rownames(results) = paste0(x$psData$type, newdata)
+    rownames(results) = paste0(object$psData$type, newdata)
 
     return(results)
   }else{
-    names(predicted) = paste0(x$psData$type, newdata)
+    names(predicted) = paste0(object$psData$type, newdata)
     return(predicted)
   }
 }

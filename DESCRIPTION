@@ -1,7 +1,7 @@
 Package: fitPS
 Type: Package
 Title: Fit Zeta Distributions to Forensic Data 
-Version: 0.2-5
+Version: 0.2-6
 Date: 2023-03-18
 Authors@R: 
     person("James", "Curran", , "j.curran@auckland.ac.nz", role = c("aut", "cre"))

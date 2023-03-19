@@ -1,7 +1,8 @@
 #' S3 plot method for an object of class \code{psFit}
 #'
 #' @param x an object of class \code{psFit}, usually from \code{\link{fitDist}}
-#' @param ylim the limits of the y-axis
+#' or \code{\link{fitZIDist}}.
+#' @param ylim the limits of the y-axis.
 #' @param conf if \code{TRUE}, and the model is the the Zeta model (as opposed
 #' to the Zero-Inflated Zeta (ZIZ), then confidence intervals (based on the standard
 #'   error of the shape parameter) are drawn on the plot. If the ZIZ model has

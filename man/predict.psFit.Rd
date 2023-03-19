@@ -13,20 +13,22 @@
 )
 }
 \arguments{
-\item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
+\item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}
+or \code{\link{fitZIDist}}.}
 
 \item{newdata}{an optional vector of integers at which to calculate
-\eqn{\Pr(X = x)}{Pr(X = x)}}
+\eqn{\Pr(X = x)}{Pr(X = x)}.}
 
 \item{interval}{either \code{"none"}, \code{"prof"}, or \code{"wald"} and can
-be abbreviated. If \code{"prof"} or \code{"wald"}  then an interval, based
-on the bounds of a 100 * \code{level} confidence interval for the shape
-parameter, is given for each predicted probability. The interval is provided
-based on either a Profile Likelihood, or a Wald, confidence interval
-for the shape, and therefore cannot really be regarded as a confidence
-interval for the probabilities. The intervals might be more sensibly regarded
-as a measure of how sensitive the probabilities are to the choice of shape
-parameter.}
+be abbreviated. If \code{"prof"} or \code{"wald"} AND the Zeta model has
+been used  then an interval, based on the bounds of a 100 * \code{level}
+confidence interval for the shape parameter, is given for each predicted
+probability. The interval is provided based on either a Profile Likelihood,
+or a Wald, confidence interval for the shape, and therefore cannot really
+be regarded as a confidence interval for the probabilities. The intervals
+might be more sensibly regarded as a measure of how sensitive the
+probabilities are to the choice of shape parameter. NOTE: this parameter is
+ignored if the Zero-inflated (ZIZ) model has been used.}
 
 \item{level}{the level of a confidence interval. Ignored if \code{interval ==
 "none"}.}

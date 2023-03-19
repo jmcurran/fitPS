@@ -7,7 +7,8 @@
 probfun(psFitobj)
 }
 \arguments{
-\item{psFitobj}{an object of class \code{psFit}--see \code{\link{fitDist}}.}
+\item{psFitobj}{an object of class \code{psFit}--see \code{\link{fitDist}}
+and \code{\link{fitZIDist}}.}
 }
 \value{
 a function that can be used to calculate any P or S term.

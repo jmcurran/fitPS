@@ -4,7 +4,11 @@
 #' @param parm added for compatibility. Should be left empty as it is ignored.
 #' @param level the confidence level required---restricted to [0.75, 1)
 #' @param ... in theory other parameters to be passed to \code{confint}, but in
-#' reality ignored.
+#'   reality ignored.
+#'
+#' @details NOTE: this method only works for the Zeta model. If you need a
+#'   confidence region for the ZIZ model, then use bootstrapping via the
+#'   \code{\link{bootCI}} function.
 #'
 #' @return a list with two items: \code{wald} and \code{prof} containing the
 #'   Wald and profile likelihood confidence intervals respectively for the shape
@@ -24,6 +28,13 @@
 #' @importFrom stats confint qchisq uniroot
 #' @export
 confint.psFit = function(object, parm, level = 0.95, ...){
+  if(object$zeroInflated){
+    msg = paste0("This method does not currently work for the ZIZ model. However",
+                  "the bootCI function will give you a confidence region",
+                 collapse = "\n")
+    stop(msg)
+  }
+
   if(level < 0.75 || level >=1){
     stop("Level must be in the interval [0.75,1)")
   }

@@ -28,6 +28,11 @@ a list with two items: \code{wald} and \code{prof} containing the
 \description{
 S3 confint method for objects of class psFit
 }
+\details{
+NOTE: this method only works for the Zeta model. If you need a
+  confidence region for the ZIZ model, then use bootstrapping via the
+  \code{\link{bootCI}} function.
+}
 \examples{
 data(Psurveys)
 roux = Psurveys$roux

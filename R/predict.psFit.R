@@ -1,17 +1,20 @@
 #' S3 predict method for an object of class \code{psFit}
 #'
 #' @param object an object of class \code{psFit}, usually from \code{\link{fitDist}}
+#' or \code{\link{fitZIDist}}.
 #' @param newdata an optional vector of integers at which to calculate
-#'   \eqn{\Pr(X = x)}{Pr(X = x)}
+#'   \eqn{\Pr(X = x)}{Pr(X = x)}.
+
 #' @param interval either \code{"none"}, \code{"prof"}, or \code{"wald"} and can
-#'   be abbreviated. If \code{"prof"} or \code{"wald"}  then an interval, based
-#'   on the bounds of a 100 * \code{level} confidence interval for the shape
-#'   parameter, is given for each predicted probability. The interval is provided
-#'   based on either a Profile Likelihood, or a Wald, confidence interval
-#'   for the shape, and therefore cannot really be regarded as a confidence
-#'   interval for the probabilities. The intervals might be more sensibly regarded
-#'   as a measure of how sensitive the probabilities are to the choice of shape
-#'   parameter.
+#'   be abbreviated. If \code{"prof"} or \code{"wald"} AND the Zeta model has
+#'   been used  then an interval, based on the bounds of a 100 * \code{level}
+#'   confidence interval for the shape parameter, is given for each predicted
+#'   probability. The interval is provided based on either a Profile Likelihood,
+#'   or a Wald, confidence interval for the shape, and therefore cannot really
+#'   be regarded as a confidence interval for the probabilities. The intervals
+#'   might be more sensibly regarded as a measure of how sensitive the
+#'   probabilities are to the choice of shape parameter. NOTE: this parameter is
+#'   ignored if the Zero-inflated (ZIZ) model has been used.
 #' @param level the level of a confidence interval. Ignored if \code{interval ==
 #'   "none"}.
 #' @param ... other arguments passed to \code{predict}---not used
@@ -46,25 +49,40 @@ predict.psFit = function(object, newdata, interval = c("none", "prof", "wald"),
   }
 
   if(is.null(predicted)){
-    predicted = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
-                            shape = object$shape)
+    if(!object$zeroInflated){
+      predicted = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+                              shape = object$shape)
+    }else{
+      predicted = (1 - object$pi) * VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+                                                shape = object$shape)
+      if(object$psData$type == "P"){
+        predicted[newdata == 0] = predicted[newdata == 0] + pi
+      }else{
+        predicted[newdata == 1] = predicted[newdata == 1] + pi
+      }
+    }
   }
 
   if(interval %in% c("prof", "wald")){
-    if(level <= 0.75 || level >= 1){
-      stop("Level should be in the interval [0.75, 1)")
+    if(!object$zeroInflated){
+      if(level <= 0.75 || level >= 1){
+        stop("Level should be in the interval [0.75, 1)")
+      }
+
+      zstar = qnorm((1 - level) * 0.5, lower.tail = FALSE)
+      lwr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+                        shape = object$shape - zstar * sqrt(object$var.shape))
+      upr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+                        shape = object$shape + zstar * sqrt(object$var.shape))
+
+      results = data.frame(predicted = predicted, lower = lwr, upper = upr)
+      rownames(results) = paste0(object$psData$type, newdata)
+
+      return(results)
+    }else{
+      names(predicted) = paste0(object$psData$type, newdata)
+      return(predicted)
     }
-
-    zstar = qnorm((1 - level) * 0.5, lower.tail = FALSE)
-    lwr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
-                      shape = object$shape - zstar * sqrt(object$var.shape))
-    upr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
-                      shape = object$shape + zstar * sqrt(object$var.shape))
-
-    results = data.frame(predicted = predicted, lower = lwr, upper = upr)
-    rownames(results) = paste0(object$psData$type, newdata)
-
-    return(results)
   }else{
     names(predicted) = paste0(object$psData$type, newdata)
     return(predicted)

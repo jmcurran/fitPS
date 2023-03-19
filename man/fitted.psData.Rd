@@ -7,9 +7,10 @@
 \method{fitted}{psData}(object, ...)
 }
 \arguments{
-\item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
+\item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}
+or \code{\link{fitZIDist}}.}
 
-\item{...}{other arguments passed to \code{fitted}f---not used}
+\item{...}{other arguments passed to \code{fitted}f---not used.}
 }
 \value{
 a named vector of fitted probabilities

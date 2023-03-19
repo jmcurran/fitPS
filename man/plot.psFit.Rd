@@ -15,9 +15,10 @@
 )
 }
 \arguments{
-\item{x}{an object of class \code{psFit}, usually from \code{\link{fitDist}}}
+\item{x}{an object of class \code{psFit}, usually from \code{\link{fitDist}}
+or \code{\link{fitZIDist}}.}
 
-\item{ylim}{the limits of the y-axis}
+\item{ylim}{the limits of the y-axis.}
 
 \item{conf}{if \code{TRUE}, and the model is the the Zeta model (as opposed
 to the Zero-Inflated Zeta (ZIZ), then confidence intervals (based on the standard

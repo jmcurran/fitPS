@@ -2,8 +2,10 @@
 #'
 #' @param x an object of class \code{psFit}, usually from \code{\link{fitDist}}
 #' @param ylim the limits of the y-axis
-#' @param conf if \code{TRUE}, then confidence intervals (based on the standard
-#'   error of the shape parameter) are drawn on the plot
+#' @param conf if \code{TRUE}, and the model is the the Zeta model (as opposed
+#' to the Zero-Inflated Zeta (ZIZ), then confidence intervals (based on the standard
+#'   error of the shape parameter) are drawn on the plot. If the ZIZ model has
+#'   been used, then this is ignored.
 #' @param conf.level the confidence level for the confidence intervals. Must be
 #'   between 0.75 and 0.99.
 #' @param ci.type Specifies the type of confidence interval. If \code{conf ==
@@ -14,7 +16,7 @@
 #'   probabilities should not really be thought of as confidence intervals but
 #'   rather something more similar to a "sensitivity" interval.
 #' @param log.scale if \code{TRUE} the \eqn{y}{y}-axis is changed to a
-#'   logarithmic axis.
+#'   logarithmic (base 10) axis.
 #' @param ... other arguments passed to \code{plot}.
 #'
 #' @return No return value, called for side effects
@@ -51,7 +53,6 @@ plot.psFit = function(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95,
                 ylab = "Probability",
                 xlab = "n",
                 main = if(x$psData$type == 'P'){"P terms"}else{"S terms"},
-                ylim = ylim,
                 ...)
 
     phat = x$psData$data$rn / sum(x$psData$data$rn)
@@ -63,7 +64,7 @@ plot.psFit = function(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95,
     legend("topright", pch = 'X', legend = "Observed", bty = "n")
     box()
 
-    if(conf){
+    if(conf && !x$zeroInflated){
       ci.type = match.arg(ci.type)
 
       if(conf.level < 0.75 || conf.level > 0.99){
@@ -78,6 +79,40 @@ plot.psFit = function(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95,
       lb = VGAM::dzeta(nvals, lbShape)
       ub = VGAM::dzeta(nvals, ubShape)
       Hmisc::errbar(b, x$fitted, ub, lb, add = TRUE)
+    }
+  }else{
+    b = barplot(log10(x$fitted),
+                names.arg = labels,
+                ylab = expression(log[10](Probability)),
+                xlab = "n",
+                main = if(x$psData$type == 'P'){"P terms"}else{"S terms"},
+                ylim = ylim,
+                ...)
+
+    phat = log10(x$psData$data$rn / sum(x$psData$data$rn))
+    ## got to be a smarter way of doing this
+    type = x$psData$type
+    obsLabels = paste0(type, x$psData$data$n)
+    i = match(obsLabels, paste0(type, labels))
+    points(b[i], phat, pch = 'X')
+    legend("topright", pch = 'X', legend = "Observed", bty = "n")
+    box()
+
+    if(conf && !x$zeroInflated){
+      ci.type = match.arg(ci.type)
+
+      if(conf.level < 0.75 || conf.level > 0.99){
+        stop("The confidence level must be a sensible value, i.e in [0.75, 0.99].")
+      }
+
+      ci = confint(x, level = conf.level)[[ci.type]]
+
+      lbShape = ci[1]
+      ubShape = ci[2]
+      nvals = 1:length(b)
+      lb = log10(VGAM::dzeta(nvals, lbShape))
+      ub = log10(VGAM::dzeta(nvals, ubShape))
+      Hmisc::errbar(b, log10(x$fitted), ub, lb, add = TRUE)
     }
   }
 }

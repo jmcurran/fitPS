@@ -42,30 +42,31 @@ The function returns an object of class \code{psFit} which is a
   \code{list} contains four elements:
 \itemize{
 \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
-\item{\code{fit}}{ -- the fitted object from \code{\link[stats]{nlminb}},}
+\item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
 \item{\code{shape}}{ -- the maximum likelihood estimate of the shape parameter,}
 \item{\code{var.shape}}{ - the maximum likelihood estimate of the shape parameter,}
 \item{\code{fitted}}{ - a named \code{vector} containing the first \code{nterms of
 the fitted distribution.}}
+\item{\code{zeroInflated}}{ - set to \code{FALSE} for this model}
 }.
-  The output can be used in a variety of ways. If the interest is just in the
-  shape parameter estimate, then the \code{shape} member of the \code{psFit}
-  object contains this information. It is also displayed along with a number
-  of fitted probabilities by the \code{\link{print.psFit}} method. The fitted
-  object can also be plotted using the plot method \code{\link{plot.psFit}},
-  and to create a probability function with \code{\link{probfun}}. **NOTE**
-  The value of the shape parameter that is printed (if you print the fitted
-  object) is different from that value that is stored in \code{shape}. The
-  stored value is for the \pkg{VGAM} parameterisation of the Zeta
-  distribution which uses \eqn{s^\prime = s - 1}{s' = s - 1}. Therefore the
-  printed value is \eqn{s = s^\prime + 1}{s = s' + 1}. If you intend to use
-  the fitted value with \code{\link[VGAM]{dzeta}}, then you should use the
-  stored value \eqn{s^\prime}{s'}.
+The output can be used in a variety of ways. If the interest is just in the
+shape parameter estimate, then the \code{shape} member of the \code{psFit}
+object contains this information. It is also displayed along with a number
+of fitted probabilities by the \code{\link{print.psFit}} method. The fitted
+object can also be plotted using the plot method \code{\link{plot.psFit}},
+and to create a probability function with \code{\link{probfun}}. **NOTE**
+The value of the shape parameter that is printed (if you print the fitted
+object) is different from that value that is stored in \code{shape}. The
+stored value is for the \pkg{VGAM} parameterisation of the Zeta
+distribution which uses \eqn{s^\prime = s - 1}{s' = s - 1}. Therefore the
+printed value is \eqn{s = s^\prime + 1}{s = s' + 1}. If you intend to use
+the fitted value with \code{\link[VGAM]{dzeta}}, then you should use the
+stored value \eqn{s^\prime}{s'}.
 
-  If \code{start} is not specified, then it is chosen randomly from (0.5, 1).
-  The reason the lower value is not zero is that small starting values seem
-  to cause instability in the likelihood. If you specify your own starting
-  value, it would be sensible to keep it above 0.5.
+If \code{start} is not specified, then it is chosen randomly from (0.5, 1).
+The reason the lower value is not zero is that small starting values seem
+to cause instability in the likelihood. If you specify your own starting
+value, it would be sensible to keep it above 0.5.
 }
 \examples{
 p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))

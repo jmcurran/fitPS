@@ -19,8 +19,10 @@
 
 \item{ylim}{the limits of the y-axis}
 
-\item{conf}{if \code{TRUE}, then confidence intervals (based on the standard
-error of the shape parameter) are drawn on the plot}
+\item{conf}{if \code{TRUE}, and the model is the the Zeta model (as opposed
+to the Zero-Inflated Zeta (ZIZ), then confidence intervals (based on the standard
+  error of the shape parameter) are drawn on the plot. If the ZIZ model has
+  been used, then this is ignored.}
 
 \item{conf.level}{the confidence level for the confidence intervals. Must be
 between 0.75 and 0.99.}
@@ -34,7 +36,7 @@ probabilities should not really be thought of as confidence intervals but
 rather something more similar to a "sensitivity" interval.}
 
 \item{log.scale}{if \code{TRUE} the \eqn{y}{y}-axis is changed to a
-logarithmic axis.}
+logarithmic (base 10) axis.}
 
 \item{...}{other arguments passed to \code{plot}.}
 }

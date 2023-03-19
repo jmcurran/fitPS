@@ -6,8 +6,13 @@
 #' @return No return value, called for side effects
 #' @export
 print.psFit = function(x, ...){
-  cat(paste("The estimated shape parameter is ", round(x$shape + 1, 4), "\n"))
-  cat(paste("The standard error of shape parameter is ", round(sqrt(x$var.shape), 4), "\n"))
+  if(x$zeroInflated){
+    cat(paste("The estimated mixing parameter, pi, is", signif(x$pi, 4), "\n"))
+  }
+  cat(paste("The estimated shape parameter is", round(x$shape + 1, 4), "\n"))
+  if(!x$zeroInflated){
+    cat(paste("The standard error of shape parameter is", round(sqrt(x$var.shape), 4), "\n"))
+  }
   cat("------\n")
   cat("NOTE: The shape parameter is reported so that it is consistent with Coulson et al.\n")
   cat("However, the value returned is actually s' = shape - 1 to be consistent with the \n")

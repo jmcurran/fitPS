@@ -229,3 +229,10 @@ fitZIDist = function(x, nterms = 10,
   return(result)
 }
 
+zi.loglik = function(y, theta){
+  p = theta[1]
+  shape = theta[2]
+  rval = (1 - p) * VGAM::dzeta(y$n, shape = shape)
+  rval[y$n == 1] = rval[y$n == 1] + p
+  sum(y$rn *log(rval))
+}

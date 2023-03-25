@@ -221,11 +221,9 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
         # parallel::parSapply(cl = cl, X = boot.y, FUN = function(y){
         #   fitDist(y)$shape
         # })
-        foreach(boot.y, .combine = 'c') %dopar% {
-          function(boot.x){
-            r = fitDist(boot.x)
-            r$shape
-          }
+        foreach(x = boot.y, .combine = 'c') %dopar% {
+          r = fitDist(x)
+          r$shape
         }
       }
     }else{
@@ -239,11 +237,9 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
         #   fit = fitZIDist(y)
         #   return(c(fit$pi, fit$shape))
         # })
-        foreach(boot.y) %dopar% {
-          function(boot.x){
-            fit = fitZIDist(boot.x)
-            c(fit$pi, fit$shape)
-          }
+        foreach(x = boot.y) %dopar% {
+          fit = fitZIDist(x)
+          c(fit$pi, fit$shape)
         }
       }
       results = as.data.frame(do.call("rbind", results))

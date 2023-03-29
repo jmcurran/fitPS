@@ -1,4 +1,4 @@
-plZI  = function(x, level = 0.95,
+plZIZ  = function(x, level = 0.95,
                  grid.Pi = seq(0.5, 1 - .Machine$double.eps, length = 100),
                  grid.Shape = seq(1, x$shape + 4 * sx, by = 0.01),
                  silent = FALSE){
@@ -23,7 +23,7 @@ plZI  = function(x, level = 0.95,
 
   r = lapply(grid.Pi, function(p){
     sapply(grid.Shape, function(si){
-      -2 * (fitPS:::zi.loglik(dataf, c(p, si)) - l0)
+      -2 * (zi.loglik(dataf, c(p, si)) - l0)
     })
   })
 
@@ -32,7 +32,7 @@ plZI  = function(x, level = 0.95,
   cr = lapply(level, function(l){
     qstar2 = qchisq(l, 2)
     r1 = r - qstar2
-    confRegion = contourLines(grid.Pi, grid.Shape, r1, level = 0)[[1]]
+    confRegion = contourLines(grid.Pi, grid.Shape, r1, levels = 0)[[1]]
     confRegion = data.frame(pi = confRegion$x, shape = confRegion$y)
   })
 

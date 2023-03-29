@@ -156,8 +156,9 @@ bootCI.psData = function(x, ...){
 
 #' @describeIn bootCI Bootstrap confidence intervals or regions
 #' @export
-bootCI.psFit = function(x, ...){
-  return(bootCI.default(x = x$psData, ...))
+bootCI.psFit = function(x, model = ifelse(!x$zeroInflated, "zeta", "zi.zeta"),
+                        ...){
+  return(bootCI.default(x = x$psData, model = model, ...))
 }
 
 bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),

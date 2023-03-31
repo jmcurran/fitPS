@@ -102,10 +102,20 @@ bootCI.default = function(x,
                 pbopts = pbopts)
 
 
+  if(!silent){
+    cat("Computing contours\n")
+  }
+
   if(model == "zeta"){
     ## estimate bandwidth
+    if(!silent){
+      cat("\t-- Estimating bandwidth\n")
+    }
     h = ks::hscv(fit)
 
+    if(!silent){
+      cat("\t-- Computing KCDE\n")
+    }
     fhat = ks::kcde(fit, h) ## computes the CDF based on the KDE
     FxInv = approxfun(fhat$estimate, fhat$eval.points)
 
@@ -122,8 +132,14 @@ bootCI.default = function(x,
     return(ci)
   }else{
     ## estimate bandwidth
+    if(!silent){
+      cat("\t-- Estimating bandwidth\n")
+    }
     H = ks::Hscv(fit)
 
+    if(!silent){
+      cat("\t-- Computing KDE\n")
+    }
     fhat = ks::kde(fit, H)
     cont = sort(100 * level)
     confRegion = contourLines(x = fhat$eval.points[[1]],

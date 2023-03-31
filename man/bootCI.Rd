@@ -24,7 +24,7 @@ bootCI(x, ...)
 
 \method{bootCI}{psData}(x, ...)
 
-\method{bootCI}{psFit}(x, ...)
+\method{bootCI}{psFit}(x, model = ifelse(!x$zeroInflated, "zeta", "zi.zeta"), ...)
 }
 \arguments{
 \item{x}{a object of class \code{psFit}---see \code{\link{readData}} for more

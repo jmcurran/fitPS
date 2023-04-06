@@ -4,14 +4,15 @@
 \alias{createPSData}
 \title{Manually create psData}
 \usage{
-createPSData(n, rn, type = c("P", "S"), notes = NULL)
+createPSData(n, rn = NULL, type = c("P", "S"), notes = NULL)
 }
 \arguments{
-\item{n}{a vector of lables for the number of groups or size of groups of
-glass.}
+\item{n}{a vector of labels for the number of groups or size of groups of
+glass, or a vector of observations.}
 
-\item{rn}{a vector of counts corresponding to each element of \code{n}. All
-entries must be greater than zero.}
+\item{rn}{if not \code{NULL} then this must be a vector of counts
+corresponding to each element of \code{n}. All entries must be greater than
+zero.}
 
 \item{type}{either \code{"P"} or \code{"S"}.}
 

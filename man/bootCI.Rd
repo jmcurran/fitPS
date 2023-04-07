@@ -73,8 +73,12 @@ If \code{model == "zeta"}, then either a \code{vector} or a
   \code{level == 0.95}, then the list has a single element named
   \code{"95\%"}. Each element of the list consists of a \code{list} with
   elements named \code{pi} and \code{shape} which specify the coordinates of
-  the contour for that level. There is a third element named \code{level}
+  the contour(s) for that level. There is a third element named \code{level}
   which gives the height of the kernel density estimate at that contour.
+  NOTE: it is quite possible that there are multiple contours for a given
+  height. If you want a way of thinking about this consider a mountain range
+  with two mountains of equal height. If you draw the contours for (almost)
+  any elevation, then you would expect to capture a region from each mountain.
 }
 \description{
 Use boostrapping to generate confidence intervals, or confidence regions in
@@ -97,14 +101,3 @@ This function uses bootstrapping to compute a confidence interval
 \item \code{bootCI(psFit)}: Bootstrap confidence intervals or regions
 
 }}
-\examples{
-\dontrun{
-data(Psurveys)
-roux = Psurveys$roux
-confRegion = bootCI(roux, model = "zi.zeta", parallel = FALSE, plot = TRUE)
-
-## This will not work unless you have the sp package installed
-## Count how many of the points lie within the 95\% confidence region
-table(sp::point.in.polygon(fit$pi,fit$shape, confRegion$pi, confRegion$shape))
-}
-}

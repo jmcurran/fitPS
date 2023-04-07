@@ -64,6 +64,7 @@
 #' lapply(confRegion, function(cr){
 #'   table(sp::point.in.polygon(fit$pi,fit$shape, cr$pi, cr$shape))
 #'. })
+#' }
 #' @importFrom doParallel registerDoParallel
 #' @import foreach
 #' @importFrom grDevices contourLines

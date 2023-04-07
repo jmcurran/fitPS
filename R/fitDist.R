@@ -16,6 +16,8 @@
 #' is the Reimann Zeta function. Coulson et al. (2001) did not have an easy way
 #' to rapidly compute this quantity, hence their use of linear interpolation.
 #'
+#' @aliases fitdist
+#'
 #' @details The function returns an object of class \code{psFit} which is a
 #'   \code{list} contains four elements:
 #' \itemize{
@@ -157,3 +159,7 @@ fitDist = function(x, nterms = 10,
 
   return(result)
 }
+
+#' @describeIn fitDist Fit a Zeta Distribution to Forensic Data
+#' export
+fitdist = fitDist

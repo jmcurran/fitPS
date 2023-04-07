@@ -2,9 +2,12 @@
 % Please edit documentation in R/fitDist.R
 \name{fitDist}
 \alias{fitDist}
+\alias{fitdist}
 \title{Fit a Zeta Distribution to Forensic Data}
 \usage{
 fitDist(x, nterms = 10, start = 1, ...)
+
+fitdist(x, nterms = 10, start = 1, ...)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from
@@ -68,6 +71,12 @@ The reason the lower value is not zero is that small starting values seem
 to cause instability in the likelihood. If you specify your own starting
 value, it would be sensible to keep it above 0.5.
 }
+\section{Functions}{
+\itemize{
+\item \code{fitdist()}: Fit a Zeta Distribution to Forensic Data
+export
+
+}}
 \examples{
 p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))
 fit = fitDist(p)

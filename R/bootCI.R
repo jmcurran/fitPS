@@ -217,7 +217,7 @@ bootFit = function(x, B = 2000, model = c("zeta", "zi.zeta"),
 
   if(parallel){
     ncores = parallel::detectCores()
-    cl = parallel::makeCluster(ncores)
+    cl = parallel::makeCluster(ncores, setup_strategy = "sequential")
     doParallel::registerDoParallel(cl)
 
     if(!silent){

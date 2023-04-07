@@ -101,3 +101,16 @@ This function uses bootstrapping to compute a confidence interval
 \item \code{bootCI(psFit)}: Bootstrap confidence intervals or regions
 
 }}
+\examples{
+\dontrun{
+data(Psurveys)
+roux = Psurveys$roux
+confRegion = bootCI(roux, model = "zi.zeta", parallel = FALSE, plot = TRUE)
+
+## This will not work unless you have the sp package installed
+## Count how many of the points lie within the 95\% confidence region
+lapply(confRegion, function(cr){
+  table(sp::point.in.polygon(fit$pi,fit$shape, cr$pi, cr$shape))
+. })
+}
+}

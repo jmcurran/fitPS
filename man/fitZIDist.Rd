@@ -2,9 +2,15 @@
 % Please edit documentation in R/fitZIDist.R
 \name{fitZIDist}
 \alias{fitZIDist}
+\alias{fitZIdist}
+\alias{fitzidist}
 \title{Fit a Zero-Inflated Zeta Distribution to Forensic Data}
 \usage{
 fitZIDist(x, nterms = 10, start = c(0.5, 1), ...)
+
+fitZIdist(x, nterms = 10, start = c(0.5, 1), ...)
+
+fitzidist(x, nterms = 10, start = c(0.5, 1), ...)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from
@@ -73,6 +79,13 @@ the starting values are not zero is that small starting values seem to
 cause instability in the likelihood. If you specify your own starting
 value, it would be sensible to keep both above 0.5.
 }
+\section{Functions}{
+\itemize{
+\item \code{fitZIdist()}: Fit a Zero-Inflated Zeta Distribution to Forensic Data
+
+\item \code{fitzidist()}: Fit a Zero-Inflated Zeta Distribution to Forensic Data
+
+}}
 \examples{
 data(Psurveys)
 roux = Psurveys$roux

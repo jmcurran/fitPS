@@ -14,6 +14,7 @@ bootCI(x, ...)
   level = 0.95,
   B = 2000,
   model = c("zeta", "zi.zeta"),
+  returnBootValues = FALSE,
   silent = FALSE,
   plot = FALSE,
   parallel = TRUE,
@@ -61,6 +62,10 @@ show progress on the bootstrapping.}
 \item{pbopts}{a list of arguments for the \code{\link[pbapply]{pboptions}}
 function that affect the progress bars. Ignored if \code{progressBar =
 FALSE}.}
+
+\item{returnBootVals}{if \code{TRUE} then the \code{vector} (or
+\code{data.frame}) of bootstrapped values is returned. This can be useful for
+debugging or understanding the results. Default is \code{FALSE}.}
 }
 \value{
 If \code{model == "zeta"}, then either a \code{vector} or a

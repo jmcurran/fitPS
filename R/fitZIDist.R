@@ -212,7 +212,7 @@ fitZIDist = function(x, nterms = 10,
   fit = optim(par = start,
               fn = logLik,
               method = "L-BFGS-B",
-              lower = c(0.1, 0.1),
+              lower = c(sqrt(.Machine$double.eps), 0.1),
               upper  = c(1 - .Machine$double.eps, Inf),
               hessian = TRUE)
 

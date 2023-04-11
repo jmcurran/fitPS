@@ -12,6 +12,9 @@
 #' @param model which model to fit to the data, either \code{"zeta"} or
 #'   \code{"zi.zeta"}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default
 #'   is \code{"zeta"}.
+#' @param returnBootVals if \code{TRUE} then the \code{vector} (or
+#' \code{data.frame}) of bootstrapped values is returned. This can be useful for
+#' debugging or understanding the results. Default is \code{FALSE}.
 #' @param silent if \code{TRUE}, then no output will be displayed whilst the
 #'   bootstrapping is being undertaken. \code{plot} if \code{TRUE} then the
 #'   contours for the confidence region will be plotted. This only works if
@@ -86,6 +89,7 @@ bootCI.default = function(x,
                           level = 0.95,
                           B = 2000,
                           model = c("zeta", "zi.zeta"),
+                          returnBootValues = FALSE,
                           silent = FALSE,
                           plot = FALSE,
                           parallel = TRUE,
@@ -146,12 +150,20 @@ bootCI.default = function(x,
     if(!silent){
       cat("\t-- Computing KDE\n")
     }
-    fhat = ks::kde(fit, H)
+    fhat = ks::kde(fit, H, positive = TRUE)
     cont = sort(100 * level)
+    levels = ks::contourLevels(fhat, cont = cont, approx = TRUE)
     confRegion = contourLines(x = fhat$eval.points[[1]],
                  y = fhat$eval.points[[2]],
                  z = fhat$estimate,
-                 levels = ks::contourLevels(fhat, cont = cont, approx = TRUE))
+                 levels = levels)
+
+    if(length(confRegion) > length(levels)){
+      ## messy - need to work out which regions belong to which levels
+
+
+    }
+
     names(confRegion) = paste0(cont,"%")
     confRegion = lapply(confRegion, function(l){
       names(l)[2:3] = c("pi", "shape")
@@ -166,6 +178,10 @@ bootCI.default = function(x,
     }
 
     #names(confRegion) = c("pi", "shape")
+    if(returnBootValues){
+      return(list(confRegion = confRegion, bootVals = fit))
+    }
+
     return(confRegion)
   }
 }

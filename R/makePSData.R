@@ -57,6 +57,10 @@ makePSData = function(n, count, type = c("P", "S"), notes = NULL){
   return(result)
 }
 
+#' @rdname makePSData
 #' @export
-#' @describeIn makePSData Create a survey data set manually
 makeData = makePSData
+
+#' @rdname makePSData
+#' @export
+createPSData = makePSData

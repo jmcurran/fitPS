@@ -3,11 +3,14 @@
 \name{makePSData}
 \alias{makePSData}
 \alias{makeData}
+\alias{createPSData}
 \title{Create a survey data set manually}
 \usage{
 makePSData(n, count, type = c("P", "S"), notes = NULL)
 
 makeData(n, count, type = c("P", "S"), notes = NULL)
+
+createPSData(n, count, type = c("P", "S"), notes = NULL)
 }
 \arguments{
 \item{n}{Either the number of groups of glass or the size of different groups
@@ -32,11 +35,6 @@ Create a survey data set from the command line rather than reading data in
 from a file. This function is likely to be only useful where there are a very
 small number of group sizes, or sizes of groups of glass.
 }
-\section{Functions}{
-\itemize{
-\item \code{makeData()}: Create a survey data set manually
-
-}}
 \examples{
 ## recreate the data read in the readData example
 p1 = makePSData(n = c(0, 1, 2), count = c(98, 1, 1), type = "P")

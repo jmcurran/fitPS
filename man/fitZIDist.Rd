@@ -79,13 +79,6 @@ the starting values are not zero is that small starting values seem to
 cause instability in the likelihood. If you specify your own starting
 value, it would be sensible to keep both above 0.5.
 }
-\section{Functions}{
-\itemize{
-\item \code{fitZIdist()}: Fit a Zero-Inflated Zeta Distribution to Forensic Data
-
-\item \code{fitzidist()}: Fit a Zero-Inflated Zeta Distribution to Forensic Data
-
-}}
 \examples{
 data(Psurveys)
 roux = Psurveys$roux

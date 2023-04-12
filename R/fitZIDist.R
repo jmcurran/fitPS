@@ -144,8 +144,6 @@
 #' @param start a starting value for the optimiser.
 #' @param ... other parameters - not currently used.
 #'
-#' @aliases fitZIdist fitzidist
-#'
 #' @importFrom stats optim runif
 #' @importFrom VGAM dzeta
 #'
@@ -239,11 +237,11 @@ fitZIDist = function(x, nterms = 10,
   return(result)
 }
 
-#' @describeIn fitZIDist Fit a Zero-Inflated Zeta Distribution to Forensic Data
+#' @rdname fitZIDist
 #' @export
 fitZIdist = fitZIDist
 
-#' @describeIn fitZIDist Fit a Zero-Inflated Zeta Distribution to Forensic Data
+#' @rdname fitZIDist
 #' @export
 fitzidist = fitZIDist
 

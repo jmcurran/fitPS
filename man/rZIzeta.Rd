@@ -2,9 +2,14 @@
 % Please edit documentation in R/rZIzeta.R
 \name{rZIzeta}
 \alias{rZIzeta}
+\alias{rzizeta}
 \title{Generate zero inflated zeta random variates}
 \usage{
 rZIzeta(n, pi = 0.5, shape = 1)
+
+rzizeta(n, pi = 0.5, shape = 1)
+
+rzizeta(n, pi = 0.5, shape = 1)
 }
 \arguments{
 \item{n}{the number of observations.}

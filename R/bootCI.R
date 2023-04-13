@@ -181,35 +181,25 @@ bootCI.default = function(x,
     ## there may be more than one contour for each confidence level
 
     cr.levels = sapply(confRegion, function(cr)cr$level)
-    i = match(cr.levels)
-    results = vector(mode = "list", length = length(levels))
-    names(results) = paste0(cont,"%")
-
-    for(j in seq_along(confRegion)){
-      results[[i[j]]] == confRegion[[j]]
-    }
-
-    confRegion = results
+    i = match(cr.levels, levels)
+    confRegion = split(confRegion, i)
+    names(confRegion) = paste0(cont,"%")
 
     if(plot){
       plot(fit, pch = 'x', col = 'grey')
       for(l in seq_along(confRegion)){
         for(cr in seq_along(confRegion[[l]])){
-          polygon(confRegion[[l]][[cr]]$pi, confRegion[[cr]]$shape, border = "red", lwd = 2)
+          polygon(confRegion[[l]][[cr]]$pi, confRegion[[l]][[cr]]$shape, border = "red", lwd = 2)
         }
       }
     }
 
-
-    ## If there is only one contour per confidence level, then the secondary list structure
-    ## is removed, so that for each confidence level there is a single list containing
-    ## level, pi, and shape where pi and shape give the coordinates for the confidence region
-
+    ## If there is only one contour per level, then remove the list structure
     if(all(sapply(confRegion, length) == 1)){
-      confRegion = lapply(confRegion, unlist)
+      confRegion = lapply(confRegion, function(l)unlist(l, recursive = FALSE))
     }
 
-    #names(confRegion) = c("pi", "shape")
+
     if(returnBootValues){
       return(list(confRegion = confRegion, bootVals = fit))
     }

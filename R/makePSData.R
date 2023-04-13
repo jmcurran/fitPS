@@ -5,17 +5,25 @@
 #' small number of group sizes, or sizes of groups of glass.
 #'
 #' @param n Either the number of groups of glass or the size of different groups
-#' of glass.
-#' @param count Either the number of people in the survey sample who had \eqn{n}{n}
-#' groups of glass on their clothing, or the number of people who had a group of glass of
-#' size \eqn{n}{n}.
+#'   of glass, or a \code{vector} of observed groups of glass, or group sizes.
+#'   See details for a longer explanation.
+#' @param count Either the number of people in the survey sample who had
+#'   \eqn{n}{n} groups of glass on their clothing, or the number of people who
+#'   had a group of glass of size \eqn{n}{n}.
 #' @param type either \code{"P"} or \code{"S"}
-#' @param notes a \code{\link[utils]{bibentry}} or a character
-#'   string which allows extra information about the data to be stored, such as
-#'   the source, or reference. \code{NULL} by default.
+#' @param notes a \code{\link[utils]{bibentry}} or a character string which
+#'   allows extra information about the data to be stored, such as the source,
+#'   or reference. \code{NULL} by default.
+#'
+#' @details If \code{count} is \code{NULL}, then it is assumed that \code{n}
+#'   consists of actual observed group sizes or numbers of groups of glass found
+#'   on a survey of N individuals. That is, one could provide \code{n = rep(0:1,
+#'   98, 1)} or \code{n = 0:1, count = c(98, 1)}. The former is more useful when
+#'   performing simulation studies.
+#'
 #'
 #' @return an object of type \code{psData}---see \code{\link{readData}} for more
-#' details.
+#'   details.
 #'
 #' @aliases makeData
 #' @export
@@ -28,8 +36,14 @@
 #' s1
 #'
 #' @seealso readData
-makePSData = function(n, count, type = c("P", "S"), notes = NULL){
+makePSData = function(n, count = NULL, type = c("P", "S"), notes = NULL){
   type = match.arg(type)
+
+  if(is.null(count)){
+    tbl = table(n)
+    count = as.numeric(tbl)
+    n = as.numeric(names(tbl))
+  }
 
   dataf = data.frame(n = n, rn = count)
 

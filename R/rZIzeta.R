@@ -42,3 +42,12 @@ rZIzeta = function(n, pi = 0.5, shape = 1){
   x[p >= pi] = VGAM::rzeta(n, shape)
   return(x)
 }
+
+#' @rdname rZIzeta
+#' @export
+rzizeta = rZIzeta
+
+#' @rdname rZIzeta
+#' @export
+rzizeta = rZIzeta
+rziz = rZIzeta

@@ -68,27 +68,30 @@ FALSE}.}
 for debugging or understanding the results. Default is \code{FALSE}.}
 }
 \value{
-If \code{model == "zeta"}, then either a \code{vector} or a
- \code{data.frame} with elements/columns named \code{"lower"} and
- \code{"upper"} representing the lower and upper bounds of the confidence
- interval(s). Multiple bounds are returned in a \code{data.frame} when
- \code{level} has more than one value. If \code{model == "zi.zeta"}, then a
- list with length equal to the length of \code{level} is returned. The name
- of each element in the list is the level with % attached. For example if
- \code{level == 0.95}, then the list has a single element named
- \code{"95\%"}. It is possible for there to be multiple contours for the
- confidence region for a given \code{level}. If there is only one contour for
- each value of \code{level}, then each element of the list consists of a
- \code{list} with elements named \code{pi} and \code{shape} which specify the
- coordinates of the contour(s) for that level. There is a third element named
- \code{level} which gives the height of the kernel density estimate at that
- contour. If there are multiple contours for a given value of \code{level}
- then each list element is a list of lists with the structure given above
- (\code{level}, \code{pi}, and \code{shape}). NOTE: it is quite possible that
- there are multiple contours for a given height. If you want a way of
- thinking about this consider a mountain range with two mountains of equal
- height. If you draw the contours for (almost) any elevation, then you would
- expect to capture a region from each mountain.
+If \code{returnBootVals == TRUE} then the results are returned in a
+ list with elements named \code{ci} and \code{bootVals} for the zeta model
+ and \code{confRegion} and \code{bootVals} for the zero-inflated zeta model.
+ The structure of \code{ci} and \code{confregion} is described below. If
+ \code{model == "zeta"}, then either a \code{vector} or a \code{data.frame}
+ with elements/columns named \code{"lower"} and \code{"upper"} representing
+ the lower and upper bounds of the confidence interval(s). Multiple bounds
+ are returned in a \code{data.frame} when \code{level} has more than one
+ value. If \code{model == "zi.zeta"}, then a list with length equal to the
+ length of \code{level} is returned. The name of each element in the list is
+ the level with % attached. For example if \code{level == 0.95}, then the
+ list has a single element named \code{"95\%"}. It is possible for there to
+ be multiple contours for the confidence region for a given \code{level}. If
+ there is only one contour for each value of \code{level}, then each element
+ of the list consists of a \code{list} with elements named \code{pi} and
+ \code{shape} which specify the coordinates of the contour(s) for that level.
+ There is a third element named \code{level} which gives the height of the
+ kernel density estimate at that contour. If there are multiple contours for
+ a given value of \code{level} then each list element is a list of lists with
+ the structure given above (\code{level}, \code{pi}, and \code{shape}). NOTE:
+ it is quite possible that there are multiple contours for a given height. If
+ you want a way of thinking about this consider a mountain range with two
+ mountains of equal height. If you draw the contours for (almost) any
+ elevation, then you would expect to capture a region from each mountain.
 }
 \description{
 Use boostrapping to generate confidence intervals, or confidence regions in

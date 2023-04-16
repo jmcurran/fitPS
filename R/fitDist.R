@@ -115,13 +115,11 @@ fitDist = function(x, nterms = 10,
   #              objective = logLik,
   #              lower = 1)
 
-  try({
-    fit = optim(par = start,
+  fit = optim(par = start,
                 fn = logLik,
                 method = "L-BFGS-B",
                 lower = 0,
                 hessian = TRUE)
-  }, browser())
 
   shape = fit$par ## NOTE VGAM's dzeta is parameterised in terms of
                   ## s = alpha - 1. This has consequences in the formula below

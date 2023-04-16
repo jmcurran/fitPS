@@ -195,7 +195,7 @@ bootCI.default = function(x,
     }
 
     ## If there is only one contour per level, then remove the list structure
-    if(all(sapply(confRegion, length) == 1)){
+    if(length(confRegion) > 1 && all(sapply(confRegion, length) == 1)){
       confRegion = lapply(confRegion, function(l)unlist(l, recursive = FALSE))
     }
 

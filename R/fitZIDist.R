@@ -171,6 +171,14 @@ fitZIDist = function(x, nterms = 10,
     stop("The Zeta function is undefined for shape = 0. Choose a start value > 0.")
   }
 
+  if(length(x$data$n) < 2){
+    if(x$type == "S"){
+      stop("There has to be at least one value higher than 1")
+    }else{
+      stop("There has to be at least one value higher than 0")
+    }
+  }
+
   obsData = if(x$type == 'P'){ ## the main difference is that the values need 1 added
     x$data$n + 1
   }else{
@@ -271,6 +279,14 @@ fitZIDistPL = function(x, nterms = 10,
     stop("The Zeta function is undefined for shape = 0. Choose a start value > 0.")
   }
 
+  if(length(x$data$n) < 2){
+    if(x$type == "S"){
+      stop("There has to be at least one value higher than 1")
+    }else{
+      stop("There has to be at least one value higher than 0")
+    }
+  }
+
   obsData = if(x$type == 'P'){ ## the main difference is that the values need 1 added
     x$data$n + 1
   }else{
@@ -296,7 +312,7 @@ fitZIDistPL = function(x, nterms = 10,
     rval = (1 - p) * VGAM::dzeta(obsData, shape = shape)
     rval[obsData == 1] = rval[obsData == 1] + p
 
-    r = -(sum(x$data$rn * log(rval)) - lambda * p^-0.99 * (1-p)^-0.99)
+    r = -(sum(x$data$rn * log(rval)) - lambda * (log(p)  + log(1-p)))
     if(is.infinite(r) || is.nan(r)){
       stop(sprintf("Infinite log-likelihod: pi = %6.4E shape = %6.4f\n", p, shape))
     }

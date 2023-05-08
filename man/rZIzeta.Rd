@@ -5,11 +5,11 @@
 \alias{rzizeta}
 \title{Generate zero inflated zeta random variates}
 \usage{
-rZIzeta(n, pi = 0.5, shape = 1)
+rZIzeta(n, pi = 0.5, shape = 1, offset = 0)
 
-rzizeta(n, pi = 0.5, shape = 1)
+rzizeta(n, pi = 0.5, shape = 1, offset = 0)
 
-rzizeta(n, pi = 0.5, shape = 1)
+rzizeta(n, pi = 0.5, shape = 1, offset = 0)
 }
 \arguments{
 \item{n}{the number of observations.}
@@ -19,12 +19,23 @@ rzizeta(n, pi = 0.5, shape = 1)
 
 \item{shape}{the shape parameter for the zero-inflated zeta. Must be greater
 than zero.}
+
+\item{offset}{the zeta distribution returns random variates that are greater
+than, or equal to one. If the offset is greater than 0, then the
+distribution is anchored on (has minimum value of) \code{1 - offset}.}
 }
 \value{
 a vector of random variates from a zero-inflated zeta model
 }
 \description{
 Generate zero inflated zeta random variates
+}
+\details{
+Technically this function returns values from the one-inflated zeta
+  distribution. However, if \code{offset} is greater than zero (and typically
+  we expect it to be 1), then the minimium random variate value is \code{1 -
+  offset}. We chose the name "zero-inflated zeta" as more people are familiar
+  with zero-inflated models.
 }
 \examples{
 data(Psurveys)

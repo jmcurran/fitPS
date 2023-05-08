@@ -45,7 +45,7 @@ confint.psFit = function(object, parm, level = 0.95, ...){
   }
 
   if(object$zeroInflated){
-    results = plZIZ(object, level = level, ...)
+    results = profileLikelihoodZIZ(object, level = level, ...)
   }else{
 
     obsData = if(object$psData$type == 'P'){ ## the main difference is that the values need 1 added

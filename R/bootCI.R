@@ -12,7 +12,7 @@
 #'@param model which model to fit to the data, either \code{"zeta"} or
 #'  \code{"zi.zeta"}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default
 #'  is \code{"zeta"}.
-#'@param returnBootVals if \code{TRUE} then the \code{vector} (or
+#'@param returnBootValues if \code{TRUE} then the \code{vector} (or
 #'  \code{data.frame}) of bootstrapped values is returned. This can be useful
 #'  for debugging or understanding the results. Default is \code{FALSE}.
 #'@param silent if \code{TRUE}, then no output will be displayed whilst the

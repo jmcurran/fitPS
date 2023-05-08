@@ -43,6 +43,10 @@ returned.}
 \code{"zi.zeta"}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default
 is \code{"zeta"}.}
 
+\item{returnBootValues}{if \code{TRUE} then the \code{vector} (or
+\code{data.frame}) of bootstrapped values is returned. This can be useful
+for debugging or understanding the results. Default is \code{FALSE}.}
+
 \item{silent}{if \code{TRUE}, then no output will be displayed whilst the
 bootstrapping is being undertaken. \code{plot} if \code{TRUE} then the
 contours for the confidence region will be plotted. This only works if
@@ -62,10 +66,6 @@ show progress on the bootstrapping.}
 \item{pbopts}{a list of arguments for the \code{\link[pbapply]{pboptions}}
 function that affect the progress bars. Ignored if \code{progressBar =
 FALSE}.}
-
-\item{returnBootVals}{if \code{TRUE} then the \code{vector} (or
-\code{data.frame}) of bootstrapped values is returned. This can be useful
-for debugging or understanding the results. Default is \code{FALSE}.}
 }
 \value{
 If \code{returnBootVals == TRUE} then the results are returned in a

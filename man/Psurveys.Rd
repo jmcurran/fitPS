@@ -14,7 +14,7 @@ A \code{list} with six objects of class \code{psData}---see
 }
 \source{
 Coulson, S. A., Buckleton, J. S., Gummer, A. B., and Triggs, C. M.
-(2001) <doi:10.1016/S1355-0306(01)71847-3> Glass on clothing and shoes of members
+(2001) \doi{10.1016/S1355-0306(01)71847-3} Glass on clothing and shoes of members
  of the general population and people suspected of breaking crimes, Science &
  Justice, 41(1):39--48.
 }

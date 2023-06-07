@@ -103,7 +103,7 @@ readData = function(fileName, notes = NULL, ...){
     stop("The categories and counts must be >= 0")
   }
 
-  if(any(result$rn <= 0)){
+  if(all(result$rn <= 0)){
     stop("You must have at least one non-zero positive count")
   }
 

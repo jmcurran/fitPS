@@ -79,12 +79,12 @@ fitlogDist = function(x, nterms = 10,
   logLik = function(params){
     p = params
 
-    rval = sum(obsData * VGAM::dlog(obsData, shape = shape, log = TRUE))
+    rval = sum(x$data$rn * VGAM::dlog(obsData, shape = p, log = TRUE))
 
     if(is.infinite(rval) || is.nan(rval)){
       stop(sprintf("Infinite log-likelihod: pi = %6.4E\n", p))
     }
-    return(rval)
+    return(-rval)
   }
 
   # fit = nlminb(start = start,
@@ -109,8 +109,8 @@ fitlogDist = function(x, nterms = 10,
     psData = x,
     fit = fit,
     pi = fit$par,
-    var = 1 / fit$hessian,
-    fitted = fitted,
+    var = 1 / fit$hessian[1,1],
+    fitted = fitted
   )
 
 

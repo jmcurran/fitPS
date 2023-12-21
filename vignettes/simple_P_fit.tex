@@ -62,7 +62,7 @@
 
 In this example we will learn how to use \rcode{fitPS} to fit a zeta distribution to some data from a survey where the number of groups of glass found is recorded. The data in this example comes from @roux2001 who surveyed the footwear of 776 individuals in south-eastern Australia, and is summarised in the table below.
 % latex table generated in R 4.3.2 by xtable 1.8-4 package
-% Thu Dec 21 15:31:42 2023
+% Thu Dec 21 15:50:39 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{rr}
@@ -130,11 +130,11 @@ It is very simple to fit a zeta distribution to this data set. We do this using 
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-The function returns an object of class \rcode{psFit}, the details of which can be found in the help page for \rcode{fitDist}. There are both S3 \rcode{print} and S3 \rcode{plot} methods for objects of this class. The \rcode{print} method method displays an estimate of the shape parameter $s$, an estimate of the standard deviation---the standard error---of the estimate of $s$ ($\widehat{\mathrm{sd}}(\hat{s})=\mathrm{se}(\hat{s})$). **NOTE**: it is important to understand that the value of the shape parameter that is displayed, and the value that is stored in the fitted object differ by 1. That is, $s$ is shown,m and $s^\prime = s - 1$ is stored. This is done because the package which assists in the fitting, \rcode{VGAM}, is parameterised in terms of $s^\prime$. This difference only has consequences if the fitted value is being used in conjuction with other \rcode{VGAM} functions.   The \rcode{print} method also displays the first 10 fitted probabilities from the model by default. The number of probabilities shown can be altered by changing the value of \rcode{nterms}. We will do this here to only display the first six probabilities (from $P_0$ to $P_5$).
+The function returns an object of class \rcode{psFit}, the details of which can be found in the help page for \rcode{fitDist}. There are both S3 \rcode{print} and S3 \rcode{plot} methods for objects of this class. The \rcode{print} method method displays an estimate of the shape parameter $s$, an estimate of the standard deviation---the standard error---of the estimate of $s$ ($\widehat{\mathrm{sd}}(\hat{s})=\mathrm{se}(\hat{s})$). **NOTE**: it is important to understand that the value of the shape parameter that is displayed, and the value that is stored in the fitted object differ by 1. That is, $s$ is shown,m and $s^\prime = s - 1$ is stored. This is done because the package which assists in the fitting, \rcode{VGAM}, is parameterised in terms of $s^\prime$. This difference only has consequences if the fitted value is being used in conjuction with other \rcode{VGAM} functions.   The \rcode{print} method also displays the first 10 fitted probabilities from the model by default.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlkwd{print}\hlstd{(fit,} \hlkwc{nterms} \hlstd{=} \hlnum{4}\hlstd{)}
+\hlstd{> }\hlstd{fit}
 \end{alltt}
 \begin{verbatim}
 The estimated shape parameter is 4.9544 
@@ -147,9 +147,11 @@ which is used for computation. This has flow on effects, for
 example in confInt. This will be changed at some point.
 ------
 
-The first  4 fitted values are:
-         P0          P1          P2          P3 
-0.963154667 0.031064468 0.004167082 0.001001917 
+The first  10 fitted values are:
+          P0           P1           P2           P3           P4 
+9.631547e-01 3.106447e-02 4.167082e-03 1.001917e-03 3.316637e-04 
+          P5           P6           P7           P8           P9 
+1.344002e-04 6.262053e-05 3.231467e-05 1.802885e-05 1.069709e-05 
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
@@ -196,5 +198,5 @@ You will notice that neither of these intervals contain the value shown in the p
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
-The reason for not *correcting* these intervals is that the method mostly exists to feed into other parts of the package, especially the \rcode{plot} method.
+The reason for not \emph{correcting} these intervals is that the method mostly exists to feed into other parts of the package, especially the \rcode{plot} method.
 \end{document}

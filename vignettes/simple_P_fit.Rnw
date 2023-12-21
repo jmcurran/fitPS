@@ -50,24 +50,24 @@ It is very simple to fit a zeta distribution to this data set. We do this using 
 <<R-04>>=
 fit = fitDist(roux)
 @
-The function returns an object of class \rcode{psFit}, the details of which can be found in the help page for \rcode{fitDist}. There are both S3 \rcode{print} and S3 \rcode{plot} methods for objects of this class. The \rcode{print} method method displays an estimate of the shape parameter $s$, an estimate of the standard deviation---the standard error---of the estimate of $s$ ($\widehat{\mathrm{sd}}(\hat{s})=\mathrm{se}(\hat{s})$). **NOTE**: it is important to understand that the value of the shape parameter that is displayed, and the value that is stored in the fitted object differ by 1. That is, $s$ is shown,m and $s^\prime = s - 1$ is stored. This is done because the package which assists in the fitting, \rcode{VGAM}, is parameterised in terms of $s^\prime$. This difference only has consequences if the fitted value is being used in conjuction with other \rcode{VGAM} functions.   The \rcode{print} method also displays the first 10 fitted probabilities from the model by default. The number of probabilities shown can be altered by changing the value of \rcode{nterms}. We will do this here to only display the first six probabilities (from $P_0$ to $P_5$).
-<<>>=
-print(fit, nterms = 4)
+The function returns an object of class \rcode{psFit}, the details of which can be found in the help page for \rcode{fitDist}. There are both S3 \rcode{print} and S3 \rcode{plot} methods for objects of this class. The \rcode{print} method method displays an estimate of the shape parameter $s$, an estimate of the standard deviation---the standard error---of the estimate of $s$ ($\widehat{\mathrm{sd}}(\hat{s})=\mathrm{se}(\hat{s})$). **NOTE**: it is important to understand that the value of the shape parameter that is displayed, and the value that is stored in the fitted object differ by 1. That is, $s$ is shown,m and $s^\prime = s - 1$ is stored. This is done because the package which assists in the fitting, \rcode{VGAM}, is parameterised in terms of $s^\prime$. This difference only has consequences if the fitted value is being used in conjuction with other \rcode{VGAM} functions.   The \rcode{print} method also displays the first 10 fitted probabilities from the model by default.
+<<R-05>>=
+fit
 @
 The package provides a \rcode{confint} method for the fitted value. The method returns both a Wald confidence interval and profile likelihood interval. The Wald interval takes the usual the form where the lower and upper bound are given by $\hat{s} \pm z^*(1-\alpha/2)\times se(\hat{s}))$. The profile likelihood interval finds the end-points of the interval that satisfies
 \[
 -2\left[\ell(\hat{s};\mathbf{x})-\ell(s;\mathbf{x})\right] \le \chi^2_1(\alpha)
 \]
 where $\ell(s;\mathbf{x})$ is value of the log-likelihood given shape parameter $s$. The two intervals are returned as elements of a \rcode{list} named \rcode{wald} and \rcode{prof} respectively.
-<<>>=
+<<R-06>>=
 ci = confint(fit)
 ci$wald
 ci$prof
 @
 You will notice that neither of these intervals contain the value shown in the previous output. However, this simply because they are confidence intervals on $s^\prime$ and not $s$. This can be remedied by adding one to each interval:
-<<>>=
+<<R-07>>=
 ci$wald + 1
 ci$prof + 1
 @
-The reason for not *correcting* these intervals is that the method mostly exists to feed into other parts of the package, especially the \rcode{plot} method.
+The reason for not \emph{correcting} these intervals is that the method mostly exists to feed into other parts of the package, especially the \rcode{plot} method.
 \end{document}

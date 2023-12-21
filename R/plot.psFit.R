@@ -54,6 +54,7 @@ plot.psFit = function(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95,
                 ylab = "Probability",
                 xlab = "n",
                 main = if(x$psData$type == 'P'){"P terms"}else{"S terms"},
+                ylim = ylim,
                 ...)
 
     phat = x$psData$data$rn / sum(x$psData$data$rn)

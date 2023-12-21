@@ -1,3 +1,5 @@
 *conflicted*
-*.html
+*.gz
+*.log
+*.pdf
 *.R

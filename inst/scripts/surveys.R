@@ -54,9 +54,9 @@ Psurveys = list(
                                 journal = "Canadian Society of Forensic Science Journal",
                                 volume = "30",
                                 number = "4",
-                                pages = "233-240",
+                                pages = "233--240",
                                 year  = "1997",
-                                doi = "https://10.1080/00085030.1997.10757103"
+                                doi = "https://doi.org/10.1080/00085030.1997.10757103"
                )),
   pettard = makeData(n = 0:1,
                      count = c(2002, 6),
@@ -149,7 +149,7 @@ Ssurveys = list(
                                   number = "4",
                                   pages = "233--240",
                                   year  = "1997",
-                                  doi = "https://10.1080/00085030.1997.10757103"
+                                  doi = "https://doi.org/10.1080/00085030.1997.10757103"
                  )),
   pettard = makeData(n = 1,
                      count = 6,

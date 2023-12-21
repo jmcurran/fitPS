@@ -62,7 +62,7 @@
 
 In this example we will learn how to use \rcode{fitPS} to fit a zeta distribution to some data from a survey where the number of groups of glass found is recorded. The data in this example comes from @roux2001 who surveyed the footwear of 776 individuals in south-eastern Australia, and is summarised in the table below.
 % latex table generated in R 4.3.2 by xtable 1.8-4 package
-% Thu Dec 21 15:08:23 2023
+% Thu Dec 21 15:31:42 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{rr}
@@ -113,10 +113,11 @@ Number of Groups
   2     8
   3     4
   4     1
-Roux C, Kirk R, Benson S, Van Haren T, Petterd C (2001). "Glass
-particles in footwear of members of the public in south-eastern
-Australia-a survey." _Forensic Science International_, *116*(2),
-149-156. doi:10.1016/S0379-0738(00)00355-8
+Roux C, Kirk R, Benson S, Van Haren T, Petterd C (2001).
+"Glass particles in footwear of members of the public in
+south-eastern Australia-a survey." _Forensic Science
+International_, *116*(2), 149-156.
+doi:10.1016/S0379-0738(00)00355-8
 <https://doi.org/10.1016/S0379-0738%2800%2900355-8>.
 \end{verbatim}
 \end{kframe}
@@ -139,7 +140,11 @@ The function returns an object of class \rcode{psFit}, the details of which can 
 The estimated shape parameter is 4.9544 
 The standard error of shape parameter is 0.2366 
 ------
-NOTE: The shape parameter is reported so that it is consistent with Coulson et al. However, the value returned is actually s' = shape - 1 to be consistent with the VGAM parameterisation, which is used for computation. This has flow on effects, for example in confInt. This will be changed at some point.
+NOTE: The shape parameter is reported so that it is consistent
+with Coulson et al. However, the value returned is actually s'
+= shape - 1 to be consistent with the VGAM parameterisation,
+which is used for computation. This has flow on effects, for
+example in confInt. This will be changed at some point.
 ------
 
 The first  4 fitted values are:

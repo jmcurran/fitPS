@@ -8,11 +8,14 @@
 \begin{document}
 
 <<R0-setup, echo=FALSE>>=
-options(prompt="> ", width = 60)
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = ""
-)
+knitr::opts_chunk$set(message = FALSE,
+                      #background = opcolour,
+                      comment = "",
+                      highlight = TRUE,
+                      prompt = TRUE,
+                      tidy = TRUE,
+                      tidy.opts = list(arrow = FALSE),
+                      warning = FALSE)
 suppressWarnings(suppressPackageStartupMessages({library(fitPS)}))
 @
 

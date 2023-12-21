@@ -15,10 +15,7 @@ print.psFit = function(x, ...){
     cat(paste("The standard error of shape parameter is", round(sqrt(x$var.shape), 4), "\n"))
   }
   cat("------\n")
-  cat("NOTE: The shape parameter is reported so that it is consistent with Coulson et al.\n")
-  cat("However, the value returned is actually s' = shape - 1 to be consistent with the \n")
-  cat("VGAM parameterisation, which is used for computation. This has flow on effects, for\n")
-  cat("example in confInt. This will be changed at some point.\n")
+  cat("NOTE: The shape parameter is reported so that it is consistent with Coulson et al. However, the value returned is actually s' = shape - 1 to be consistent with the VGAM parameterisation, which is used for computation. This has flow on effects, for example in confInt. This will be changed at some point.\n")
   cat("------\n\n")
 
   args = list(...)

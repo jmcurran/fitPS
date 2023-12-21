@@ -5,6 +5,7 @@
 \newcommand{\rcode}[1]{\lstinline[language=R,basicstyle=\normalsize\ttfamily]!#1!}
 
 \title{Fitting a zeta distribution to a {P} survey---number of groups data}
+
 \begin{document}
 
 <<R0-setup, echo=FALSE>>=

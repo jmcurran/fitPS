@@ -58,9 +58,19 @@ We can also easily fit a zero-inflated model using the \rcode{fitZIDist} functio
 fit.zi = fitZIDist(roux)
 fit.zi
 @
-In the example above we fit a zero-inflated model to Roux et al.'s data, and print the resulting fit out. We get, as with the zeta model. The output is interesting in that we can see (from the value of $\hat{pi}$) that the \emph{zero} part of the zero-inflated model is picking up about \Sexpr{round(100 * fit.zi$pi)}\% of the zeros. It is instructive
-<<R-09, echo=FALSE>>=
-tbl = cbind(fitted(fit, 5), fitted(fit.zi, 5))
+In the example above we fit a zero-inflated model to Roux et al.'s data, and print out the resulting fit. We get, as with the zeta model, estimates of the parameters and a default set of fitted values. The output is interesting in that we can see (from the value of $\hat{\pi}$) that the \emph{zero} part of the zero-inflated model is picking up about \Sexpr{round(100 * fit.zi$pi)}\% of the zeros. It is interesting to contrast the estimates from the zeta model to those of the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
+<<R-09, echo=FALSE, results='asis'>>=
+library(xtable)
+raw = c(roux$data$rn/sum(roux$data$rn), 0)
+tbl = cbind(0:5, raw, fitted(fit, 6), fitted(fit.zi, 6))
+colnames(tbl) = c("$k$", "$P_k^{raw}$", "$P_k^{zeta}$", "$P_k^{ZIZ}$")
+tbl = xtable(tbl, align = "ccccc", digits = c(0, 0, 4, 4, 4))
+caption(tbl) = "Estimated probability that $k$ groups of glass would be found in shoes of a random member of the population based on the data of \\citep{roux2001}, the raw frequencies, and those produced from the zeta and ZIZ models respectively."
+label(tbl) = "tab:ex1"
+print(tbl,
+      type="latex",
+      include.rownames = FALSE,
+      sanitize.text.function = function(x){x})
 @
 However, such a na\"{i}ve estimator would estimate the next term in the series, $P_5$, as zero because we have not observed any examples where five or more sources of glass have been recovered. We do not, however, believe that the true value is zero, but rather that the probability of recovering five sources of glass is a very small number. The zeta model provides an estimate with this property.
 \begin{table}[ht]
@@ -78,8 +88,8 @@ However, such a na\"{i}ve estimator would estimate the next term in the series, 
       \caption{Estimated probability that $k$ groups of glass would be found in shoes of a random member of the population based on the data of \citep{roux2001}.}
       \label{tab:ex1c}
 \end{table}
-We can see from Table \ref{tab:ex1c} that we now have a non-zero estimate for $P_5$,
-but this comes at a small cost, namely smaller probabilities for the preceding terms $P_0$--$P_4$. This is not necessarily a negative. The survey data is dominated by zeros. However, we think it likely that the raw sample estimate is an over-estimate. The model reduces the estimated value, which is in line with our thinking. It is interesting to contrast the estimates from the zeta model to those of the ZIZ model. The maximum likelihood estimates of $\pi$ and $s$ are 0.847 (3 d.p.) and 1.884 (3 d.p.) respectively. The estimates are shown in Table \ref{tab:ex1d}.
+We can see from Table \ref{tab:ex1} that we now have a non-zero estimate for $P_5$,
+but this comes at a small cost, namely smaller probabilities for the preceding terms $P_0$--$P_4$. This is not necessarily a negative. The survey data is dominated by zeros. However, we think it likely that the raw sample estimates (for $P_0$--$P_4$) are over-estimates. The model reduces the estimated value, which is in line with our thinking. It is interesting to contrast the estimates from the zeta model to those of the ZIZ model. The maximum likelihood estimates of $\pi$ and $s$ are 0.847 (3 d.p.) and 1.884 (3 d.p.) respectively. The estimates are shown in Table \ref{tab:ex1d}.
 \begin{table}[ht]
 \centering
 \begin{tabular}{c|c|c}

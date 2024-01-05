@@ -1,13 +1,205 @@
-\documentclass{article}
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
 \usepackage{enumerate}
 \usepackage{listings}
 
 \newcommand{\rcode}[1]{\lstinline[language=R,basicstyle=\normalsize\ttfamily]!#1!}
 
-\title{Fitting a zeta distribution to a {P} survey---number of groups data}
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{Using fitPS to fit number of groups data}
 
-\usepackage{Sweave}
+\title{Fitting a zeta distribution to a {P} survey---number of groups data}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
 
+
 In this example we will learn how to use \rcode{fitPS} to fit a zeta distribution to some data from a survey where the number of groups of glass found is recorded. The data in this example comes from @roux2001 who surveyed the footwear of 776 individuals in south-eastern Australia, and is summarised in the table below.
+% latex table generated in R 4.2.3 by xtable 1.8-4 package
+% Fri Jan  5 11:17:54 2024
+\begin{table}[ht]
+\centering
+\begin{tabular}{rr}
+  \hline
+$n$ & $r_n$ \\ 
+  \hline
+0 & 754 \\ 
+  1 & 9 \\ 
+  2 & 8 \\ 
+  3 & 4 \\ 
+  4 & 1 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+
+This data set is built into the package and can be accessed from the \rcode{Psurveys} object. That is, we can type:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{> }\hlkwd{data}\hlstd{(}\hlstr{"Psurveys"}\hlstd{)}
+\hlstd{> }\hlstd{roux} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{roux}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+The data is stored as an object of class \rcode{psData}. This probably will not be of importance to most users. If you are interested in the details, then these can be found in the \textbf{Value} section of the help page for \rcode{readData}. There is an S3 \rcode{print} method for objects of time, meaning that if we print the object---either by typing its name at the command prompt, or by explicitly calling \rcode{print}---then we will get formatted printing of the information contained within the object. Specifically:
+\begin{enumerate}[-]
+  \item the values of $n$ and $r_n$ will be printed out in tabular format (where $n$ is the number of groups or the size of the groups, and $r_n$ is the number of times $n$ has been observed in the survey),
+  \item the type of survey will be printed---either "Number of Groups" or "Group Size",
+  \item and if the object has a reference or notes attached to it, then these will be
+  printed as well
+\end{enumerate}
+For example
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{> }\hlstd{roux}
+\end{alltt}
+\begin{verbatim}
+
+
+Number of Groups
+
+  n    rn
+---  ----
+  0   754
+  1     9
+  2     8
+  3     4
+  4     1
+Roux C, Kirk R, Benson S, Van Haren T, Petterd C (2001).
+"Glass particles in footwear of members of the public in
+south-eastern Australia-a survey." _Forensic Science
+International_, *116*(2), 149-156.
+doi:10.1016/S0379-0738(00)00355-8
+<https://doi.org/10.1016/S0379-0738%2800%2900355-8>.
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+It is very simple to fit a zeta distribution to this data set. We do this using the \rcode{fitDist} function.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{> }\hlstd{fit} \hlkwb{=} \hlkwd{fitDist}\hlstd{(roux)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+The function returns an object of class \rcode{psFit}, the details of which can be found in the help page for \rcode{fitDist}. There are both S3 \rcode{print} and S3 \rcode{plot} methods for objects of this class. The \rcode{print} method method displays an estimate of the shape parameter $s$, an estimate of the standard deviation---the standard error---of the estimate of $s$ ($\widehat{\mathrm{sd}}(\hat{s})=\mathrm{se}(\hat{s})$). **NOTE**: it is important to understand that the value of the shape parameter that is displayed, and the value that is stored in the fitted object differ by 1. That is, $s$ is shown,m and $s^\prime = s - 1$ is stored. This is done because the package which assists in the fitting, \rcode{VGAM}, is parameterised in terms of $s^\prime$. This difference only has consequences if the fitted value is being used in conjuction with other \rcode{VGAM} functions.   The \rcode{print} method also displays the first 10 fitted probabilities from the model by default.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{> }\hlstd{fit}
+\end{alltt}
+\begin{verbatim}
+The estimated shape parameter is 4.9544 
+The standard error of shape parameter is 0.2366 
+------
+NOTE: The shape parameter is reported so that it is consistent
+with Coulson et al. However, the value returned is actually s'
+= shape - 1 to be consistent with the VGAM parameterisation,
+which is used for computation. This has flow on effects, for
+example in confInt. This will be changed at some point.
+------
+
+The first  10 fitted values are:
+          P0           P1           P2           P3           P4 
+9.631547e-01 3.106447e-02 4.167082e-03 1.001917e-03 3.316637e-04 
+          P5           P6           P7           P8           P9 
+1.344002e-04 6.262053e-05 3.231467e-05 1.802885e-05 1.069709e-05 
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+The package provides a \rcode{confint} method for the fitted value. The method returns both a Wald confidence interval and profile likelihood interval. The Wald interval takes the usual the form where the lower and upper bound are given by $\hat{s} \pm z^*(1-\alpha/2)\times se(\hat{s}))$. The profile likelihood interval finds the end-points of the interval that satisfies
+\[
+-2\left[\ell(\hat{s};\mathbf{x})-\ell(s;\mathbf{x})\right] \le \chi^2_1(\alpha)
+\]
+where $\ell(s;\mathbf{x})$ is value of the log-likelihood given shape parameter $s$. The two intervals are returned as elements of a \rcode{list} named \rcode{wald} and \rcode{prof} respectively.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{> }\hlstd{ci} \hlkwb{=} \hlkwd{confint}\hlstd{(fit)}
+\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{wald}
+\end{alltt}
+\begin{verbatim}
+    2.5%    97.5% 
+3.490761 4.418099 
+\end{verbatim}
+\begin{alltt}
+\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{prof}
+\end{alltt}
+\begin{verbatim}
+    2.5%    97.5% 
+3.520495 4.451277 
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+You will notice that neither of these intervals contain the value shown in the previous output. However, this simply because they are confidence intervals on $s^\prime$ and not $s$. This can be remedied by adding one to each interval:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{wald} \hlopt{+} \hlnum{1}
+\end{alltt}
+\begin{verbatim}
+    2.5%    97.5% 
+4.490761 5.418099 
+\end{verbatim}
+\begin{alltt}
+\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{prof} \hlopt{+} \hlnum{1}
+\end{alltt}
+\begin{verbatim}
+    2.5%    97.5% 
+4.520495 5.451277 
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+The reason for not \emph{correcting} these intervals is that the method mostly exists to feed into other parts of the package, especially the \rcode{plot} method.
+\end{document}

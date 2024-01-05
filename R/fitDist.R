@@ -27,7 +27,7 @@
 #' \item{\code{var.shape}}{ - the maximum likelihood estimate of the shape parameter,}
 #' \item{\code{fitted}}{ - a named \code{vector} containing the first \code{nterms of
 #' the fitted distribution.}}
-#' \item{\code{zeroInflated}}{ - set to \code{FALSE} for this model}
+#' \item{\code{model}}{ - set to \code{"zeta"} for this model}
 #' }.
 #' The output can be used in a variety of ways. If the interest is just in the
 #' shape parameter estimate, then the \code{shape} member of the \code{psFit}
@@ -150,7 +150,7 @@ fitDist = function(x, nterms = 10,
     shape = shape,
     var.shape = var.shape,
     fitted = fitted,
-    zeroInflated = FALSE
+    model = "zeta"
   )
 
   class(result) = "psFit"

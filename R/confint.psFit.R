@@ -44,7 +44,7 @@ confint.psFit = function(object, parm, level = 0.95, ...){
     stop("Level must be in the interval [0.75,1)")
   }
 
-  if(object$zeroInflated){
+  if(object$model == "ziz"){
     results = profileLikelihoodZIZ(object, level = level, ...)
   }else{
 

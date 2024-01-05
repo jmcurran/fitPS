@@ -50,7 +50,7 @@ The function returns an object of class \code{psFit} which is a
 \item{\code{var.shape}}{ - the maximum likelihood estimate of the shape parameter,}
 \item{\code{fitted}}{ - a named \code{vector} containing the first \code{nterms of
 the fitted distribution.}}
-\item{\code{zeroInflated}}{ - set to \code{FALSE} for this model}
+\item{\code{model}}{ - set to \code{"zeta"} for this model}
 }.
 The output can be used in a variety of ways. If the interest is just in the
 shape parameter estimate, then the \code{shape} member of the \code{psFit}

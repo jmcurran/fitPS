@@ -2,7 +2,7 @@ profileLikelihoodZIZ  = function(x, level = 0.95,
                  grid.Pi = seq(0 + .Machine$double.eps, 1 - .Machine$double.eps, length = 100),
                  grid.Shape = seq(0 + .Machine$double.eps, x$shape + 4 * sqrt(diag(x$var.cov))[2], by = 0.01),
                  silent = FALSE){
-  if(!x$zeroInflated){
+  if(x$model != "ziz"){
     stop("This function is for the ZIZ model only")
   }
 

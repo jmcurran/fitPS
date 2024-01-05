@@ -56,7 +56,7 @@ The function returns an object of class \code{psFit} which is a
 \item{\code{var.cov}}{ -- the estimated variance-covariance matrix for the parameters,}
 \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms of
 the fitted distribution.}}
-\item{\code{zeroInflated}}{ -- set to \code{TRUE} for this model.}
+\item{\code{model}}{ -- set to \code{"ziz"} for this model.}
 }
 
 The output can be used in a variety of ways. If the interest is just in the

@@ -66,7 +66,7 @@ plot.psFit = function(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95,
     legend("topright", pch = 'X', legend = "Observed", bty = "n")
     box()
 
-    if(conf && !x$zeroInflated){
+    if(conf && x$model == "zeta"){
       ci.type = match.arg(ci.type)
 
       if(conf.level < 0.75 || conf.level > 0.99){
@@ -100,7 +100,7 @@ plot.psFit = function(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95,
     legend("topright", pch = 'X', legend = "Observed", bty = "n")
     box()
 
-    if(conf && !x$zeroInflated){
+    if(conf && x$model == "zeta"){
       ci.type = match.arg(ci.type)
 
       if(conf.level < 0.75 || conf.level > 0.99){

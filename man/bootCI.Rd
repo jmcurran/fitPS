@@ -13,7 +13,7 @@ bootCI(x, ...)
   x,
   level = 0.95,
   B = 2000,
-  model = c("zeta", "zi.zeta"),
+  model = c("zeta", "ziz"),
   returnBootValues = FALSE,
   silent = FALSE,
   plot = FALSE,
@@ -25,7 +25,7 @@ bootCI(x, ...)
 
 \method{bootCI}{psData}(x, ...)
 
-\method{bootCI}{psFit}(x, model = ifelse(!x$zeroInflated, "zeta", "zi.zeta"), ...)
+\method{bootCI}{psFit}(x, ...)
 }
 \arguments{
 \item{x}{a object of class \code{psFit}---see \code{\link{readData}} for more
@@ -40,7 +40,7 @@ returned.}
 \item{B}{the number of bootstrap samples to take.}
 
 \item{model}{which model to fit to the data, either \code{"zeta"} or
-\code{"zi.zeta"}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default
+\code{"ziz"}. Maybe abbreviated to \code{"z"} and \code{"zi"}. Default
 is \code{"zeta"}.}
 
 \item{returnBootValues}{if \code{TRUE} then the \code{vector} (or
@@ -50,10 +50,10 @@ for debugging or understanding the results. Default is \code{FALSE}.}
 \item{silent}{if \code{TRUE}, then no output will be displayed whilst the
 bootstrapping is being undertaken. \code{plot} if \code{TRUE} then the
 contours for the confidence region will be plotted. This only works if
-\code{model = "zi.zeta"}. It is ignored otherwise. \code{parallel} if
+\code{model = "ziz"}. It is ignored otherwise. \code{parallel} if
 \code{TRUE} then the bootstrapping is performed in parallel.}
 
-\item{plot}{if \code{TRUE} and \code{model == "zi.zeta"}, then a plot of the
+\item{plot}{if \code{TRUE} and \code{model == "ziz"}, then a plot of the
 bootstrapped values will be produced and confidence contour lines will be
 drawn for each value in level.}
 
@@ -76,7 +76,8 @@ If \code{returnBootVals == TRUE} then the results are returned in a
  with elements/columns named \code{"lower"} and \code{"upper"} representing
  the lower and upper bounds of the confidence interval(s). Multiple bounds
  are returned in a \code{data.frame} when \code{level} has more than one
- value. If \code{model == "zi.zeta"}, then a list with length equal to the
+ value. If \code{model == "ziz
+ "}, then a list with length equal to the
  length of \code{level} is returned. The name of each element in the list is
  the level with % attached. For example if \code{level == 0.95}, then the
  list has a single element named \code{"95\%"}. It is possible for there to
@@ -118,7 +119,7 @@ This function uses bootstrapping to compute a confidence interval for
 \dontrun{
 data(Psurveys)
 roux = Psurveys$roux
-confRegion = bootCI(roux, model = "zi.zeta", parallel = FALSE, plot = TRUE)
+confRegion = bootCI(roux, model = "ziz", parallel = FALSE, plot = TRUE)
 
 ## This will not work unless you have the sp package installed
 ## Count how many of the points lie within the 95\% confidence region

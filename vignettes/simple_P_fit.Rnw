@@ -4,6 +4,9 @@
 
 \newcommand{\rcode}[1]{\lstinline[language=R,basicstyle=\normalsize\ttfamily]!#1!}
 
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{Using fitPS to fit number of groups data}
+
 \title{Fitting a zeta distribution to a {P} survey---number of groups data}
 
 \begin{document}

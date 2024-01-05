@@ -17,7 +17,9 @@ print.psData = function(x, ...){
 
   kbl[1] = gsub("^Table[:] +(.*$)", "\\1", kbl[1])
 
-  print(kbl, ...)
+  z = capture.output(print(kbl, ...))
+  z = z[-c(1:2)]
+  cat(z, sep = "\n")
 
   if(!is.null(x$notes)){
     print(x$notes, ...)

@@ -1,7 +1,7 @@
 #' Fit a Logarithmic Distribution to Forensic Data
 #'
 #' This function uses maximum likelihood estimation (MLE) to estimate the shape
-#' parameter of a logairthmic distribution from a set of observed counts
+#' parameter of a logarithmic distribution from a set of observed counts
 #' for either the number of groups/sources of forensically interesting material
 #' (mostly glass or paint) recovered from clothing, or the number of
 #' fragments/particles in each group. This, in turn, allows the estimation of
@@ -41,6 +41,7 @@
 #' @importFrom VGAM dzeta
 #'
 #' @return an object of class \code{psFit}--see Details.
+#' @keywords internal
 #' @export
 #'
 #' @examples
@@ -98,7 +99,7 @@ fitlogDist = function(x, nterms = 10,
               upper  = c(1 - .Machine$double.eps),
               hessian = TRUE)
 
-  fitted = dlog(nvals, shape = fit$par)
+  fitted = VGAM::dlog(nvals, shape = fit$par)
   names(fitted) = if(x$type == 'P'){
     paste0("P", nvals - 1)
   }else{
@@ -110,7 +111,8 @@ fitlogDist = function(x, nterms = 10,
     fit = fit,
     pi = fit$par,
     var = 1 / fit$hessian[1,1],
-    fitted = fitted
+    fitted = fitted,
+    model = "log"
   )
 
 

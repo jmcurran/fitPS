@@ -1,0 +1,17 @@
+\begin{thebibliography}{1}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Roux et~al.(2001)Roux, Kirk, Benson, {Van Haren}, and
+  Petterd]{roux2001}
+C.~Roux, R.~Kirk, S.~Benson, T.~{Van Haren}, and C.~I. Petterd.
+\newblock Glass particles in footwear of members of the public in south-eastern
+  australia---a survey.
+\newblock \emph{Forensic Science International}, 116\penalty0 (2):\penalty0
+  149--156, 2001.
+\newblock \doi{https://doi.org/10.1016/S0379-0738(00)00355-8}.
+
+\end{thebibliography}

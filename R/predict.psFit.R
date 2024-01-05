@@ -49,10 +49,10 @@ predict.psFit = function(object, newdata, interval = c("none", "prof", "wald"),
   }
 
   if(is.null(predicted)){
-    if(!object$zeroInflated){
+    if(object$model == "zeta"){
       predicted = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
                               shape = object$shape)
-    }else{
+    }else if(object$model == "ziz"){
       predicted = (1 - object$pi) * VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
                                                 shape = object$shape)
       if(object$psData$type == "P"){
@@ -60,11 +60,13 @@ predict.psFit = function(object, newdata, interval = c("none", "prof", "wald"),
       }else{
         predicted[newdata == 1] = predicted[newdata == 1] + pi
       }
+    }else{
+      cat("This method is not currently implemented for the logarithmic distribution\n")
     }
   }
 
   if(interval %in% c("prof", "wald")){
-    if(!object$zeroInflated){
+    if(object$model == "zeta"){
       if(level <= 0.75 || level >= 1){
         stop("Level should be in the interval [0.75, 1)")
       }

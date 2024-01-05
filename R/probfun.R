@@ -16,7 +16,7 @@
 #' P(0:5)
 probfun = function(psFitobj){
   pf = function(x){
-    if(!psFitobj$zeroInflated){
+    if(psFitobj$model == "zeta"){
       if(psFitobj$psData$type == "P"){
         p = dzeta(x + 1, shape = psFitobj$shape)
         names(p) = paste0("P", x)
@@ -26,7 +26,7 @@ probfun = function(psFitobj){
         names(p) = paste0("S", x)
         return(p)
       }
-    }else{
+    }else if(psFitobj$model == "ziz"){
       if(psFitobj$psData$type == "P"){
         p = (1 - psFitobj$pi) * dzeta(x + 1, shape = psFitobj$shape)
         p[x == 0] = p[x == 0] + psFitobj$pi
@@ -38,6 +38,8 @@ probfun = function(psFitobj){
         names(p) = paste0("S", x)
         return(p)
       }
+    }else{
+      stop("This function is not currently implemented for the logarithmic distribution.")
     }
   }
   return(pf)

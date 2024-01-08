@@ -1,17 +1,25 @@
 #' Compare two surveys on the basis of their shape parameters
 #'
+#' @aliases compare.surveys comp.survs
+#'
 #' @param x either an object of class \code{psData}---see \code{\link{readData}}
 #' or an object of class \code{psFit}---see \code{\link{fitDist}}.
 #' @param y either an object of class \code{psData}---see \code{\link{readData}}
 #' or an object of class \code{psFit}---see \code{\link{fitDist}}.
+#' @param xname an optional name for the first survey object.
+#' @param yname an optional name for the second survey object.
 #' @param alternative one of \code{"two.sided"}, \code{"less"}, or \code{"greater"}, depending on the type of
 #' hypothesis test you wish to carry out. These may be replaced by single letter (or more) abbreviations.
+#' @param null.value the true value of the difference in the shape parameters under the null hypothesis.
 #' @param print if \code{TRUE} then the function will print summary output to the screen. This lets output be suppressed
 #' in situations where the user wants the function to run silently.
+#' @param \ldots further arguments to be passed to or from methods.
 #'
 #' @details
 #' This function **only** works for the zeta distribution. It does not work for the zero-inflated zeta distribution. If
 #' the results from fitting ZIZ models are passed to this function, then it will ignore the zero-inflated part and simply refit a zeta model.
+#'
+#' There is very little reason for \code{null.value} to be set to be anything other than \code{0}. However it has been included for flexibility.
 #'
 #' \code{alternative = "greater"} is the alternative that x has a larger shape parameter than y.
 #' \code{alternative = "less"} is the alternative that x has a smaller shape parameter than y.
@@ -37,8 +45,10 @@
 #' fit.jackson = fitDist(jackson)
 #' compareSurveys(fit.lau, fit.jackson)
 #'
-#' ## Example with a significant difference
-#' compareSurveys(Psurvey$roux, lau)
+#' ## Example with a bigger difference
+#' compareSurveys(Psurveys$roux, lau)
+#'
+#' @importFrom stats pnorm
 #'
 #' @export
 compareSurveys = function(x, ...){
@@ -67,8 +77,8 @@ compareSurveys.default = function(x,
   v.x = fit.x$var.shape
   v.y = fit.y$var.shape
 
-  se.diff = sqrt(v.x + v.2)
-  z = (shape.x - shape.y) / se.diff
+  se.diff = sqrt(v.x + v.y)
+  z = (shape.x - shape.y - null.value) / se.diff
 
   alternative = match.arg(alternative)
 
@@ -123,3 +133,11 @@ compareSurveys.psFit = function(x, y, ...){
                          yname = paste0(deparse1(substitute(y)), "$psData"),
                          ...)
 }
+
+#' @describeIn compareSurveys Compare two surveys on the basis of their shape parameters
+compare.surveys = compareSurveys
+
+#' @describeIn compareSurveys Compare two surveys on the basis of their shape parameters
+comp.survs = compareSurveys
+
+

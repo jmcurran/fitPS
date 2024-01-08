@@ -5,6 +5,8 @@
 #' @param ... other arguments passed to \code{print}
 #'
 #' @importFrom knitr kable
+#' @importFrom utils capture.output
+
 #' @return No return value, called for side effects
 #' @export
 print.psData = function(x, ...){
@@ -17,7 +19,7 @@ print.psData = function(x, ...){
 
   kbl[1] = gsub("^Table[:] +(.*$)", "\\1", kbl[1])
 
-  z = capture.output(print(kbl, ...))
+  z = capture.output(print(kbl, ...)) ## There might be a smarter way to get rid of kables two LF characters at the start of print, but I don't know what it is.
   z = z[-c(1:2)]
   cat(z, sep = "\n")
 

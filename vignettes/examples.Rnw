@@ -151,7 +151,7 @@ P&=\Pr(Z > |Z_0|) \\
 &= \Pr(-|Z_0| < Z) + \Pr(Z > |Z_0|) \\
 & 2 (1 - \Pr(Z < |Z_0|)).
 \end{align*}
-To do this in R we type:
+All this theory has been put in a function called \rcode{compareSurveys}
 <<R-14>>=
 alpha.1 = fit.lau$shape
 alpha.2 = fit.jackson$shape

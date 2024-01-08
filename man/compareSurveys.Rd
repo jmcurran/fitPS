@@ -2,6 +2,8 @@
 % Please edit documentation in R/compareSurveys.R
 \name{compareSurveys}
 \alias{compareSurveys}
+\alias{compare.surveys}
+\alias{comp.survs}
 \alias{compareSurveys.default}
 \alias{compareSurveys.psData}
 \alias{compareSurveys.psFit}
@@ -23,6 +25,10 @@ compareSurveys(x, ...)
 \method{compareSurveys}{psData}(x, y, ...)
 
 \method{compareSurveys}{psFit}(x, y, ...)
+
+compare.surveys(x, ...)
+
+comp.survs(x, ...)
 }
 \arguments{
 \item{x}{either an object of class \code{psData}---see \code{\link{readData}}
@@ -31,11 +37,19 @@ or an object of class \code{psFit}---see \code{\link{fitDist}}.}
 \item{y}{either an object of class \code{psData}---see \code{\link{readData}}
 or an object of class \code{psFit}---see \code{\link{fitDist}}.}
 
+\item{xname}{an optional name for the first survey object.}
+
+\item{yname}{an optional name for the second survey object.}
+
 \item{alternative}{one of \code{"two.sided"}, \code{"less"}, or \code{"greater"}, depending on the type of
 hypothesis test you wish to carry out. These may be replaced by single letter (or more) abbreviations.}
 
+\item{null.value}{the true value of the difference in the shape parameters under the null hypothesis.}
+
 \item{print}{if \code{TRUE} then the function will print summary output to the screen. This lets output be suppressed
 in situations where the user wants the function to run silently.}
+
+\item{\ldots}{further arguments to be passed to or from methods.}
 }
 \value{
 The function invisibly returns a \code{list} of class \code{"htest"} with the following elements:
@@ -55,6 +69,8 @@ Compare two surveys on the basis of their shape parameters
 This function **only** works for the zeta distribution. It does not work for the zero-inflated zeta distribution. If
 the results from fitting ZIZ models are passed to this function, then it will ignore the zero-inflated part and simply refit a zeta model.
 
+There is very little reason for \code{null.value} to be set to be anything other than \code{0}. However it has been included for flexibility.
+
 \code{alternative = "greater"} is the alternative that x has a larger shape parameter than y.
 \code{alternative = "less"} is the alternative that x has a smaller shape parameter than y.
 }
@@ -65,6 +81,13 @@ the results from fitting ZIZ models are passed to this function, then it will ig
 \item \code{compareSurveys(psData)}: Compare two surveys on the basis of their shape parameters
 
 \item \code{compareSurveys(psFit)}: Compare two surveys on the basis of their shape parameters
+
+}}
+\section{Functions}{
+\itemize{
+\item \code{compare.surveys()}: Compare two surveys on the basis of their shape parameters
+
+\item \code{comp.survs()}: Compare two surveys on the basis of their shape parameters
 
 }}
 \examples{
@@ -78,7 +101,7 @@ fit.lau = fitDist(lau)
 fit.jackson = fitDist(jackson)
 compareSurveys(fit.lau, fit.jackson)
 
-## Example with a significant difference
-compareSurveys(Psurvey$roux, lau)
+## Example with a bigger difference
+compareSurveys(Psurveys$roux, lau)
 
 }

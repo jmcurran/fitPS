@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{4}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -13,5 +13,30 @@ C.~Roux, R.~Kirk, S.~Benson, T.~{Van Haren}, and C.~I. Petterd.
 \newblock \emph{Forensic Science International}, 116\penalty0 (2):\penalty0
   149--156, 2001.
 \newblock \doi{https://doi.org/10.1016/S0379-0738(00)00355-8}.
+
+\bibitem[Lau et~al.(1997)Lau, Beveridge, Callowhill, Conners, Foster, Groves,
+  Ohashi, Sumner, and Wong]{lau1997}
+L.~Lau, A.~D. Beveridge, B.~C. Callowhill, N.~Conners, K.~Foster, R.~J. Groves,
+  K.~N. Ohashi, A.~M. Sumner, and H.~Wong.
+\newblock The frequency of occurrence of paint and glass on the clothing of
+  high school students.
+\newblock \emph{Canadian Society of Forensic Science Journal}, 30\penalty0
+  (4):\penalty0 233--240, 1997.
+\newblock \doi{10.1080/00085030.1997.10757103}.
+
+\bibitem[Jackson et~al.(2013)Jackson, { Maynard}, Cavanagh-Steer, Dusting, and
+  Roux]{jackson2013}
+F.~Jackson, P.~{ Maynard}, K.~Cavanagh-Steer, T.~Dusting, and C.~Roux.
+\newblock A survey of glass found on the headwear and head hair of a random
+  population vs. people working with glass.
+\newblock \emph{Forensic Science International}, 226\penalty0 (1):\penalty0
+  125--131, 2013.
+\newblock \doi{https://doi.org/10.1016/j.forsciint.2012.12.017}.
+
+\bibitem[contributors(2024)]{wiki:lrt}
+Wikipedia contributors.
+\newblock Likelihood-ratio test, 2024.
+\newblock URL \url{https://en.wikipedia.org/wiki/Likelihood-ratio_test}.
+\newblock [Online; accessed 8-January-2024].
 
 \end{thebibliography}

@@ -49,10 +49,12 @@
 \newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
 
 \usepackage{alltt}
+\usepackage{amsmath}
 \usepackage{enumerate}
 \usepackage{listings}
 \usepackage{natbib}[numbers, sort&compress]
 \setcitestyle{numbers,open={[},close={]}}
+\usepackage{url}
 
 \newcommand{\rcode}[1]{\lstinline[language=R,basicstyle=\normalsize\ttfamily]!#1!}
 
@@ -67,6 +69,7 @@
 
 We have, as noted throughout this paper, tried to make the statistical methodology as accessible as possible by implementing it in an R package. In this section we will demonstrate the use of the package with data from various surveys.
 
+\subsection{Fitting a zeta distribution}
 We start with the data from \citet{roux2001} who conducted a footwear survey, where shoes from 776 individuals were examined for glass. This data set is built into the package and can be accessed from the \rcode{Psurveys} object. That is, we can type:
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -109,7 +112,10 @@ It is very simple to fit a zeta distribution to this data set. We do this using 
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-There is nothing special about the variable name \rcode{fit}. It could be anything, for example \rcode{x}, or \rcode{blah}. However we choose the variable name \rcode{fit} because it is easy to remember that it is a \emph{fitted} object. The package includes specialised functions for both printing and plotting the fitted object. The \rcode{print} method displays an estimate of the shape parameter $\alpha$, an estimate of the standard deviation---the standard error---of the estimate of $\alpha$ ($\widehat{\mathrm{sd}}(\hat{\alpha})=\mathrm{se}(\hat{\alpha})$). \textbf{Note:} it is important to understand that the value of the shape parameter that is displayed, and the value that is stored in the fitted object differ by 1. That is, $\alpha$ is shown, and $s = \alpha - 1$ is stored. This difference only has consequences if the fitted value is being used in conjunction with other functions. The \rcode{print} method also displays the first 10 fitted probabilities from the model by default.
+There is nothing special about the variable name \rcode{fit}. It could be anything, for example \rcode{x}, or \rcode{blah}. However we choose the variable name \rcode{fit} because it is easy to remember that it is a \emph{fitted} object. The package includes specialised functions for both printing and plotting the fitted object. The \rcode{print} method displays an estimate of the shape parameter $\alpha$, an estimate of the standard deviation---the standard error---of the estimate of $\alpha$ ($\widehat{\mathrm{sd}}(\hat{\alpha})=\mathrm{se}(\hat{\alpha})$). \textbf{Note:} it is important to understand that the value of the shape parameter that is displayed, and the value that is stored in the fitted object differ by 1. That is, $\alpha$ is shown, and $s = \alpha - 1$ is stored. This difference only has consequences if the fitted value is being used in conjunction with other functions.
+
+\subsubsection{Using the fitted distribution to estimate $P$ terms}
+The \rcode{print} method also displays the first 10 fitted probabilities from the model by default.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -134,7 +140,7 @@ The first  10 fitted values are:
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
-This informtion is probably sufficient for most casework. However, the package has a function, \rcode{probfun}, that returns a bespoke function that can calculate any probability term. This function is applied a fitted object. For example
+This information is probably sufficient for most casework. However, the package has a function, \rcode{probfun}, that returns a bespoke function that can calculate any probability term. This function is applied a fitted object. For example
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -154,7 +160,9 @@ Again, \rcode{P} is just a variable name and we could have used anything. We hav
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
-We can also easily fit a zero-inflated model using the \rcode{fitZIDist} function\footnote{Functions with mixed case names are often annoying. For that reason, the package also allows \rcode{fitZIdist} and \rcode{fitzidist}.}. As before, we can choose a variable name to store the results in.
+
+\subsection{Fitting a zero-inflated zeta distribution}
+We can also easily fit a zero-inflated zeta model using the \rcode{fitZIDist} function\footnote{Functions with mixed case names are often annoying. For that reason, the package also allows \rcode{fitZIdist} and \rcode{fitzidist}.}. As before, we can choose a variable name to store the results in.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -180,14 +188,14 @@ The first  10 fitted values are:
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
-In the example above we fit a zero-inflated model to Roux et al.'s data, and print out the resulting fit. We get, as with the zeta model, estimates of the parameters and a default set of fitted values. The output is interesting in that we can see (from the value of $\hat{\pi}$) that the \emph{zero} part of the zero-inflated model is picking up about 85\% of the zeros. It is interesting to contrast the estimates from the zeta model to those of the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
-% latex table generated in R 4.2.3 by xtable 1.8-4 package
-% Fri Jan  5 16:58:33 2024
+In the example above we fit a zero-inflated model to Roux et al.'s data, and print out the resulting fit. We get, as with the zeta model, estimates of the parameters and a default set of fitted values. The output is interesting in that we can see (from the value of $\hat{\pi}$) that the \emph{zero} part of the zero-inflated model is picking up about 85\% of the zeros. It is interesting to compare the estimates from the raw frequencies, the zeta model, and those of the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
+% latex table generated in R 4.3.2 by xtable 1.8-4 package
+% Mon Jan  8 14:27:55 2024
 \begin{table}[ht]
 \centering
 \begin{tabular}{cccc}
   \hline
-$k$ & $P_K^{raw}$ & $P_k^{zeta}$ & $P_k^{ZIZ}$ \\ 
+$k$ & $P_k^{raw}$ & $P_k^{zeta}$ & $P_k^{ZIZ}$ \\ 
   \hline
 0 & 0.9716 & 0.9632 & 0.9716 \\ 
   1 & 0.0116 & 0.0311 & 0.0169 \\ 
@@ -201,48 +209,11 @@ $k$ & $P_K^{raw}$ & $P_k^{zeta}$ & $P_k^{ZIZ}$ \\
 \label{tab:ex1}
 \end{table}
 
-However, such a na\"{i}ve estimator would estimate the next term in the series, $P_5$, as zero because we have not observed any examples where five or more sources of glass have been recovered. We do not, however, believe that the true value is zero, but rather that the probability of recovering five sources of glass is a very small number. The zeta model provides an estimate with this property.
-\begin{table}[ht]
-    \centering
-        \begin{tabular}{c|c}
-             $k$ & $\hat{P}_k$ \\
-              \hline
-            0 & 0.9632 \\
-            1 & 0.0311 \\
-            2 & 0.0042 \\
-            3 & 0.0010 \\
-            4 & 0.0003 \\
-            5 & 0.0001 \\
-        \end{tabular}
-      \caption{Estimated probability that $k$ groups of glass would be found in shoes of a random member of the population based on the data of \citep{roux2001}.}
-      \label{tab:ex1c}
-\end{table}
 We can see from Table \ref{tab:ex1} that we now have a non-zero estimate for $P_5$,
-but this comes at a small cost, namely smaller probabilities for the preceding terms $P_0$--$P_4$. This is not necessarily a negative. The survey data is dominated by zeros. However, we think it likely that the raw sample estimates (for $P_0$--$P_4$) are over-estimates. The model reduces the estimated value, which is in line with our thinking. It is interesting to contrast the estimates from the zeta model to those of the ZIZ model. The maximum likelihood estimates of $\pi$ and $s$ are 0.847 (3 d.p.) and 1.884 (3 d.p.) respectively. The estimates are shown in Table \ref{tab:ex1d}.
-\begin{table}[ht]
-\centering
-\begin{tabular}{c|c|c}
-   $k$ & $\hat{P}_k^{\mathrm{zeta}}$ & $\hat{P}_k^{\mathrm{ZIZ}}$ \\
-  \hline
-   0 & 0.9632 & 0.9716 \\
-   1 & 0.0311 & 0.0169 \\
-   2 & 0.0042 & 0.0053 \\
-   3 & 0.0010 & 0.0023 \\
-   4 & 0.0003 & 0.0012 \\
-   5 & 0.0001 & 0.0007 \\
-\end{tabular}
-\caption{Estimated probability that $k$ groups of glass would be found in shoes of a random member of the population based on the data of \citep{roux2001}
-and the zeta and ZIZ models respectively.}
-      \label{tab:ex1d}
-\end{table}
-Interestingly, the effect of including the zero-inflation factor is to increase nearly all of the probabilities, with the exception of $P_1$. A natural question to ask is ``Which model is correct?'' The answer, unhelpfully, is ``Neither.'' This is because these are simply models. They can still help us without us having to believe that they are true.
+but this comes at a small cost, namely smaller probabilities for the preceding terms $P_0$--$P_4$. This is not necessarily a negative. The survey data is dominated by zeros. However, we think it likely that the raw sample estimates (for $P_0$--$P_4$) are over-estimates. The model reduces the estimated value, which is in line with our thinking. Interestingly, the effect of including the zero-inflation factor is to increase nearly all of the probabilities, with the exception of $P_1$. A natural question to ask is ``Which model is correct?'' The answer, unhelpfully, is ``Neither.'' This is because these are simply models. They can still help us without us having to believe that they are true.
 
-
-The package provides a \rcode{confint} method for the fitted value. The method returns both a Wald confidence interval and profile likelihood interval. The Wald interval takes the usual the form where the lower and upper bound are given by $\hat{s} \pm z^*(1-\alpha/2)\times se(\hat{s}))$. The profile likelihood interval finds the end-points of the interval that satisfies
-\[
--2\left[\ell(\hat{s};\mathbf{x})-\ell(s;\mathbf{x})\right] \le \chi^2_1(\alpha)
-\]
-where $\ell(s;\mathbf{x})$ is value of the log-likelihood given shape parameter $s$. The two intervals are returned as elements of a \rcode{list} named \rcode{wald} and \rcode{prof} respectively.
+\subsection{Confidence intervals for the parameter estimates}
+The \texttt{fitPS} package provides a \rcode{confint} method for the fitted value. The method returns both a Wald confidence interval and profile likelihood interval. The two intervals are returned as elements of a \rcode{list} named \rcode{wald} and \rcode{prof} respectively.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -262,7 +233,7 @@ where $\ell(s;\mathbf{x})$ is value of the log-likelihood given shape parameter 
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
-You will notice that neither of these intervals contain the value shown in the previous output. However, this simply because they are confidence intervals on $s^\prime$ and not $s$. This can be remedied by adding one to each interval:
+Readers may notice neither of these intervals contain the estimated value shown in the previous output. However, this simply because they are confidence intervals on $s^\prime$ and not $s$. This can be remedied by adding one to each interval:
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -283,6 +254,86 @@ You will notice that neither of these intervals contain the value shown in the p
 \end{knitrout}
 The reason for not \emph{correcting} these intervals is that the method mostly exists to feed into other parts of the package, especially the \rcode{plot} method.
 
+\subsection{Comparing two surveys}
+We can use the methodology that has been demonstrated so far to compare surveys. One reason for comparing surveys is to explore the hypothesis that there is no difference in the underlying ``true\footnote{Readers may be aware that one of the authors is fundementally Bayesian at heart, and the so the concept of the true value of a population parameter is antithetical to the school of thought. We, however, proceed on the basis that the Frequenist school of thought is not incorrect, but just differs in interpretation.}'' value of $\alpha$. If there is insufficient evidence to reject this hypothesis, then one may feel justified in combining data from two surveys. In the first instance we will take an ad-hoc approach, and then treat this problem more formally. In our ad-hoc approach we will compare confidence intervals for two-surveys. If these confidence intervals overlap, then we might conclude that there is insufficient evidence in the data to suggest that the estimates of $\alpha$ are different. We will illustrate this with the surveys conducted by \citet{lau1997} and \citet{jackson2013}. \citet{lau1997} surveyed the clothing of 213 Canadian high school students and observed two sets of clothing with one fragment on each. Similarly, \citet{jackson2013} surveyed 232 ``randomly'' selected members of the population of New South Wales in Australia. We place ``randomly'' in quotes because this was not a true random sample, but rather a convenience sample. That being said, it is unlikely that using a truly random mechanism would have significantly changed the results. \citet{jackson2013} found a single fragment of glass on each of six people. The data from each of these two surveys is summarised in Table \ref{tab:lau_and_jackson}.
+% latex table generated in R 4.3.2 by xtable 1.8-4 package
+% Mon Jan  8 14:27:55 2024
+\begin{table}[ht]
+\centering
+\begin{tabular}{r|r|r}
+  \multicolumn{1}{c}{} & \multicolumn{2}{c}{$r_n$} \\  $n$ & Lau et al. & Jackson et al.  \\ \hline
+0 & 211 & 224 \\ 
+  1 & 2 & 6 \\ 
+  \end{tabular}
+\caption{Survey results from \citet{lau1997} and \citet{jackson2013}.} 
+\label{tab:lau_and_jackson}
+\end{table}
+
+Visual inspection of these surveys would suggest that they are fairly similar. We can fit a zeta distribution to each survey, and then compute a confidence interval for each survey. Again, these data sets are included in the \texttt{fitPS} package.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{> }\hlstd{lau} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{lau}
+\hlstd{> }\hlstd{jackson} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{jackson}
+\hlstd{> }\hlstd{fit.lau} \hlkwb{=} \hlkwd{fitDist}\hlstd{(lau)}
+\hlstd{> }\hlstd{fit.jackson} \hlkwb{=} \hlkwd{fitDist}\hlstd{(jackson)}
+\hlstd{> }\hlkwd{confint}\hlstd{(fit.lau)}\hlopt{$}\hlstd{wald}
+\end{alltt}
+\begin{verbatim}
+    2.5%    97.5% 
+3.948422 7.823417 
+\end{verbatim}
+\begin{alltt}
+\hlstd{> }\hlkwd{confint}\hlstd{(fit.jackson)}\hlopt{$}\hlstd{wald}
+\end{alltt}
+\begin{verbatim}
+    2.5%    97.5% 
+3.443639 5.623473 
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+We can see from the output that there is substantial overlap between these two (Wald) confidence intervals. The results using profile likelihood intervals lead to the same conclusion but are not shown. We can test this more formally. Specifically, we wish to test the (null) hypothesis that
+\[
+H_0:\alpha_{1} = \alpha_{2}\mbox{ or equivalently }H_0:\alpha_{1} - \alpha_{2} = 0,
+\]
+where $\alpha_1$ is the true value of $\alpha$ for the the Lau et al. data, and $\alpha_2$ is the true value of $\alpha$ for the the Jackson et al. data. We choose a two-tailed alternative, meaning we are not concerned about the sign of any difference, but simply the magnitude of the difference. That is,
+\[
+H_1:\alpha_{1} \neq \alpha_{2}\mbox{ or equivalently }H_1:\alpha_{1} - \alpha_{2} \neq 0.
+\]
+We test this hypothesis by constructing a test statistic, then computing a \emph{P}-value under the assumption that the null hypothesis is true. We are interested in the difference between the two population values of $\alpha$. We estimate this by computing the difference in the sample estimates. That is, our estimate of $\alpha_{1}-\alpha_{2}$, is given by $\hat{\alpha}_{1}-\hat{\alpha}_{2}$, where $\hat{\alpha}_{1}$ and $\hat{\alpha}_{2}$ are the maximum likelihood estimates based on the survey data. We scale this difference by the estimated standard deviation in the difference, that is, by the standard error of the difference, $se(\hat{\alpha}_{1}-\hat{\alpha}_{2})$. We estimate this---to keep the statistical theory to a minimum---as the sum of the square root of the two estimated variances, i.e.
+\[
+se(\hat{\alpha}_{1}-\hat{\alpha}_{2}) = \sqrt{\hat{V}(\hat{\alpha}_1)+\hat{V}(\hat{\alpha}_2)},
+\]
+Our test statistic is then
+\[
+Z_0 = \frac{\hat{\alpha}_{1}-\hat{\alpha}_{2}}{se(\hat{\alpha}_{1}-\hat{\alpha}_{2})}.
+\]
+It can be shown that this test statistic follows an approximate normal distribution under the null hypothesis. That means we can compute our \emph{P}-value by evaluating
+\begin{align*}
+P&=\Pr(Z > |Z_0|) \\
+&= \Pr(-|Z_0| < Z < |Z_0|) \\
+&= \Pr(-|Z_0| < Z) + \Pr(Z > |Z_0|) \\
+& 2 (1 - \Pr(Z < |Z_0|)).
+\end{align*}
+To do this in R we type:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{> }\hlstd{alpha.1} \hlkwb{=} \hlstd{fit.lau}\hlopt{$}\hlstd{shape}
+\hlstd{> }\hlstd{alpha.2} \hlkwb{=} \hlstd{fit.jackson}\hlopt{$}\hlstd{shape}
+\hlstd{> }\hlstd{v.1} \hlkwb{=} \hlstd{fit.lau}\hlopt{$}\hlstd{var.shape}
+\hlstd{> }\hlstd{v.2} \hlkwb{=} \hlstd{fit.jackson}\hlopt{$}\hlstd{var.shape}
+\hlstd{> }\hlstd{se.diff} \hlkwb{=} \hlkwd{sqrt}\hlstd{(v.1} \hlopt{+} \hlstd{v.2)}
+\hlstd{> }\hlstd{Z0} \hlkwb{=} \hlstd{(alpha.1} \hlopt{-} \hlstd{alpha.2)}\hlopt{/}\hlstd{se.diff}
+\hlstd{> }\hlstd{P} \hlkwb{=} \hlnum{2} \hlopt{*} \hlstd{(}\hlnum{1} \hlopt{-} \hlkwd{pnorm}\hlstd{(}\hlkwd{abs}\hlstd{(Z0)))}
+\hlstd{> }\hlstd{P}
+\end{alltt}
+\begin{verbatim}
+[1] 0.23313
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+We can see that the \emph{P}-value is 0.23 (2 d.p.). This is significantly larger than either 0.05, or 0.01. Based on this we would conclude that there is insufficient evidence to reject the null hypothesis of a common value of $\alpha$, and it may be sensible to combine data from these two surveys. We could have also used the theory of likelihood ratio tests \citep{wiki:lrt} to test this hypothesis, but that is beyond the scope of this article.
 \bibliographystyle{unsrtnat}
 \bibliography{references}
 \end{document}

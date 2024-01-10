@@ -52,7 +52,7 @@ in situations where the user wants the function to run silently.}
 \item{\ldots}{further arguments to be passed to or from methods.}
 }
 \value{
-The function invisibly returns a \code{list} of class \code{"htest"} with the following elements:
+The function returns a \code{list} of class \code{"htest"} with the following elements:
 \describe{
  \item{\code{statistic}}{ -- the test statistic.}
  \item{\code{p.value}}{ -- the P-value associated with the estimate.}
@@ -60,6 +60,8 @@ The function invisibly returns a \code{list} of class \code{"htest"} with the fo
  \item{\code{null.value}}{ -- the specified hypothesized value of the difference in shape parameters---\code{0} by default.}
  \item{\code{stderr}}{ -- the standard error of the difference.}
  \item{\code{alternative}}{ -- a character string describing the alternative hypothesis.}
+ \item{\code{method}}{ -- a character string describing the method.}
+ \item{\code{data.name}}{ -- a character string with the names of the two input data sets separated by " and ".}
 }
 }
 \description{

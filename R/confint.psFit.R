@@ -9,15 +9,15 @@
 #' @details NOTE: the method for ZIZ model is a little computationally intensive
 #' and possibly (almost certainly) unstable.
 #'
-#' @return if the Zeta model is used (i.e \code{object} comes from a call to
+#' @return if the zeta model is used (i.e \code{object} comes from a call to
 #'   \code{\link{fitDist}}),then a list with two items: \code{wald} and
 #'   \code{prof} containing the Wald and profile likelihood confidence intervals
-#'   respectively for the shape parameter of the fitted Zeta distribution is
+#'   respectively for the shape parameter of the fitted zeta distribution is
 #'   returned. In general these should be relatively close to each other.
 #'   **NOTE** These values are for the \pkg{VGAM} parameterisation of the Zeta
 #'   distribution which uses \eqn{s^\prime = s - 1}{s' = s - 1}. This means they
 #'   can be used without alteration in \code{\link[VGAM]{dzeta}}. If a
-#'   Zero-Inflated Zeta model is used (i.e. \code{object} comes from a call to
+#'   zero-inflated zeta model is used (i.e. \code{object} comes from a call to
 #'   \code{\link{fitZIDist}}) then list of a confidence regions is returned with
 #'   and element for each value of \code{level}. The confidence regions are
 #'   \code{data.frame}s with variables \code{pi} and \code{shape} which can be

@@ -6,7 +6,7 @@
 #'   \eqn{\Pr(X = x)}{Pr(X = x)}.
 
 #' @param interval either \code{"none"}, \code{"prof"}, or \code{"wald"} and can
-#'   be abbreviated. If \code{"prof"} or \code{"wald"} AND the Zeta model has
+#'   be abbreviated. If \code{"prof"} or \code{"wald"} AND the zeta model has
 #'   been used  then an interval, based on the bounds of a 100 * \code{level}
 #'   confidence interval for the shape parameter, is given for each predicted
 #'   probability. The interval is provided based on either a Profile Likelihood,

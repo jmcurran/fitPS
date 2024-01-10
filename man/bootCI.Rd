@@ -28,8 +28,8 @@ bootCI(x, ...)
 \method{bootCI}{psFit}(x, ...)
 }
 \arguments{
-\item{x}{a object of class \code{psFit}---see \code{\link{readData}} for more
-details.}
+\item{x}{a object either of class \code{psData}---see \code{\link{readData}} for more
+details---or of class \code{psFit}.}
 
 \item{...}{other arguments.}
 

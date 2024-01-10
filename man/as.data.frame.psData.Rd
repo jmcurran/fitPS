@@ -25,7 +25,7 @@ Converts an object of class \code{psData}---see \code{\link{readData}}---to a
 If \code{x} is a \code{psData} object of type \code{"P"}, i.e. it
   relates to numbers of groups of glass, then a \code{data.frame} with a single variable
   \code{count} will be return where \code{count = rep(x$data$n + 1,
-  x$data$rn)}. The counts have one added to them because the Zeta
+  x$data$rn)}. The counts have one added to them because the zeta
   distribution requires that the counts are greater than or equal to one.  If
   \code{x} is a \code{psData} object of type \code{"P"}, i.e. it relates to
   group sizes, then a \code{data.frame} with a single variable \code{count}

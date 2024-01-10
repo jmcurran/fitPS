@@ -3,8 +3,8 @@
 #' @param x an object of class \code{psFit}, usually from \code{\link{fitDist}}
 #' or \code{\link{fitZIDist}}.
 #' @param ylim the limits of the y-axis.
-#' @param conf if \code{TRUE}, and the model is the the Zeta model (as opposed
-#' to the Zero-Inflated Zeta (ZIZ), then confidence intervals (based on the standard
+#' @param conf if \code{TRUE}, and the model is the the zeta model (as opposed
+#' to the zero-inflated zeta (ZIZ), then confidence intervals (based on the standard
 #'   error of the shape parameter) are drawn on the plot. If the ZIZ model has
 #'   been used, then this is ignored.
 #' @param conf.level the confidence level for the confidence intervals. Must be

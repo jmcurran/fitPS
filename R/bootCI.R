@@ -3,8 +3,8 @@
 #'Use boostrapping to generate confidence intervals, or confidence regions in
 #'the case of the zero-inflated model.
 #'
-#'@param x a object of class \code{psFit}---see \code{\link{readData}} for more
-#'  details.
+#'@param x a object either of class \code{psData}---see \code{\link{readData}} for more
+#'  details---or of class \code{psFit}.
 #'@param level the confidence level required---restricted to [0.75, 1). This may
 #'  be a vector, in which case multiple intervals, or confidence regions will be
 #'  returned.

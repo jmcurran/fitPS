@@ -1,14 +1,14 @@
 #' Fit a Zero-Inflated Zeta Distribution to Forensic Data
 #'
 #' This function uses maximum likelihood estimation (MLE) to estimate mixing
-#' parameter and the shape parameter of a Zero-Infalted Zeta distribution from a
+#' parameter and the shape parameter of a zero-inflated zeta distribution from a
 #' set of observed counts for either the number of groups/sources of
 #' forensically interesting material (mostly glass or paint) recovered from
 #' clothing, or the number of fragments/particles in each group. This, in turn,
 #' allows the estimation of the P and S probabilities, as described by Evett and
 #' Buckleton (1990), which used in computing the likelihood ratio (LR) for
 #' activity level propositions. The data itself arises from clothing surveys.
-#' The Zero-Inflated Zeta distribution has probability mass function
+#' The zero-inflated zeta distribution has probability mass function
 #' \deqn{p(k) = \begin{cases}
 #' \pi + \frac{(1-\pi)}{\zeta(s)}&,k=0, \\
 #' \frac{(1-\pi)k^{-s}}{\zeta(s)}&,k=1,2,\ldots
@@ -40,7 +40,7 @@
 #' function with \code{\link{probfun}}. **NOTE** The value of the shape
 #' parameter that is printed (if you print the fitted object) is different
 #' from that value that is stored in \code{shape}. The stored value is for the
-#' \pkg{VGAM} parameterisation of the Zeta distribution which uses
+#' \pkg{VGAM} parameterisation of the zeta distribution which uses
 #' \eqn{s^\prime = s - 1}{s' = s - 1}. Therefore the printed value is \eqn{s =
 #' s^\prime + 1}{s = s' + 1}. If you intend to use the fitted value with
 #' \code{\link[VGAM]{dzeta}}, then you should use the stored value

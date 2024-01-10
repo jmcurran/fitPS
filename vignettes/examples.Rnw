@@ -7,6 +7,7 @@
 \usepackage{url}
 
 \newcommand{\rcode}[1]{\lstinline[language=R,basicstyle=\normalsize\ttfamily]!#1!}
+\setcounter{section}{1}
 
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{Examples}
@@ -97,9 +98,56 @@ ci$prof + 1
 @
 The reason for not \emph{correcting} these intervals is that the method mostly exists to feed into other parts of the package, especially the \rcode{plot} method.
 
+\subsubsection{Bootstrapped and profile likelihood confidence regions for the zero-inflated zeta}
+The package includes the facility to compute both bootstrapped and profile likelihood confidence regions for the parameters of the zero-inflated zeta distribtion. It does, also, in fact compute bootstrapped confidence intervals for the zeta distribution, but we do not do demonstrate this functionality here. The \rcode{confint} function returns a confidence region if the fitted object contains information from a zero-inflated zeta fit. As an example, we will first compute profile likelihood confidence regions for the \citet{roux2001} data. To do this we use the fitted object we previously created, \rcode{fit.zi}, and, although not required, we supply a set of two levels so that we can compute both an 80\% and a 95\% confidence region. \rcode{confit} returns a list of confidence regions---one for each level---each of which are simply a set of $x$ and $y$ coordinates corresponding to the appropriate contour line. We can use this information for plotting. The code to produce Figure \ref{fig:confregion} is given below.
+<<R-12,eval=FALSE,tidy=FALSE>>=
+cr = confint(fit.zi, level = c(0.80, 0.95))
+plot(cr[["0.95"]], type = "l")
+polygon(cr[["0.8"]], border = "red")
+legend("topright", lty = 1, lwd = 2, col = c("red", "black"),
+       legend = c("80%", "95%"), bty = "n")
+@
+<<R-12a,echo=FALSE>>=
+pdf(file = "confregion.pdf", height = 3.937008)
+cr = confint(fit.zi, level = c(0.80, 0.95))
+plot(cr[["0.95"]], type = "l")
+polygon(cr[["0.8"]], border = "red")
+legend("topright", lty = 1, lwd = 2, col = c("red", "black"),
+       legend = c("80%", "95%"), bty = "n")
+graphics.off()
+@
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=0.95\textwidth,keepaspectratio]{confregion}
+  \caption{80\% and 95\% confidence regions for the parameters of a zero-inflated zeta distribution fitted to the \citet{roux2001} data.}
+  \label{fig:confregion}
+\end{figure}
+A bootstrapped confidence region can be computed using the \rcode{bootCI} function. The \rcode{bootCI} function includes the facility to plot the resulting confidence
+region(s) as and hide or display the function's progress. The latter is important because this procedure is numerically intensive, and even with utilising parallel processing, can be quite slow. The code below produces Figure \ref{fig:bootconfregion}
+<<R13, eval=FALSE>>=
+bcr = bootCI(roux,
+       model = "ziz",
+       plot = TRUE,
+       silent = TRUE)
+@
+<<R13a, echo=FALSE, eval=FALSE>>=
+pdf("bootconfregion.pdf", height = 3.937008)
+bcr = bootCI(roux,
+       model = "ziz",
+       plot = TRUE,
+       silent = TRUE)
+graphics.off()
+@
+\begin{figure}[ht]
+\centering
+  \includegraphics[width=0.95\textwidth,keepaspectratio]{bootconfregion}
+  \caption{A 95\% bootstrapped confidence region for the parameters of a zero-inflated zeta distribution fitted to the \citet{roux2001} data.}
+  \label{fig:bootconfregion}
+\end{figure}
+
 \subsection{Comparing two surveys}
 We can use the methodology that has been demonstrated so far to compare surveys. One reason for comparing surveys is to explore the hypothesis that there is no difference in the underlying ``true\footnote{Readers may be aware that one of the authors is fundementally Bayesian at heart, and the so the concept of the true value of a population parameter is antithetical to the school of thought. We, however, proceed on the basis that the Frequenist school of thought is not incorrect, but just differs in interpretation.}'' value of $\alpha$. If there is insufficient evidence to reject this hypothesis, then one may feel justified in combining data from two surveys. In the first instance we will take an ad-hoc approach, and then treat this problem more formally. In our ad-hoc approach we will compare confidence intervals for two-surveys. If these confidence intervals overlap, then we might conclude that there is insufficient evidence in the data to suggest that the estimates of $\alpha$ are different. We will illustrate this with the surveys conducted by \citet{lau1997} and \citet{jackson2013}. \citet{lau1997} surveyed the clothing of 213 Canadian high school students and observed two sets of clothing with one fragment on each. Similarly, \citet{jackson2013} surveyed 232 ``randomly'' selected members of the population of New South Wales in Australia. We place ``randomly'' in quotes because this was not a true random sample, but rather a convenience sample. That being said, it is unlikely that using a truly random mechanism would have significantly changed the results. \citet{jackson2013} found a single fragment of glass on each of six people. The data from each of these two surveys is summarised in Table \ref{tab:lau_and_jackson}.
-<<R-12, echo=FALSE, results='asis'>>=
+<<R-15, echo=FALSE, results='asis'>>=
 lau = Psurveys$lau
 jackson = Psurveys$jackson
 tbl = cbind(0:1, lau$data$rn, jackson$data$rn)
@@ -120,7 +168,7 @@ print(tbl,
       sanitize.colnames.function = function(x){x})
 @
 Visual inspection of these surveys would suggest that they are fairly similar. We can fit a zeta distribution to each survey, and then compute a confidence interval for each survey. Again, these data sets are included in the \texttt{fitPS} package.
-<<R-13>>=
+<<R-16>>=
 lau = Psurveys$lau
 jackson = Psurveys$jackson
 fit.lau = fitDist(lau)
@@ -138,7 +186,7 @@ H_1:\alpha_{1} \neq \alpha_{2}\mbox{ or equivalently }H_1:\alpha_{1} - \alpha_{2
 \]
 We test this hypothesis by constructing a test statistic, then computing a \emph{P}-value under the assumption that the null hypothesis is true. We are interested in the difference between the two population values of $\alpha$. We estimate this by computing the difference in the sample estimates. That is, our estimate of $\alpha_{1}-\alpha_{2}$, is given by $\hat{\alpha}_{1}-\hat{\alpha}_{2}$, where $\hat{\alpha}_{1}$ and $\hat{\alpha}_{2}$ are the maximum likelihood estimates based on the survey data. We scale this difference by the estimated standard deviation in the difference, that is, by the standard error of the difference, $se(\hat{\alpha}_{1}-\hat{\alpha}_{2})$. We estimate this---to keep the statistical theory to a minimum---as the sum of the square root of the two estimated variances, i.e.
 \[
-se(\hat{\alpha}_{1}-\hat{\alpha}_{2}) = \sqrt{\hat{V}(\hat{\alpha}_1)+\hat{V}(\hat{\alpha}_2)},
+se(\hat{\alpha}_{1}-\hat{\alpha}_{2}) = \sqrt{\hat{V}(\hat{\alpha}_1)+\hat{V}(\hat{\alpha}_2)}.
 \]
 Our test statistic is then
 \[
@@ -147,22 +195,13 @@ Z_0 = \frac{\hat{\alpha}_{1}-\hat{\alpha}_{2}}{se(\hat{\alpha}_{1}-\hat{\alpha}_
 It can be shown that this test statistic follows an approximate normal distribution under the null hypothesis. That means we can compute our \emph{P}-value by evaluating
 \begin{align*}
 P&=\Pr(Z > |Z_0|) \\
-&= \Pr(-|Z_0| < Z < |Z_0|) \\
-&= \Pr(-|Z_0| < Z) + \Pr(Z > |Z_0|) \\
-& 2 (1 - \Pr(Z < |Z_0|)).
+&=2(1 - \Pr(Z < |Z_0|)).
 \end{align*}
 All this theory has been put in a function called \rcode{compareSurveys}
-<<R-14>>=
-alpha.1 = fit.lau$shape
-alpha.2 = fit.jackson$shape
-v.1 = fit.lau$var.shape
-v.2 = fit.jackson$var.shape
-se.diff = sqrt(v.1 + v.2)
-Z0 = (alpha.1 - alpha.2) / se.diff
-P = 2 * (1 - pnorm(abs(Z0)))
-P
+<<R-17>>=
+compareSurveys(lau, jackson)
 @
-We can see that the \emph{P}-value is \Sexpr{round(P,2)} (2 d.p.). This is significantly larger than either 0.05, or 0.01. Based on this we would conclude that there is insufficient evidence to reject the null hypothesis of a common value of $\alpha$, and it may be sensible to combine data from these two surveys. We could have also used the theory of likelihood ratio tests \citep{wiki:lrt} to test this hypothesis, but that is beyond the scope of this article.
+We can see that the \emph{P}-value is \Sexpr{round(compareSurveys(lau, jackson)$p.value,2)} (2 d.p.). This is significantly larger than either 0.05, or 0.01. Based on this we would conclude that there is insufficient evidence to reject the null hypothesis of a common value of $\alpha$, and therefore it may be sensible to combine data from these two surveys. We could have also used the theory of likelihood ratio tests \citep{wiki:lrt} to test this hypothesis, but that is beyond the scope of this article. We note, however, that the \rcode{fitPS} package contains a function called \rcode{compareSurveysLRT} which can compare two \emph{or more} surveys simultaneously using a likelihood ratio test.
 \bibliographystyle{unsrtnat}
 \bibliography{references}
 \end{document}

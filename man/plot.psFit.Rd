@@ -20,8 +20,8 @@ or \code{\link{fitZIDist}}.}
 
 \item{ylim}{the limits of the y-axis.}
 
-\item{conf}{if \code{TRUE}, and the model is the the Zeta model (as opposed
-to the Zero-Inflated Zeta (ZIZ), then confidence intervals (based on the standard
+\item{conf}{if \code{TRUE}, and the model is the the zeta model (as opposed
+to the zero-inflated zeta (ZIZ), then confidence intervals (based on the standard
   error of the shape parameter) are drawn on the plot. If the ZIZ model has
   been used, then this is ignored.}
 

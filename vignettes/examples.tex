@@ -79,7 +79,7 @@ We start with the data from \citet{roux2001} who conducted a footwear survey, wh
 \hlstd{> }\hlstd{roux} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{roux}
 \end{alltt}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 The package includes a special printing function that summarises the data for reading rather than displaying it in the way it is stored. R prints the values of objects (or variables) simply by typing their name. For example
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -104,7 +104,7 @@ doi:10.1016/S0379-0738(00)00355-8
 <https://doi.org/10.1016/S0379-0738%2800%2900355-8>.
 \end{verbatim}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 It is very simple to fit a zeta distribution to this data set. We do this using the \rcode{fitDist} function.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -112,7 +112,7 @@ It is very simple to fit a zeta distribution to this data set. We do this using 
 \hlstd{> }\hlstd{fit} \hlkwb{=} \hlkwd{fitDist}\hlstd{(roux)}
 \end{alltt}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 There is nothing special about the variable name \rcode{fit}. It could be anything, for example \rcode{x}, or \rcode{blah}. However we choose the variable name \rcode{fit} because it is easy to remember that it is a \emph{fitted} object. The package includes specialised functions for both printing and plotting the fitted object. The \rcode{print} method displays an estimate of the shape parameter $\alpha$, an estimate of the standard deviation---the standard error---of the estimate of $\alpha$ ($\widehat{\mathrm{sd}}(\hat{\alpha})=\mathrm{se}(\hat{\alpha})$). \textbf{Note:} it is important to understand that the value of the shape parameter that is displayed, and the value that is stored in the fitted object differ by 1. That is, $\alpha$ is shown, and $s = \alpha - 1$ is stored. This difference only has consequences if the fitted value is being used in conjunction with other functions.
 
 \subsubsection{Using the fitted distribution to estimate $P$ terms}
@@ -140,7 +140,7 @@ The first  10 fitted values are:
 1.344002e-04 6.262053e-05 3.231467e-05 1.802885e-05 1.069709e-05 
 \end{verbatim}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 This information is probably sufficient for most casework. However, the package has a function, \rcode{probfun}, that returns a bespoke function that can calculate any probability term. This function is applied a fitted object. For example
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -148,7 +148,7 @@ This information is probably sufficient for most casework. However, the package 
 \hlstd{> }\hlstd{P} \hlkwb{=} \hlkwd{probfun}\hlstd{(fit)}
 \end{alltt}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 Again, \rcode{P} is just a variable name and we could have used anything. We have chosen \rcode{P} because this probability function returns $P$ terms. To use it, we type only need to provide the value of $k$, and the function will return $P_k$. For example
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -160,8 +160,7 @@ Again, \rcode{P} is just a variable name and we could have used anything. We hav
 0.0001344002 
 \end{verbatim}
 \end{kframe}
-\end{knitrout}
-
+\end{knitrout}\noindent
 \subsection{Fitting a zero-inflated zeta distribution}
 We can also easily fit a zero-inflated zeta model using the \rcode{fitZIDist} function\footnote{Functions with mixed case names are often annoying. For that reason, the package also allows \rcode{fitZIdist} and \rcode{fitzidist}.}. As before, we can choose a variable name to store the results in.
 \begin{knitrout}
@@ -188,10 +187,10 @@ The first  10 fitted values are:
 0.0007122067 0.0004565511 0.0003106019 0.0002211302 0.0001631754 
 \end{verbatim}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 In the example above we fit a zero-inflated model to Roux et al.'s data, and print out the resulting fit. We get, as with the zeta model, estimates of the parameters and a default set of fitted values. The output is interesting in that we can see (from the value of $\hat{\pi}$) that the \emph{zero} part of the zero-inflated model is picking up about 85\% of the zeros. It is interesting to compare the estimates from the raw frequencies, the zeta model, and those of the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
-% latex table generated in R 4.3.2 by xtable 1.8-4 package
-% Tue Jan  9 15:50:44 2024
+% latex table generated in R 4.2.3 by xtable 1.8-4 package
+% Thu Jan 11 14:44:52 2024
 \begin{table}[ht]
 \centering
 \begin{tabular}{cccc}
@@ -233,7 +232,7 @@ The \texttt{fitPS} package provides a \rcode{confint} method for the fitted valu
 3.520495 4.451277 
 \end{verbatim}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 Readers may notice neither of these intervals contain the estimated value shown in the previous output. However, this simply because they are confidence intervals on $s^\prime$ and not $s$. This can be remedied by adding one to each interval:
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -252,7 +251,7 @@ Readers may notice neither of these intervals contain the estimated value shown 
 4.520495 5.451277 
 \end{verbatim}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 The reason for not \emph{correcting} these intervals is that the method mostly exists to feed into other parts of the package, especially the \rcode{plot} method.
 
 \subsubsection{Bootstrapped and profile likelihood confidence regions for the zero-inflated zeta}
@@ -267,8 +266,7 @@ The package includes the facility to compute both bootstrapped and profile likel
 \hlstd{+ }       \hlkwc{legend} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"80%"}\hlstd{,} \hlstr{"95%"}\hlstd{),} \hlkwc{bty} \hlstd{=} \hlstr{"n"}\hlstd{)}
 \end{alltt}
 \end{kframe}
-\end{knitrout}
-
+\end{knitrout}\noindent
 \begin{figure}[ht]
 \centering
   \includegraphics[width=0.95\textwidth,keepaspectratio]{confregion}
@@ -283,8 +281,7 @@ region(s) as and hide or display the function's progress. The latter is importan
 \hlstd{> }\hlstd{bcr} \hlkwb{=} \hlkwd{bootCI}\hlstd{(roux,} \hlkwc{model} \hlstd{=} \hlstr{"ziz"}\hlstd{,} \hlkwc{plot} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{silent} \hlstd{=} \hlnum{TRUE}\hlstd{)}
 \end{alltt}
 \end{kframe}
-\end{knitrout}
-
+\end{knitrout}\noindent
 \begin{figure}[ht]
 \centering
   \includegraphics[width=0.95\textwidth,keepaspectratio]{bootconfregion}
@@ -294,8 +291,8 @@ region(s) as and hide or display the function's progress. The latter is importan
 
 \subsection{Comparing two surveys}
 We can use the methodology that has been demonstrated so far to compare surveys. One reason for comparing surveys is to explore the hypothesis that there is no difference in the underlying ``true\footnote{Readers may be aware that one of the authors is fundementally Bayesian at heart, and the so the concept of the true value of a population parameter is antithetical to the school of thought. We, however, proceed on the basis that the Frequenist school of thought is not incorrect, but just differs in interpretation.}'' value of $\alpha$. If there is insufficient evidence to reject this hypothesis, then one may feel justified in combining data from two surveys. In the first instance we will take an ad-hoc approach, and then treat this problem more formally. In our ad-hoc approach we will compare confidence intervals for two-surveys. If these confidence intervals overlap, then we might conclude that there is insufficient evidence in the data to suggest that the estimates of $\alpha$ are different. We will illustrate this with the surveys conducted by \citet{lau1997} and \citet{jackson2013}. \citet{lau1997} surveyed the clothing of 213 Canadian high school students and observed two sets of clothing with one fragment on each. Similarly, \citet{jackson2013} surveyed 232 ``randomly'' selected members of the population of New South Wales in Australia. We place ``randomly'' in quotes because this was not a true random sample, but rather a convenience sample. That being said, it is unlikely that using a truly random mechanism would have significantly changed the results. \citet{jackson2013} found a single fragment of glass on each of six people. The data from each of these two surveys is summarised in Table \ref{tab:lau_and_jackson}.
-% latex table generated in R 4.3.2 by xtable 1.8-4 package
-% Tue Jan  9 15:50:45 2024
+% latex table generated in R 4.2.3 by xtable 1.8-4 package
+% Thu Jan 11 14:44:56 2024
 \begin{table}[ht]
 \centering
 \begin{tabular}{r|r|r}
@@ -329,7 +326,7 @@ Visual inspection of these surveys would suggest that they are fairly similar. W
 3.443639 5.623473 
 \end{verbatim}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 We can see from the output that there is substantial overlap between these two (Wald) confidence intervals. The results using profile likelihood intervals lead to the same conclusion but are not shown. We can test this more formally. Specifically, we wish to test the (null) hypothesis that
 \[
 H_0:\alpha_{1} = \alpha_{2}\mbox{ or equivalently }H_0:\alpha_{1} - \alpha_{2} = 0,
@@ -369,8 +366,51 @@ sample estimates:
         5.885919         4.533556 
 \end{verbatim}
 \end{kframe}
-\end{knitrout}
+\end{knitrout}\noindent
 We can see that the \emph{P}-value is 0.23 (2 d.p.). This is significantly larger than either 0.05, or 0.01. Based on this we would conclude that there is insufficient evidence to reject the null hypothesis of a common value of $\alpha$, and therefore it may be sensible to combine data from these two surveys. We could have also used the theory of likelihood ratio tests \citep{wiki:lrt} to test this hypothesis, but that is beyond the scope of this article. We note, however, that the \rcode{fitPS} package contains a function called \rcode{compareSurveysLRT} which can compare two \emph{or more} surveys simultaneously using a likelihood ratio test.
-\bibliographystyle{unsrtnat}
-\bibliography{references}
+
+\begin{thebibliography}{4}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Roux et~al.(2001)Roux, Kirk, Benson, {Van Haren}, and
+  Petterd]{roux2001}
+C.~Roux, R.~Kirk, S.~Benson, T.~{Van Haren}, and C.~I. Petterd.
+\newblock Glass particles in footwear of members of the public in south-eastern
+  australia---a survey.
+\newblock \emph{Forensic Science International}, 116\penalty0 (2):\penalty0
+  149--156, 2001.
+\newblock \doi{https://doi.org/10.1016/S0379-0738(00)00355-8}.
+
+\bibitem[Lau et~al.(1997)Lau, Beveridge, Callowhill, Conners, Foster, Groves,
+  Ohashi, Sumner, and Wong]{lau1997}
+L.~Lau, A.~D. Beveridge, B.~C. Callowhill, N.~Conners, K.~Foster, R.~J. Groves,
+  K.~N. Ohashi, A.~M. Sumner, and H.~Wong.
+\newblock The frequency of occurrence of paint and glass on the clothing of
+  high school students.
+\newblock \emph{Canadian Society of Forensic Science Journal}, 30\penalty0
+  (4):\penalty0 233--240, 1997.
+\newblock \doi{10.1080/00085030.1997.10757103}.
+
+\bibitem[Jackson et~al.(2013)Jackson, { Maynard}, Cavanagh-Steer, Dusting, and
+  Roux]{jackson2013}
+F.~Jackson, P.~{ Maynard}, K.~Cavanagh-Steer, T.~Dusting, and C.~Roux.
+\newblock A survey of glass found on the headwear and head hair of a random
+  population vs. people working with glass.
+\newblock \emph{Forensic Science International}, 226\penalty0 (1):\penalty0
+  125--131, 2013.
+\newblock \doi{https://doi.org/10.1016/j.forsciint.2012.12.017}.
+
+\bibitem[contributors(2024)]{wiki:lrt}
+Wikipedia contributors.
+\newblock Likelihood-ratio test, 2024.
+\newblock URL \url{https://en.wikipedia.org/wiki/Likelihood-ratio_test}.
+\newblock [Online; accessed 8-January-2024].
+
+\end{thebibliography}
+
+
 \end{document}

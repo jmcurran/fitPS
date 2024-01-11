@@ -26,7 +26,11 @@ knitr::opts_chunk$set(message = FALSE,
                       tidy = TRUE,
                       tidy.opts = list(arrow = FALSE),
                       warning = FALSE)
+
 suppressWarnings(suppressPackageStartupMessages({library(fitPS)}))
+knitr::knit_hooks$set(document = function(x) {
+  gsub('([\n]+\\\\end\\{knitrout\\}[\n]+)', '\n\\\\end\\{knitrout\\}\\\\noindent\n', paste(x, collapse = '\n'))
+})
 @
 
 We have, as noted throughout this paper, tried to make the statistical methodology as accessible as possible by implementing it in an R package. In this section we will demonstrate the use of the package with data from various surveys.
@@ -202,6 +206,49 @@ All this theory has been put in a function called \rcode{compareSurveys}
 compareSurveys(lau, jackson)
 @
 We can see that the \emph{P}-value is \Sexpr{round(compareSurveys(lau, jackson)$p.value,2)} (2 d.p.). This is significantly larger than either 0.05, or 0.01. Based on this we would conclude that there is insufficient evidence to reject the null hypothesis of a common value of $\alpha$, and therefore it may be sensible to combine data from these two surveys. We could have also used the theory of likelihood ratio tests \citep{wiki:lrt} to test this hypothesis, but that is beyond the scope of this article. We note, however, that the \rcode{fitPS} package contains a function called \rcode{compareSurveysLRT} which can compare two \emph{or more} surveys simultaneously using a likelihood ratio test.
-\bibliographystyle{unsrtnat}
-\bibliography{references}
+
+\begin{thebibliography}{4}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Roux et~al.(2001)Roux, Kirk, Benson, {Van Haren}, and
+  Petterd]{roux2001}
+C.~Roux, R.~Kirk, S.~Benson, T.~{Van Haren}, and C.~I. Petterd.
+\newblock Glass particles in footwear of members of the public in south-eastern
+  australia---a survey.
+\newblock \emph{Forensic Science International}, 116\penalty0 (2):\penalty0
+  149--156, 2001.
+\newblock \doi{https://doi.org/10.1016/S0379-0738(00)00355-8}.
+
+\bibitem[Lau et~al.(1997)Lau, Beveridge, Callowhill, Conners, Foster, Groves,
+  Ohashi, Sumner, and Wong]{lau1997}
+L.~Lau, A.~D. Beveridge, B.~C. Callowhill, N.~Conners, K.~Foster, R.~J. Groves,
+  K.~N. Ohashi, A.~M. Sumner, and H.~Wong.
+\newblock The frequency of occurrence of paint and glass on the clothing of
+  high school students.
+\newblock \emph{Canadian Society of Forensic Science Journal}, 30\penalty0
+  (4):\penalty0 233--240, 1997.
+\newblock \doi{10.1080/00085030.1997.10757103}.
+
+\bibitem[Jackson et~al.(2013)Jackson, { Maynard}, Cavanagh-Steer, Dusting, and
+  Roux]{jackson2013}
+F.~Jackson, P.~{ Maynard}, K.~Cavanagh-Steer, T.~Dusting, and C.~Roux.
+\newblock A survey of glass found on the headwear and head hair of a random
+  population vs. people working with glass.
+\newblock \emph{Forensic Science International}, 226\penalty0 (1):\penalty0
+  125--131, 2013.
+\newblock \doi{https://doi.org/10.1016/j.forsciint.2012.12.017}.
+
+\bibitem[contributors(2024)]{wiki:lrt}
+Wikipedia contributors.
+\newblock Likelihood-ratio test, 2024.
+\newblock URL \url{https://en.wikipedia.org/wiki/Likelihood-ratio_test}.
+\newblock [Online; accessed 8-January-2024].
+
+\end{thebibliography}
+
+
 \end{document}

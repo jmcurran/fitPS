@@ -22,7 +22,7 @@
 #'
 #' @return an object of class \code{psData} which is a list containing member
 #'   variables:
-#' \itemize{
+#' \describe{
 #'   \item{\code{type}}{ -- either \code{"P"} or \code{"S"}}
 #'   \item{\code{data}}{ -- a \code{data.frame} which contains columns
 #' \code{n} and \code{rn}, representing the number of groups/fragments, and the

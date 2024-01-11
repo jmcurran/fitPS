@@ -43,7 +43,7 @@ to rapidly compute this quantity, hence their use of linear interpolation.
 \details{
 The function returns an object of class \code{psFit} which is a
   \code{list} contains four elements:
-\itemize{
+\describe{
 \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
 \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
 \item{\code{shape}}{ -- the maximum likelihood estimate of the shape parameter,}

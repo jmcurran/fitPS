@@ -48,7 +48,7 @@ where \eqn{\zeta(s)}{zeta(s)} is the Reimann Zeta function.
 \details{
 The function returns an object of class \code{psFit} which is a
   \code{list} contains seven elements:
-\itemize{
+\describe{
 \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
 \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
 \item{\code{pi}}{ - the maximum likelihood estimate of the mixing parameter,}

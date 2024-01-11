@@ -9,12 +9,11 @@
 #' used in computing the likelihood ratio (LR) for activity level propositions.
 #' The data itself arises from clothing surveys. The logarithmic
 #' distribution has probability mass function
-#' \deqn{p(k) = \frac{\pi^k}{k\log_e(1-\pi)},0<\pi<1.}
-#' {pi^k/(k * ln(1-pi)), 0<pi<1.}
+#' \deqn{p(k) = \frac{\pi^k}{k\log_e(1-\pi)},0<\pi<1.}{pi^k / (k * ln(1 - pi)), 0 < pi < 1.}
 #'
 #' @details The function returns an object of class \code{psFit} which is a
 #'   \code{list} contains seven elements:
-#' \itemize{
+#' \describe{
 #' \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
 #' \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
 #' \item{\code{pi}}{ - the maximum likelihood estimate of the shape parameter,}

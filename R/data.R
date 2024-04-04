@@ -1,14 +1,18 @@
 #' Number of Groups of Glass Data
 #'
-#' Count data from five different surveys looking at the number of sources/groups
+#' Count data from six different surveys looking at the number of sources/groups
 #' of glass found on the upper surfaces of clothing taken from the general public.
 #'
-#' @format A \code{list} with six objects of class \code{psData}---see
+#' @format A \code{list} with nine objects of class \code{psData}---see
 #'   \code{\link{readData}} for more details. The elements of the list are
-#'   named: \code{coulson}, \code{jackson}, \code{lau}, \code{pettard},
+#'   named: \code{coulson}, \code{jackson}, \code{lau}, \code{lewis.all},
+#'   \code{lewis.clothing}, \code{lewis.shoes}, \code{pettard},
 #'   \code{ross}, and \code{roux}, corresponding to the lead author in each of
 #'   the references given below. \code{lau}, \code{pettard}, and \code{ross}
-#'   were taken from Coulson et al. (2001) rather than the original source.
+#'   were taken from Coulson et al. (2001) rather than the original source. The three
+#'   objects starting with \code{lewis} represent the combined data (\code{all}),
+#'   the groups of glass found on the outer clothing (\code{clothing}), and the groups of
+#'   glass found on shoes/footwear (\code{shoes}).
 #'
 #' @importFrom Rdpack reprompt
 #' @usage
@@ -21,6 +25,8 @@
 #'
 #' @references
 #' \insertRef{lau1997}{fitPS}
+#'
+#' \insertRef{lewis2023}{fitPS}
 #'
 #' \insertRef{petterd1998}{fitPS}
 #'

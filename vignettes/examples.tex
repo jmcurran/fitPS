@@ -187,8 +187,8 @@ The first  10 fitted values are:
 \end{kframe}
 \end{knitrout}\noindent
 In the example above we fit a zero-inflated model to Roux et al.'s data, and print out the resulting fit. We get, as with the zeta model, estimates of the parameters and a default set of fitted values. The output is interesting in that we can see (from the value of $\hat{\pi}$) that the \emph{zero} part of the zero-inflated model is picking up about 85\% of the zeros. It is interesting to compare the estimates from the raw frequencies, the zeta model, and those of the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
-% latex table generated in R 4.3.3 by xtable 1.8-4 package
-% Wed Mar 20 16:40:34 2024
+% latex table generated in R 4.4.0 by xtable 1.8-4 package
+% Wed Jun 26 13:08:36 2024
 \begin{table}[ht]
 \centering
 \begin{tabular}{cccc}
@@ -288,33 +288,33 @@ region(s) as and hide or display the function's progress. The latter is importan
 \end{figure}
 
 \subsection{Comparing two surveys}
-We can use the methodology that has been demonstrated so far to compare surveys. One reason for comparing surveys is to explore the hypothesis that there is no difference in the underlying ``true\footnote{Readers may be aware that one of the authors is fundementally Bayesian at heart, and the so the concept of the true value of a population parameter is antithetical to the school of thought. We, however, proceed on the basis that the Frequenist school of thought is not incorrect, but just differs in interpretation.}'' value of $\alpha$. If there is insufficient evidence to reject this hypothesis, then one may be justified in combining data from two surveys. In the first instance we will take an ad-hoc approach, and then treat this problem more formally. In our ad-hoc approach we will compare confidence intervals for two surveys. If these confidence intervals overlap, then we might conclude that there is insufficient evidence in the data to suggest that the estimates of $\alpha$ are different. We will illustrate this example with the surveys conducted by \citet{lewis2023} and \citet{jackson2013}. \citet{lewis2023} observed two sets of clothing with one fragment on each. Similarly, \citet{jackson2013} found a single fragment of glass on each of six people. The data from each of these two surveys is summarised in Table \ref{tab:lewis_and_jackson}.
-% latex table generated in R 4.3.3 by xtable 1.8-4 package
-% Wed Mar 20 16:40:38 2024
+We can use the methodology that has been demonstrated so far to compare surveys. One reason for comparing surveys is to explore the hypothesis that there is no difference in the underlying ``true\footnote{Readers may be aware that one of the authors is fundementally Bayesian at heart, and the so the concept of the true value of a population parameter is antithetical to the school of thought. We, however, proceed on the basis that the Frequenist school of thought is not incorrect, but just differs in interpretation.}'' value of $\alpha$. If there is insufficient evidence to reject this hypothesis, then one may feel justified in combining data from two surveys. In the first instance we will take an ad-hoc approach, and then treat this problem more formally. In our ad-hoc approach we will compare confidence intervals for two-surveys. If these confidence intervals overlap, then we might conclude that there is insufficient evidence in the data to suggest that the estimates of $\alpha$ are different. We will illustrate this with the surveys conducted by \citet{lau1997} and \citet{jackson2013}. \citet{lau1997} surveyed the clothing of 213 Canadian high school students and observed two sets of clothing with one fragment on each. Similarly, \citet{jackson2013} surveyed 232 ``randomly'' selected members of the population of New South Wales in Australia. We place ``randomly'' in quotes because this was not a true random sample, but rather a convenience sample. That being said, it is unlikely that using a truly random mechanism would have significantly changed the results. \citet{jackson2013} found a single fragment of glass on each of six people. The data from each of these two surveys is summarised in Table \ref{tab:lau_and_jackson}.
+% latex table generated in R 4.4.0 by xtable 1.8-4 package
+% Wed Jun 26 13:08:38 2024
 \begin{table}[ht]
 \centering
 \begin{tabular}{r|r|r}
-  \multicolumn{1}{c}{} & \multicolumn{2}{c}{$r_n$} \\  $n$ & Lewis et al. & Jackson et al.  \\ \hline
-0 & 408 & 224 \\ 
+  \multicolumn{1}{c}{} & \multicolumn{2}{c}{$r_n$} \\  $n$ & Lau et al. & Jackson et al.  \\ \hline
+0 & 211 & 224 \\ 
   1 & 2 & 6 \\ 
   \end{tabular}
-\caption{Survey results from \citet{lewis2023} and \citet{jackson2013}.} 
-\label{tab:lewis_and_jackson}
+\caption{Survey results from \citet{lau1997} and \citet{jackson2013}.} 
+\label{tab:lau_and_jackson}
 \end{table}
 
 Visual inspection of these surveys would suggest that they are fairly similar. We can fit a zeta distribution to each survey, and then compute a confidence interval for each survey. Again, these data sets are included in the \texttt{fitPS} package.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{lewis} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{lewis.clothing}
+\hlstd{> }\hlstd{lau} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{lau}
 \hlstd{> }\hlstd{jackson} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{jackson}
-\hlstd{> }\hlstd{fit.lewis} \hlkwb{=} \hlkwd{fitDist}\hlstd{(lewis)}
+\hlstd{> }\hlstd{fit.lau} \hlkwb{=} \hlkwd{fitDist}\hlstd{(lau)}
 \hlstd{> }\hlstd{fit.jackson} \hlkwb{=} \hlkwd{fitDist}\hlstd{(jackson)}
-\hlstd{> }\hlkwd{confint}\hlstd{(fit.lewis)}\hlopt{$}\hlstd{wald}
+\hlstd{> }\hlkwd{confint}\hlstd{(fit.lau)}\hlopt{$}\hlstd{wald}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
-4.825493 8.739840 
+3.948422 7.823417 
 \end{verbatim}
 \begin{alltt}
 \hlstd{> }\hlkwd{confint}\hlstd{(fit.jackson)}\hlopt{$}\hlstd{wald}
@@ -325,15 +325,15 @@ Visual inspection of these surveys would suggest that they are fairly similar. W
 \end{verbatim}
 \end{kframe}
 \end{knitrout}\noindent
-From the output it can be seen that there is overlap between these two (Wald) confidence intervals suggesting that the observed difference between the two surveys may not be statistically significant. The results using profile likelihood intervals lead to the same conclusion but are not shown. We can test this more formally. Specifically, we wish to test the (null) hypothesis that
+We can see from the output that there is substantial overlap between these two (Wald) confidence intervals. The results using profile likelihood intervals lead to the same conclusion but are not shown. We can test this more formally. Specifically, we wish to test the (null) hypothesis that
 \[
 H_0:\alpha_{1} = \alpha_{2}\mbox{ or equivalently }H_0:\alpha_{1} - \alpha_{2} = 0,
 \]
-where $\alpha_1$ is the true value of $\alpha$ for the the Lewis et al. data, and $\alpha_2$ is the true value of $\alpha$ for the the Jackson et al. data. We choose a two-tailed alternative, meaning we are not concerned about the sign of any difference but simply the magnitude of the difference. That is,
+where $\alpha_1$ is the true value of $\alpha$ for the the Lau et al. data, and $\alpha_2$ is the true value of $\alpha$ for the the Jackson et al. data. We choose a two-tailed alternative, meaning we are not concerned about the sign of any difference, but simply the magnitude of the difference. That is,
 \[
 H_1:\alpha_{1} \neq \alpha_{2}\mbox{ or equivalently }H_1:\alpha_{1} - \alpha_{2} \neq 0.
 \]
-We test this hypothesis by constructing a test statistic and then computing a \emph{P}-value under the assumption that the null hypothesis is true. We are interested in the difference between the two population values of $\alpha$ which is estimated by computing the difference in the sample estimates. That is, our estimate of $\alpha_{1}-\alpha_{2}$, is given by $\hat{\alpha}_{1}-\hat{\alpha}_{2}$, where $\hat{\alpha}_{1}$ and $\hat{\alpha}_{2}$ are the maximum likelihood estimates based on the survey data. This difference is scaled by the estimated standard deviation in the difference, that is, by the standard error of the difference, $se(\hat{\alpha}_{1}-\hat{\alpha}_{2})$  and is estimated---to keep the statistical theory to a minimum---as the sum of the square root of the two estimated variances, i.e.
+We test this hypothesis by constructing a test statistic and then computing a \emph{P}-value under the assumption that the null hypothesis is true. We are interested in the difference between the two population values of $\alpha$. We estimate this by computing the difference in the sample estimates. That is, our estimate of $\alpha_{1}-\alpha_{2}$, is given by $\hat{\alpha}_{1}-\hat{\alpha}_{2}$, where $\hat{\alpha}_{1}$ and $\hat{\alpha}_{2}$ are the maximum likelihood estimates based on the survey data. We scale this difference by the estimated standard deviation in the difference, that is, by the standard error of the difference, $se(\hat{\alpha}_{1}-\hat{\alpha}_{2})$. We estimate this---to keep the statistical theory to a minimum---as the sum of the square root of the two estimated variances, i.e.
 \[
 se(\hat{\alpha}_{1}-\hat{\alpha}_{2}) = \sqrt{\hat{V}(\hat{\alpha}_1)+\hat{V}(\hat{\alpha}_2)}.
 \]
@@ -350,22 +350,22 @@ All this theory has been integrated into a function called \rcode{compareSurveys
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlkwd{compareSurveys}\hlstd{(lewis, jackson)}
+\hlstd{> }\hlkwd{compareSurveys}\hlstd{(lau, jackson)}
 \end{alltt}
 \begin{verbatim}
 
 	Two-sided Wald test
 
-data:  lewis and jackson
-z = 1.9678, p-value = 0.04909
+data:  lau and jackson
+z = 1.1923, p-value = 0.2331
 alternative hypothesis: true difference in shape parameters is not equal to 0
 sample estimates:
-  Shape of lewis Shape of jackson 
-        6.782666         4.533556 
+    Shape of lau Shape of jackson 
+        5.885919         4.533556 
 \end{verbatim}
 \end{kframe}
 \end{knitrout}\noindent
-The \emph{P}-value is 0.049 (3 d.p.) which slightly smaller than 0.05 but significantly larger than 0.01. Based on this we would conclude that there is insufficient evidence (at the 0.01 level) to reject the null hypothesis of a common value of $\alpha$, and therefore it may be sensible to combine data from these two surveys. The theory of likelihood ratio tests \citep{wiki:lrt} could have also been used to test this hypothesis, but that was beyond the scope of this article. However, the \rcode{fitPS} package contains a function called \rcode{compareSurveysLRT} which can compare two \emph{or more} surveys simultaneously using a likelihood ratio test.
+The \emph{P}-value is 0.23 (2 d.p.). This is significantly larger than either 0.05, or 0.01. Based on this we would conclude that there is insufficient evidence to reject the null hypothesis of a common value of $\alpha$. and therefore it may be sensible to combine data from these two surveys. We could have also used the theory of likelihood ratio tests \citep{wiki:lrt} to test this hypothesis, but that is beyond the scope of this article. We note, however, that the \rcode{fitPS} package contains a function called \rcode{compareSurveysLRT} which can compare two \emph{or more} surveys simultaneously using a likelihood ratio test.
 
 \begin{thebibliography}{4}
 \providecommand{\natexlab}[1]{#1}
@@ -383,18 +383,19 @@ C.~Roux, R.~Kirk, S.~Benson, T.~{Van Haren}, and C.~I. Petterd.
   149--156, 2001.
 \newblock \doi{https://doi.org/10.1016/S0379-0738(00)00355-8}.
 
-\bibitem[Lewis et~al.(2023)Lewis, Alexander, Ovide, Duffett, Curran, Buzzini,
-  and Trejos]{lewis2023}
-A. D.~Lewis, L. C.~Alexander, O.~Ovide, O.~Duffett, J.~Curran, P.~Buzzini, T.~Trejos
-\newblock A study on the occurrence of glass and paint across various cities in the
-United States---Part I: Background presence of glass in the general population.
-\newblock \emph{Forensic Chemistry}, 34\penalty0
-  :\penalty0 100497, 2023.
-\newblock \doi{https://doi.org/10.1016/j.forc.2023.100497}.
+\bibitem[Lau et~al.(1997)Lau, Beveridge, Callowhill, Conners, Foster, Groves,
+  Ohashi, Sumner, and Wong]{lau1997}
+L.~Lau, A.~D. Beveridge, B.~C. Callowhill, N.~Conners, K.~Foster, R.~J. Groves,
+  K.~N. Ohashi, A.~M. Sumner, and H.~Wong.
+\newblock The frequency of occurrence of paint and glass on the clothing of
+  high school students.
+\newblock \emph{Canadian Society of Forensic Science Journal}, 30\penalty0
+  (4):\penalty0 233--240, 1997.
+\newblock \doi{10.1080/00085030.1997.10757103}.
 
 \bibitem[Jackson et~al.(2013)Jackson, { Maynard}, Cavanagh-Steer, Dusting, and
   Roux]{jackson2013}
-F.~Jackson, P.~{Maynard}, K.~Cavanagh-Steer, T.~Dusting, and C.~Roux.
+F.~Jackson, P.~{ Maynard}, K.~Cavanagh-Steer, T.~Dusting, and C.~Roux.
 \newblock A survey of glass found on the headwear and head hair of a random
   population vs. people working with glass.
 \newblock \emph{Forensic Science International}, 226\penalty0 (1):\penalty0
@@ -408,6 +409,5 @@ Wikipedia contributors.
 \newblock [Online; accessed 8-January-2024].
 
 \end{thebibliography}
-
 
 \end{document}

@@ -24,10 +24,11 @@
 #' \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
 #' \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
 #' \item{\code{shape}}{ -- the maximum likelihood estimate of the shape parameter,}
-#' \item{\code{var.shape}}{ - the maximum likelihood estimate of the shape parameter,}
-#' \item{\code{fitted}}{ - a named \code{vector} containing the first \code{nterms of
+#' \item{\code{var.shape}}{ -- the maximum likelihood estimate of the shape parameter,}
+#' \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms of
 #' the fitted distribution.}}
-#' \item{\code{model}}{ - set to \code{"zeta"} for this model}
+#' \item{\code{model}}{ -- set to \code{"zeta"} for this model}
+#' \item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes}}
 #' }.
 #' The output can be used in a variety of ways. If the interest is just in the
 #' shape parameter estimate, then the \code{shape} member of the \code{psFit}
@@ -43,10 +44,17 @@
 #' the fitted value with \code{\link[VGAM]{dzeta}}, then you should use the
 #' stored value \eqn{s^\prime}{s'}.
 #'
-#' If \code{start} is not specified, then it is chosen randomly from (0.5, 1).
-#' The reason the lower value is not zero is that small starting values seem
-#' to cause instability in the likelihood. If you specify your own starting
-#' value, it would be sensible to keep it above 0.5.
+#' This function implements both maximum likelihood estimation (MLE) and Bayesian
+#' estimation. Both modes of estimation require addition information such as starting
+#' values and parameters for priors. Please read the documentation for the \code{...}
+#' argument closely because it explains what you can change and what the default values
+#' are.
+#'
+#' Currently the Bayesian estimation is done assuming a Uniform[a, b] prior for the
+#' logarithm of the shape parameter. That is we assume \eqn{s^prime \sim U[a,b]}{s' ~ U[a,b]}.
+#' This may change to be more flexible in the future. Similarly, the estimation is done
+#' using a simple Metropolis-Hastings sampler. It might be more efficient to sample through
+#' adaptive rejection sampling, but it is unclear whether it is worth the effort.
 #'
 #' @seealso \code{\link{plot.psFit}}, \code{\link{print.psFit}},
 #'   \code{\link{probfun}}.
@@ -64,8 +72,24 @@
 #'   \code{\link{readData}}.
 #' @param nterms the number of terms to compute the probability distribution
 #'   for.
-#' @param start a starting value for the optimiser.
-#' @param ... other parameters - not currently used.
+#' @param method either \code{"mle"} or \code{"bayes"}. Lets the user choose
+#' maximum likelihood estimation or Bayesian estimation. NOTE: each of these
+#' modes of estimation has a different set of optional parameters and defaults. See
+#' the description of the \code{\ldots} parameter below for details.
+#' @param ... other arguments that control the estimation methods. If \code{method == "mle"},
+#' then the user can provide an optional argument \code{start} which is the starting value for the
+#' numerical optimisation. If this is not provided, then \code{start = 1} by default. If you specify your own starting
+#' value, it would be sensible to keep it above 0.5.
+#'
+#' If \code{method == "bayes"}, then there are five optional parameters (which depsite the documentation are actually case insenstive):
+#' \describe{
+#'  \item{\code{shape0}}{The initial value of the shape parameter, set just above 1 by default}
+#'  \item{\code{a}}{The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2.}
+#'  \item{\code{b}}{The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2.}
+#'  \item{\code{nIter}}{The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000.}
+#'  \item{\code{nBurnIn}}{The number of samples to discard from the chain. Must be greater than zero. **NOTE**: the sampler runs for \code{nIter + nBurnIn} iterations,
+#'  so you do not need to factor this number into your number of samples, \code{nIter}.}
+#' }
 #'
 #' @importFrom stats optim runif
 #' @importFrom VGAM dzeta
@@ -78,7 +102,7 @@
 #' fit = fitDist(p)
 #' fit
 fitDist = function(x, nterms = 10,
-                   start = 1,
+                   method = c("mle", "bayes"),
                    ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
@@ -106,56 +130,70 @@ fitDist = function(x, nterms = 10,
               x$data$n
             }
 
-  logLik = function(shape){
-    #-sum(VGAM::dzeta(rep(obsData, x$data$rn), shape = shape, log = TRUE))
-    -sum(x$data$rn * VGAM::dzeta(obsData, shape = shape, log = TRUE))
+  method = match.arg(method)
+  if(method == "mle"){
+
+    dotargs = list(...)
+    if(!("start" %in% names(dotargs))){
+      start = 1
+    }else{
+      start = dotargs$shape
+    }
+
+    logLik = function(shape){
+      #-sum(VGAM::dzeta(rep(obsData, x$data$rn), shape = shape, log = TRUE))
+      -sum(x$data$rn * VGAM::dzeta(obsData, shape = shape, log = TRUE))
+    }
+
+    # fit = nlminb(start = start,
+    #              objective = logLik,
+    #              lower = 1)
+
+    fit = optim(par = start,
+                  fn = logLik,
+                  method = "L-BFGS-B",
+                  lower = 0,
+                  hessian = TRUE)
+
+    shape = fit$par ## NOTE VGAM's dzeta is parameterised in terms of
+                    ## s = alpha - 1. This has consequences in the formula below
+    N = sum(x$data$rn)
+
+    vshape = function(shape){
+      z = VGAM::zeta(shape + 1)
+      zprime = VGAM::zeta(shape + 1, 1)
+      zprimeprime = VGAM::zeta(shape + 1, 2)
+      numer = z^2
+      denom = N *(z * zprimeprime - zprime^2)
+
+      return(numer / denom)
+    }
+
+    var.shape = vshape(shape)
+
+    fitted = VGAM::dzeta(nvals, shape = shape)
+    names(fitted) = if(x$type == 'P'){
+      paste0("P", nvals - 1)
+    }else{
+      paste0("S", nvals)
+    }
+
+    result = list(
+      psData = x,
+      fit = fit,
+      shape = shape,
+      var.shape = var.shape,
+      fitted = fitted,
+      model = "zeta",
+      method = "mle"
+    )
+
+    class(result) = "psFit"
+
+    return(result)
+  }else{ ## method == "bayes"
+    return(fitDistBayes(x = x, nterms = nterms, ...))
   }
-
-  # fit = nlminb(start = start,
-  #              objective = logLik,
-  #              lower = 1)
-
-  fit = optim(par = start,
-                fn = logLik,
-                method = "L-BFGS-B",
-                lower = 0,
-                hessian = TRUE)
-
-  shape = fit$par ## NOTE VGAM's dzeta is parameterised in terms of
-                  ## s = alpha - 1. This has consequences in the formula below
-  N = sum(x$data$rn)
-
-  vshape = function(shape){
-    z = VGAM::zeta(shape + 1)
-    zprime = VGAM::zeta(shape + 1, 1)
-    zprimeprime = VGAM::zeta(shape + 1, 2)
-    numer = z^2
-    denom = N *(z * zprimeprime - zprime^2)
-
-    return(numer / denom)
-  }
-
-  var.shape = vshape(shape)
-
-  fitted = VGAM::dzeta(nvals, shape = shape)
-  names(fitted) = if(x$type == 'P'){
-    paste0("P", nvals - 1)
-  }else{
-    paste0("S", nvals)
-  }
-
-  result = list(
-    psData = x,
-    fit = fit,
-    shape = shape,
-    var.shape = var.shape,
-    fitted = fitted,
-    model = "zeta"
-  )
-
-  class(result) = "psFit"
-
-  return(result)
 }
 
 #' @describeIn fitDist Fit a Zeta Distribution to Forensic Data

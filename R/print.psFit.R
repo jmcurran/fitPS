@@ -7,6 +7,9 @@
 #' @return No return value, called for side effects.
 #' @export
 print.psFit = function(x, ...){
+
+  isBayes = "chain" %in% names(x)
+
   if(x$model == "ziz"){
     cat(paste("The estimated mixing parameter, pi, is", signif(x$pi, 4), "\n"))
   }

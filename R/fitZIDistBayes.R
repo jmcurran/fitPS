@@ -82,7 +82,7 @@ fitZIDistBayes = function(x, nterms = 10,
   pi.draws = if(alpha == 1 && beta == 1){
               runif(nTotal)
              }else{
-              rbeta(nTotal, alpha, beta))
+              rbeta(nTotal, alpha, beta)
              }
 
   whichParam = sample(1:2, nTotal, TRUE)

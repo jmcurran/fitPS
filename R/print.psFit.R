@@ -8,14 +8,18 @@
 #' @export
 print.psFit = function(x, ...){
 
-  isBayes = "chain" %in% names(x)
+  isBayes = x$method == "bayes"
 
   if(x$model == "ziz"){
     cat(paste("The estimated mixing parameter, pi, is", signif(x$pi, 4), "\n"))
   }
 
   if(x$model %in% c("zeta", "ziz")){
-    cat(paste("The estimated shape parameter is", round(x$shape + 1, 4), "\n"))
+    if(isBayes){
+      cat(paste("The estimated posterior mean of shape parameter is", round(x$shape + 1, 4), "\n"))
+    }else{
+      cat(paste("The estimated shape parameter is", round(x$shape + 1, 4), "\n"))
+    }
   }
 
   if(x$model == "log"){
@@ -23,7 +27,11 @@ print.psFit = function(x, ...){
   }
 
   if(x$model == "zeta"){
-    cat(paste("The standard error of shape parameter is", round(sqrt(x$var.shape), 4), "\n"))
+    if(isBayes){
+      cat(paste("The estimated posterior standard error of shape parameter is", round(sqrt(x$var.shape), 4), "\n"))
+    }else{
+      cat(paste("The standard error of shape parameter is", round(sqrt(x$var.shape), 4), "\n"))
+    }
   }
 
   if(x$model %in% c("zeta", "ziz")){

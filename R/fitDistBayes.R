@@ -22,6 +22,7 @@ fitDistBayes = function(x, nterms, ...){
   b = ifelse(is.arg("b"), dotargs$b, 2)
   nIter = ifelse(is.arg("nIter"), dotargs$nIter, 1e4)
   nBurnIn = ifelse(is.arg("nBurnIn"), dotargs$nBurnIn, 1e3)
+  silent = ifelse(is.arg("silent"), dotargs$silent, TRUE)
 
   if(nIter < 1000){
     warning("The number of samples from the MCMC chain really should be 1000 or higher.")
@@ -66,11 +67,15 @@ fitDistBayes = function(x, nterms, ...){
   draws = exp(-log.shape)
   shape1 = draws[1]
 
-  chain = rep(shape0, nTotal)
+  chain = rep(shape0, nIter)
   log.u = log(runif(nTotal))
 
   ll0 = logLik(shape0) + log(W * shape0)
   i = 1
+
+  if(!silent){
+    pb = txtProgressBar(1, nTotal, 1, style = 3, label = 'Burning in')
+  }
 
   while(i <= nTotal){
     if(i <= nTotal){
@@ -87,6 +92,17 @@ fitDistBayes = function(x, nterms, ...){
       chain[i - nBurnIn] = shape0
     }
     i = i + 1
+    if(!silent){
+      if(i <= nBurnIn){
+        setTxtProgressBar(pb, i)
+      }else{
+        setTxtProgressBar(pb, i, label = 'Sampling')
+      }
+    }
+  }
+
+  if(!silent){
+    close(pb)
   }
 
   fit = list()
@@ -107,7 +123,8 @@ fitDistBayes = function(x, nterms, ...){
     var.shape = var.shape,
     fitted = fitted,
     chain = chain,
-    model = "zeta"
+    model = "zeta",
+    method = "bayes"
   )
 
   class(result) = "psFit"

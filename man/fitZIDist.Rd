@@ -6,11 +6,11 @@
 \alias{fitzidist}
 \title{Fit a Zero-Inflated Zeta Distribution to Forensic Data}
 \usage{
-fitZIDist(x, nterms = 10, start = c(0.5, 1), ...)
+fitZIDist(x, nterms = 10, method = c("mle", "bayes"), ...)
 
-fitZIdist(x, nterms = 10, start = c(0.5, 1), ...)
+fitZIdist(x, nterms = 10, method = c("mle", "bayes"), ...)
 
-fitzidist(x, nterms = 10, start = c(0.5, 1), ...)
+fitzidist(x, nterms = 10, method = c("mle", "bayes"), ...)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from
@@ -19,23 +19,26 @@ fitzidist(x, nterms = 10, start = c(0.5, 1), ...)
 \item{nterms}{the number of terms to compute the probability distribution
 for.}
 
-\item{start}{a starting value for the optimiser.}
-
-\item{...}{other parameters - not currently used.}
+\item{method}{either \code{"mle"} or \code{"bayes"}. Lets the user choose
+maximum likelihood estimation or Bayesian estimation. NOTE: each of these
+modes of estimation has a different set of optional parameters and
+defaults. See the description of the \code{\ldots} parameter below for
+details.}
 }
 \value{
 an object of class \code{psFit}--see Details.
 }
 \description{
-This function uses maximum likelihood estimation (MLE) to estimate mixing
-parameter and the shape parameter of a zero-inflated zeta distribution from a
-set of observed counts for either the number of groups/sources of
-forensically interesting material (mostly glass or paint) recovered from
-clothing, or the number of fragments/particles in each group. This, in turn,
-allows the estimation of the P and S probabilities, as described by Evett and
-Buckleton (1990), which used in computing the likelihood ratio (LR) for
-activity level propositions. The data itself arises from clothing surveys.
-The zero-inflated zeta distribution has probability mass function
+This function uses maximum likelihood estimation (MLE) or Bayesian estimation
+(MCMC) to estimate the mixing parameter and the shape parameter of a
+zero-inflated zeta distribution from a set of observed counts for either the
+number of groups/sources of forensically interesting material (mostly glass
+or paint) recovered from clothing, or the number of fragments/particles in
+each group. This, in turn, allows the estimation of the P and S
+probabilities, as described by Evett and Buckleton (1990), which used in
+computing the likelihood ratio (LR) for activity level propositions. The data
+itself arises from clothing surveys. The zero-inflated zeta distribution has
+probability mass function
 \deqn{p(k) = \begin{cases}
 \pi + \frac{(1-\pi)}{\zeta(s)}&,k=0, \\
 \frac{(1-\pi)k^{-s}}{\zeta(s)}&,k=1,2,\ldots
@@ -47,37 +50,49 @@ where \eqn{\zeta(s)}{zeta(s)} is the Reimann Zeta function.
 }
 \details{
 The function returns an object of class \code{psFit} which is a
-  \code{list} contains seven elements:
+  \code{list} contains nine elements:
 \describe{
 \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
 \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
-\item{\code{pi}}{ - the maximum likelihood estimate of the mixing parameter,}
-\item{\code{shape}}{ -- the maximum likelihood estimate of the shape parameter,}
-\item{\code{var.cov}}{ -- the estimated variance-covariance matrix for the parameters,}
+\item{\code{pi}}{ - the maximum likelihood estimate, or the posterior mean, of the mixing parameter,}
+\item{\code{shape}}{ -- the maximum likelihood estimate, or the posterior mean, of the shape parameter,}
+\item{\code{var.cov}}{ -- the estimated (posterior) variance-covariance matrix for the parameters,}
 \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms of
 the fitted distribution.}}
 \item{\code{model}}{ -- set to \code{"ziz"} for this model.}
+\item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"}.}
+\item{\code{chain}}{ -- if \code{method == "bayes"}, then this element will contain the Markov Chain from the sampler,
+that is, hopefully a sample from the posterior density of the mixing parameter and the shape parameter.}
 }
 
 The output can be used in a variety of ways. If the interest is just in the
 mixing and shape parameter estimates, then the \code{pi} and \code{shape}
 member of the \code{psFit} object contains this information. It is also
 displayed along with a number of fitted probabilities by the
-\code{\link{print.psFit}} method. The fitted object can also be plotted
-using the plot method \code{\link{plot.psFit}}, and to create a probability
+\code{\link{print.psFit}} method. The fitted object can also be plotted using
+the plot method \code{\link{plot.psFit}}, and to create a probability
 function with \code{\link{probfun}}. **NOTE** The value of the shape
-parameter that is printed (if you print the fitted object) is different
-from that value that is stored in \code{shape}. The stored value is for the
+parameter that is printed (if you print the fitted object) is different from
+that value that is stored in \code{shape}. The stored value is for the
 \pkg{VGAM} parameterisation of the zeta distribution which uses
 \eqn{s^\prime = s - 1}{s' = s - 1}. Therefore the printed value is \eqn{s =
 s^\prime + 1}{s = s' + 1}. If you intend to use the fitted value with
 \code{\link[VGAM]{dzeta}}, then you should use the stored value
 \eqn{s^\prime}{s'}.
 
-If \code{start} is not specified, then it is set to (0.5, 1). The reason
-the starting values are not zero is that small starting values seem to
-cause instability in the likelihood. If you specify your own starting
-value, it would be sensible to keep both above 0.5.
+This function implements both maximum likelihood estimation (MLE) and
+Bayesian estimation. Both modes of estimation require addition information
+such as starting values and parameters for priors. Please read the
+documentation for the \code{...} argument closely because it explains what
+you can change and what the default values are.
+
+Currently the Bayesian estimation is done assuming a Beta(alpha, beta)
+distribution for the prior of the mixing proportion and Uniform[a, b] prior
+  for the logarithm of the shape parameter. That is we assume \eqn{s^prime
+  \sim U[a,b]}{s' ~ U[a,b]}. This may change to be more flexible in the
+future. Similarly, the estimation is done using a simple Metropolis-Hastings
+sampler. It might be more efficient to sample through adaptive rejection
+sampling, but it is unclear whether it is worth the effort.
 }
 \examples{
 data(Psurveys)

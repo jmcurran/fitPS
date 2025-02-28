@@ -45,8 +45,8 @@ an object of class \code{psFit}--see Details.
 }
 \description{
 This function uses maximum likelihood estimation (MLE), or Bayesian
-eatimation, to estimate the shape parameter of  a zeta distribution from a
-set of observed counts for either the number of groups/sources of
+estimation (MCMC), to estimate the shape parameter of  a zeta distribution
+from a set of observed counts for either the number of groups/sources of
 forensically interesting material (mostly glass or paint) recovered from
 clothing, or the number of fragments/particles in each group. This, in turn,
 allows the estimation of the P and S probabilities, as described by Evett and
@@ -71,8 +71,8 @@ The function returns an object of class \code{psFit} which is a
 \item{\code{var.shape}}{ -- the maximum likelihood estimate, of the posterier, of the variance of shape parameter,}
 \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms} of
 the fitted distribution.}
-\item{\code{model}}{ -- set to \code{"zeta"} for this model}
-\item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"}}
+\item{\code{model}}{ -- set to \code{"zeta"} for this model.}
+\item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"}.}
 \item{\code{chain}}{ -- if \code{method == "bayes"}, then this element will contain the Markov Chain from the sampler,
 that is, hopefully a sample from the posterior density of the shape parameter.}
 }

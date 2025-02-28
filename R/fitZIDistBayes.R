@@ -1,5 +1,6 @@
+#' @importFrom stats cov rbeta dbeta
 fitZIDistBayes = function(x, nterms = 10,
-                     start = c(0.5, 1),
+                     theta0 = c(0.5, 1),
                      a = -2, b = 2,
                      alpha = 1, beta = 1,
                      nIter = 10000,
@@ -10,11 +11,45 @@ fitZIDistBayes = function(x, nterms = 10,
     stop("x must be an object of class psData")
   }
 
-  if(start[1] <= 0 || start[1] >= 1){
+  ## check which arguments have been provided and provide defaults
+  ## if they haven't
+
+  dotargs = list(...)
+  is.arg = function(arg){
+    return(tolower(arg) %in% tolower(names(dotargs)))
+  }
+
+  theta0 = ifelse(is.arg("theta0"), dotargs$theta0, c(0.5, 1))
+  a = ifelse(is.arg("a"), dotargs$a, -2)
+  b = ifelse(is.arg("b"), dotargs$b, 2)
+  alpha = ifelse(is.arg("alpha"), dotargs$alpha, 1)
+  beta = ifelse(is.arg("beta"), dotargs$beta, 1)
+  nIter = ifelse(is.arg("nIter"), dotargs$nIter, 1e4)
+  nBurnIn = ifelse(is.arg("nBurnIn"), dotargs$nBurnIn, 1e3)
+  silent = ifelse(is.arg("silent"), dotargs$silent, TRUE)
+
+  if(nIter < 1000){
+    warning("The number of samples from the MCMC chain really should be 1000 or higher.")
+  }
+
+  if(nIter <= 0 || nBurnIn <=0){
+    stop("nIter and nBurnIn must be greater than zero.")
+  }
+
+  if(b <= a){
+    stop("b must be greater than a!")
+  }
+
+  W = b - a
+  if(W <= 0){
+    stop("This should never happen.")
+  }
+
+  if(theta0[1] <= 0 || theta0[1] >= 1){
     stop("The starting value for pi must be in (0, 1)")
   }
 
-  if(start[2] <= 0){
+  if(theta0[2] <= 0){
     stop("The Zeta function is undefined for shape = 0. Choose a start value > 0.")
   }
 
@@ -74,11 +109,11 @@ fitZIDistBayes = function(x, nterms = 10,
   nTotal = nIter + nBurnIn
 
   log.shape = runif(nTotal, a, b)
-  shape0 = max(start[2] - 1, .Machine$double.eps)
+  shape0 = max(theta0[2] - 1, .Machine$double.eps)
   shape.draws = exp(-log.shape)
   shape1 = shape.draws[1]
 
-  pi0 = min(max(start[1], .Machine$double.eps), 1 - .Machine$double.eps)
+  pi0 = min(max(theta0[1], .Machine$double.eps), 1 - .Machine$double.eps)
   pi.draws = if(alpha == 1 && beta == 1){
               runif(nTotal)
              }else{
@@ -92,6 +127,10 @@ fitZIDistBayes = function(x, nterms = 10,
 
   ll0 = logLik(c(pi0, shape0)) + log(W * shape0) - dbeta(pi0, alpha, beta, log = TRUE)
   i = 1
+
+  if(!silent){
+    pb = txtProgressBar(1, nTotal, 1, style = 3, label = 'Burning in')
+  }
 
   while(i <= nTotal){
     if(i <= nTotal){
@@ -116,6 +155,17 @@ fitZIDistBayes = function(x, nterms = 10,
       chain[i - nBurnIn, ] = c(pi0, shape0)
     }
     i = i + 1
+    if(!silent){
+      if(i <= nBurnIn){
+        setTxtProgressBar(pb, i)
+      }else{
+        setTxtProgressBar(pb, i, label = 'Sampling')
+      }
+    }
+  }
+
+  if(!silent){
+    close(pb)
   }
 
   fit = list()
@@ -137,7 +187,8 @@ fitZIDistBayes = function(x, nterms = 10,
     var.cov = cov(chain),
     fitted = fitted,
     chain = chain,
-    model = "ziz"
+    model = "ziz",
+    method = "bayes"
   )
 
 

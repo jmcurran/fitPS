@@ -52,4 +52,11 @@ plot(cr[["0.95"]], type = "l")
 polygon(cr[["0.8"]])
 }
 
+\dontrun{
+fit.zi = fitZIDist(roux, method = "bayes")
+cr = confint(fit.zi, level = c(0.80, 0.95))
+plot(cr[["0.95"]], type = "l")
+polygon(cr[["0.8"]])
+}
+
 }

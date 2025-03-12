@@ -20,7 +20,7 @@
 #' @aliases fitdist
 #'
 #' @details The function returns an object of class \code{psFit} which is a
-#'   \code{list} contains four elements:
+#'   \code{list} contains seven or eight elements:
 #' \describe{
 #' \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
 #' \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
@@ -31,7 +31,7 @@
 #' \item{\code{model}}{ -- set to \code{"zeta"} for this model.}
 #' \item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"}.}
 #' \item{\code{chain}}{ -- if \code{method == "bayes"}, then this element will contain the Markov Chain from the sampler,
-#' that is, hopefully a sample from the posterior density of the shape parameter.}
+#' that is, hopefully a sample from the posterior density of the shape parameter. If \code{method == "mle"}, then this element does not exist.}
 #' }
 #'   The output can be used in a variety of ways. If the interest is just in the
 #'   shape parameter estimate, then the \code{shape} member of the \code{psFit}
@@ -54,8 +54,8 @@
 #'   you can change and what the default values are.
 #'
 #'   Currently the Bayesian estimation is done assuming a Uniform[a, b] prior
-#'   for the logarithm of the shape parameter. That is we assume \eqn{s^prime
-#'   \sim U[a,b]}{s' ~ U[a,b]}. This may change to be more flexible in the
+#'   for the logarithm of the shape parameter. That is we assume \eqn{\log(s^\prime)
+#'   \sim U[a,b]}{log(s') ~ U[a,b]}. This may change to be more flexible in the
 #'   future. Similarly, the estimation is done using a simple
 #'   Metropolis-Hastings sampler. It might be more efficient to sample through
 #'   adaptive rejection sampling, but it is unclear whether it is worth the

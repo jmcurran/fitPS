@@ -1,11 +1,7 @@
+
 #' @importFrom stats cov rbeta dbeta
 fitZIDistBayes = function(x, nterms = 10,
-                     theta0 = c(0.5, 1),
-                     a = -2, b = 2,
-                     alpha = 1, beta = 1,
-                     nIter = 10000,
-                     nBurnIn = 1000,
-                     ...){
+                      ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
     stop("x must be an object of class psData")
@@ -19,7 +15,11 @@ fitZIDistBayes = function(x, nterms = 10,
     return(tolower(arg) %in% tolower(names(dotargs)))
   }
 
-  theta0 = ifelse(is.arg("theta0"), dotargs$theta0, c(0.5, 1))
+  theta0 = if(is.arg("theta0")){
+             dotargs$theta0
+           }else{
+             c(0.5, 1)
+           }
   a = ifelse(is.arg("a"), dotargs$a, -2)
   b = ifelse(is.arg("b"), dotargs$b, 2)
   alpha = ifelse(is.arg("alpha"), dotargs$alpha, 1)
@@ -119,6 +119,7 @@ fitZIDistBayes = function(x, nterms = 10,
              }else{
               rbeta(nTotal, alpha, beta)
              }
+  pi1 = pi.draws[1]
 
   whichParam = sample(1:2, nTotal, TRUE)
 

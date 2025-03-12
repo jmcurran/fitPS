@@ -37,11 +37,22 @@
 #' polygon(cr[["0.8"]])
 #' }
 #'
+#' \dontrun{
+#' fit.zi = fitZIDist(roux, method = "bayes")
+#' cr = confint(fit.zi, level = c(0.80, 0.95))
+#' plot(cr[["0.95"]], type = "l")
+#' polygon(cr[["0.8"]])
+#' }
+#'
 #' @importFrom stats confint qchisq uniroot
 #' @export
 confint.psFit = function(object, parm, level = 0.95, ...){
   if(any(level < 0.75 | level >=1)){
     stop("Level must be in the interval [0.75,1)")
+  }
+
+  if(object$method == "bayes"){
+    stop("This method gives confidence intervals.\nUse credint to get a Bayesian credible interval.")
   }
 
   if(object$model == "ziz"){

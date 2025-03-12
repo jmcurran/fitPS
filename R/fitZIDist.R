@@ -20,20 +20,19 @@
 #' where \eqn{\zeta(s)}{zeta(s)} is the Reimann Zeta function.
 #'
 #' @details The function returns an object of class \code{psFit} which is a
-#'   \code{list} contains nine elements:
+#'   \code{list} contains eight or nine elements:
 #' \describe{
 #' \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
 #' \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
 #' \item{\code{pi}}{ - the maximum likelihood estimate, or the posterior mean, of the mixing parameter,}
 #' \item{\code{shape}}{ -- the maximum likelihood estimate, or the posterior mean, of the shape parameter,}
 #' \item{\code{var.cov}}{ -- the estimated (posterior) variance-covariance matrix for the parameters,}
-#' \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms of
-#' the fitted distribution.}}
-#' \item{\code{model}}{ -- set to \code{"ziz"} for this model.}
-#' \item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"}.}
+#' \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms} of the fitted distribution.}
+#' \item{\code{model}}{ -- set to \code{"ziz"} for this model,}
+#' \item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"},}
 #' \item{\code{chain}}{ -- if \code{method == "bayes"}, then this element will contain the Markov Chain from the sampler,
-#' that is, hopefully a sample from the posterior density of the mixing parameter and the shape parameter.}
-
+#' that is, hopefully a sample from the posterior density of the mixing parameter and the shape parameter.
+#' if \code{method == "mle"} then this element does not exist.}
 #' }
 #'
 #' The output can be used in a variety of ways. If the interest is just in the
@@ -59,8 +58,8 @@
 #'
 #' Currently the Bayesian estimation is done assuming a Beta(alpha, beta)
 #' distribution for the prior of the mixing proportion and Uniform[a, b] prior
-#'   for the logarithm of the shape parameter. That is we assume \eqn{s^prime
-#'   \sim U[a,b]}{s' ~ U[a,b]}. This may change to be more flexible in the
+#'   for the logarithm of the shape parameter. That is we assume \eqn{\log(s^\prime)
+#'   \sim U[a,b]}{log(s') ~ U[a,b]}. This may change to be more flexible in the
 #' future. Similarly, the estimation is done using a simple Metropolis-Hastings
 #' sampler. It might be more efficient to sample through adaptive rejection
 #' sampling, but it is unclear whether it is worth the effort.
@@ -82,25 +81,26 @@
 #'   modes of estimation has a different set of optional parameters and
 #'   defaults. See the description of the \code{\ldots} parameter below for
 #'   details.
-#' @param \ldots other arguments that control the estimation methods. If
+#' @param ... other arguments that control the estimation methods. If
 #'   \code{method == "mle"}, then the user can provide an optional argument
 #'   \code{start} which is the starting value for the numerical optimisation. If
 #'   this is not provided, then \code{start = c(0.5, 1)} by default. If you specify your
 #'   own starting value, it would be sensible to keep it above 0.5 for pi and 1 for the shape.
 #'
 #'   If \code{method == "bayes"}, then there are seven optional parameters (which
-#'   depsite the documentation are actually case insenstive):
+#'   despite the documentation are actually case insensitive):
 #' \describe{
-#'  \item{\code{theta0}}{ -- The initial value of the mixing parameter and the shape parameter, set to \code{c(0.5, 1), by default}
-#'  \item{\code{a}}{ -- The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2.}
-#'  \item{\code{b}}{ -- The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2.}
-#'  \item{\code{alpha}}{ -- The first shape parameter for the beta prior on the mixing distribution which is Beta(alpha, beta) .The default is 1.}
-#'  \item{\code{beta}}{ -- The second shape parameter for the beta prior on the mixing distribution which is Beta(alpha, beta) .The default is 1.}
-#'  \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000.}
-#'  \item{\code{nBurnIn}}{ -- The number of samples to discard from the chain. Must be greater than zero. **NOTE**: the sampler runs for \code{nIter + nBurnIn} iterations,
-#'  so you do not need to factor this number into your number of samples, \code{nIter}.}
-#'  \item{\code{silent}}{ -- A logical variable which allows the user to get a progress bar if they want. \code{TRUE} by default.}
-#' }#'
+#'   \item{\code{theta0}}{ -- The initial value of the mixing parameter and the shape parameter, set to \code{c(0.5, 1), by default} }
+#'   \item{\code{a}}{ -- The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2. }
+#'   \item{\code{b}}{ -- The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2. }
+#'   \item{\code{alpha}}{ -- The first shape parameter for the beta prior on the mixing distribution which is Beta(alpha, beta) .The default is 1. }
+#'   \item{\code{beta}}{ -- The second shape parameter for the beta prior on the mixing distribution which is Beta(alpha, beta) .The default is 1. }
+#'   \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000. }
+#'   \item{\code{nBurnIn}}{ -- The number of samples to discard from the chain. Must be greater than zero. **NOTE**: the sampler runs for \code{nIter + nBurnIn} iterations,
+#'   so you do not need to factor this number into your number of samples, \code{nIter}. }
+#'   \item{\code{silent}}{ -- A logical variable which allows the user to get a progress bar if they want. \code{TRUE} by default. }
+#' }
+#'
 #' @importFrom stats optim runif
 #' @importFrom VGAM dzeta
 #'
@@ -213,7 +213,7 @@ fitZIDist = function(x, nterms = 10,
 
     return(result)
   }else{ ## method == "bayes"
-    return(fitZIDistBayes(x = x, nterms = nterms, ...))
+    return(fitZIDistBayes(x = x, nterms = nterms, ... = ...))
   }
 }
 

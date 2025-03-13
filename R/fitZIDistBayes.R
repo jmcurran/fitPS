@@ -22,8 +22,8 @@ fitZIDistBayes = function(x, nterms = 10,
            }
   a = ifelse(is.arg("a"), dotargs$a, -2)
   b = ifelse(is.arg("b"), dotargs$b, 2)
-  alpha = ifelse(is.arg("alpha"), dotargs$alpha, 1)
-  beta = ifelse(is.arg("beta"), dotargs$beta, 1)
+  shape1 = ifelse(is.arg("shape1"), dotargs$shape1, 1)
+  shape2 = ifelse(is.arg("shape2"), dotargs$shape2, 1)
   nIter = ifelse(is.arg("nIter"), dotargs$nIter, 1e4)
   nBurnIn = ifelse(is.arg("nBurnIn"), dotargs$nBurnIn, 1e3)
   silent = ifelse(is.arg("silent"), dotargs$silent, TRUE)
@@ -62,8 +62,8 @@ fitZIDistBayes = function(x, nterms = 10,
     stop("This should never happen.")
   }
 
-  if(alpha <= 0 || beta <= 0){
-    stop("alpha, beta must be greater than zero.")
+  if(shape1 <= 0 || shape2 <= 0){
+    stop("shape1, shape2 must be greater than zero.")
   }
 
   if(length(x$data$n) < 2){
@@ -114,10 +114,10 @@ fitZIDistBayes = function(x, nterms = 10,
   shape1 = shape.draws[1]
 
   pi0 = min(max(theta0[1], .Machine$double.eps), 1 - .Machine$double.eps)
-  pi.draws = if(alpha == 1 && beta == 1){
+  pi.draws = if(shape1 == 1 && shape2 == 1){
               runif(nTotal)
              }else{
-              rbeta(nTotal, alpha, beta)
+              rbeta(nTotal, shape1, shape2)
              }
   pi1 = pi.draws[1]
 
@@ -126,7 +126,7 @@ fitZIDistBayes = function(x, nterms = 10,
   chain = data.frame(pi = rep(pi0, nIter), shape = rep(shape0, nIter))
   log.u = log(runif(nTotal))
 
-  ll0 = logLik(c(pi0, shape0)) + log(W * shape0) - dbeta(pi0, alpha, beta, log = TRUE)
+  ll0 = logLik(c(pi0, shape0)) + log(W * shape0) - dbeta(pi0, shape1, shape2, log = TRUE)
   i = 1
 
   if(!silent){
@@ -140,7 +140,7 @@ fitZIDistBayes = function(x, nterms = 10,
       }else{
         pi1 = pi.draws[i]
       }
-      ll1 = logLik(c(pi1, shape1)) + log(W * shape1) - dbeta(pi1, alpha, beta, log = TRUE)
+      ll1 = logLik(c(pi1, shape1)) + log(W * shape1) - dbeta(pi1, shape1, shape2, log = TRUE)
     }
 
     if(ll1 > ll0 || log.u[i] < (ll1 - ll0)){

@@ -37,8 +37,8 @@ details.}
   \item{\code{theta0}}{ -- The initial value of the mixing parameter and the shape parameter, set to \code{c(0.5, 1), by default} }
   \item{\code{a}}{ -- The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2. }
   \item{\code{b}}{ -- The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2. }
-  \item{\code{alpha}}{ -- The first shape parameter for the beta prior on the mixing distribution which is Beta(alpha, beta) .The default is 1. }
-  \item{\code{beta}}{ -- The second shape parameter for the beta prior on the mixing distribution which is Beta(alpha, beta) .The default is 1. }
+  \item{\code{shape1}}{ -- The first shape parameter for the beta prior on the mixing distribution which is Beta(shape1, shape2) .The default is 1. }
+  \item{\code{shape2}}{ -- The second shape parameter for the beta prior on the mixing distribution which is Beta(shape1, shape2) .The default is 1. }
   \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000. }
   \item{\code{nBurnIn}}{ -- The number of samples to discard from the chain. Must be greater than zero. **NOTE**: the sampler runs for \code{nIter + nBurnIn} iterations,
   so you do not need to factor this number into your number of samples, \code{nIter}. }
@@ -106,7 +106,7 @@ such as starting values and parameters for priors. Please read the
 documentation for the \code{...} argument closely because it explains what
 you can change and what the default values are.
 
-Currently the Bayesian estimation is done assuming a Beta(alpha, beta)
+Currently the Bayesian estimation is done assuming a Beta(shape1, shape2)
 distribution for the prior of the mixing proportion and Uniform[a, b] prior
   for the logarithm of the shape parameter. That is we assume \eqn{\log(s^\prime)
   \sim U[a,b]}{log(s') ~ U[a,b]}. This may change to be more flexible in the

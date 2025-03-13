@@ -62,15 +62,14 @@ fitDistBayes = function(x, nterms, ...){
 
   nTotal = nIter + nBurnIn
 
-  log.shape = runif(nTotal, a, b)
   shape0 = max(shape0 - 1, .Machine$double.eps)
-  draws = exp(-log.shape)
+  draws = runif(nTotal, exp(a), exp(b))
   shape1 = draws[1]
 
   chain = rep(shape0, nIter)
   log.u = log(runif(nTotal))
 
-  ll0 = logLik(shape0) + log(W * shape0)
+  ll0 = logLik(shape0) - log(W * shape0)
   i = 1
 
   if(!silent){
@@ -80,7 +79,7 @@ fitDistBayes = function(x, nterms, ...){
   while(i <= nTotal){
     if(i <= nTotal){
       shape1 = draws[i]
-      ll1 = logLik(shape1) + log(W * shape1)
+      ll1 = logLik(shape1) - log(W * shape1)
     }
 
     if(ll1 > ll0 || log.u[i] < (ll1 - ll0)){

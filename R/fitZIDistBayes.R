@@ -108,10 +108,9 @@ fitZIDistBayes = function(x, nterms = 10,
 
   nTotal = nIter + nBurnIn
 
-  log.shape = runif(nTotal, a, b)
-  shape0 = max(theta0[2] - 1, .Machine$double.eps)
-  shape.draws = exp(-log.shape)
-  shape1 = shape.draws[1]
+  s0 = max(theta0[2] - 1, .Machine$double.eps)
+  s.draws = runif(nTotal, exp(a), exp(b))
+  s1 = s.draws[1]
 
   pi0 = min(max(theta0[1], .Machine$double.eps), 1 - .Machine$double.eps)
   pi.draws = if(shape1 == 1 && shape2 == 1){
@@ -123,10 +122,10 @@ fitZIDistBayes = function(x, nterms = 10,
 
   whichParam = sample(1:2, nTotal, TRUE)
 
-  chain = data.frame(pi = rep(pi0, nIter), shape = rep(shape0, nIter))
+  chain = data.frame(pi = rep(pi0, nIter), shape = rep(s0, nIter))
   log.u = log(runif(nTotal))
 
-  ll0 = logLik(c(pi0, shape0)) + log(W * shape0) - dbeta(pi0, shape1, shape2, log = TRUE)
+  ll0 = logLik(c(pi0, s0)) - log(W * s0) + dbeta(pi0, shape1, shape2, log = TRUE)
   i = 1
 
   if(!silent){
@@ -136,16 +135,16 @@ fitZIDistBayes = function(x, nterms = 10,
   while(i <= nTotal){
     if(i <= nTotal){
       if(whichParam[i] == 1){
-        shape1 = shape.draws[i]
+        s1 = s.draws[i]
       }else{
         pi1 = pi.draws[i]
       }
-      ll1 = logLik(c(pi1, shape1)) + log(W * shape1) - dbeta(pi1, shape1, shape2, log = TRUE)
+      ll1 = logLik(c(pi1, s1)) - log(W * s1) - dbeta(pi1, shape1, shape2, log = TRUE)
     }
 
     if(ll1 > ll0 || log.u[i] < (ll1 - ll0)){
       if(whichParam[i] == 1){
-        shape0 = shape1
+        s0 = s1
       }else{
         pi0 = pi1
       }
@@ -153,7 +152,7 @@ fitZIDistBayes = function(x, nterms = 10,
     }
 
     if(i > nBurnIn){
-      chain[i - nBurnIn, ] = c(pi0, shape0)
+      chain[i - nBurnIn, ] = c(pi0, s0)
     }
     i = i + 1
     if(!silent){

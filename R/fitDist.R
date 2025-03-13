@@ -211,5 +211,5 @@ fitDist = function(x, nterms = 10,
 }
 
 #' @describeIn fitDist Fit a Zeta Distribution to Forensic Data
-#' export
+#' @export
 fitdist = fitDist

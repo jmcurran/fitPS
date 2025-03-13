@@ -107,7 +107,6 @@ that is, hopefully a sample from the posterior density of the shape parameter. I
 \section{Functions}{
 \itemize{
 \item \code{fitdist()}: Fit a Zeta Distribution to Forensic Data
-export
 
 }}
 \examples{

@@ -15,6 +15,7 @@
 #' @param ... other arguments fed to plot. If \code{plot == FALSE}, then these
 #'  will be ignored
 #'
+#' @aliases credInt
 #' @details This function uses kernel density estimation to compute a Bayesian
 #'  credible interval for the shape parameter in the case of the zeta model and
 #'  a credible region in the case of the zero-inflated zeta model. A smoothing
@@ -64,6 +65,9 @@ credint = function(psFit,
                    silent = FALSE,
                    ...){
 
+  if(!is(psFit, "psFit")){
+    stop("This function only works with objects of class psFit.\nYou must run fitDist or fitZIDist first.")
+  }
   model = psFit$model
   if(psFit$method != "bayes"){
     stop("This method is for Bayesian estimation only.\nUse confint or bootCI instead.")
@@ -152,3 +156,7 @@ credint = function(psFit,
     return(credRegion)
   }
 }
+
+#' @describeIn credint Bayesian credible intervals or regions
+#' @export
+credInt = credint

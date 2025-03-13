@@ -13,10 +13,10 @@
 
 \definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
 \newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
-\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlsng}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
 \newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
 \newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
-\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hldef}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
 \newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
 \newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
 \newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
@@ -64,8 +64,8 @@
 
 
 In this example we will learn how to use \rcode{fitPS} to fit a zeta distribution to some data from a survey where the number of groups of glass found is recorded. The data in this example comes from @roux2001 who surveyed the footwear of 776 individuals in south-eastern Australia, and is summarised in the table below.
-% latex table generated in R 4.3.2 by xtable 1.8-4 package
-% Tue Jan  9 14:04:32 2024
+% latex table generated in R 4.4.3 by xtable 1.8-4 package
+% Thu Mar 13 09:31:51 2025
 \begin{table}[ht]
 \centering
 \begin{tabular}{rr}
@@ -86,8 +86,8 @@ This data set is built into the package and can be accessed from the \rcode{Psur
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlkwd{data}\hlstd{(}\hlstr{"Psurveys"}\hlstd{)}
-\hlstd{> }\hlstd{roux} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{roux}
+\hldef{> }\hlkwd{data}\hldef{(}\hlsng{"Psurveys"}\hldef{)}
+\hldef{> }\hldef{roux} \hlkwb{=} \hldef{Psurveys}\hlopt{$}\hldef{roux}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
@@ -102,7 +102,7 @@ For example
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{roux}
+\hldef{> }\hldef{roux}
 \end{alltt}
 \begin{verbatim}
 Number of Groups
@@ -127,7 +127,7 @@ It is very simple to fit a zeta distribution to this data set. We do this using 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{fit} \hlkwb{=} \hlkwd{fitDist}\hlstd{(roux)}
+\hldef{> }\hldef{fit} \hlkwb{=} \hlkwd{fitDist}\hldef{(roux)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
@@ -135,7 +135,7 @@ The function returns an object of class \rcode{psFit}, the details of which can 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{fit}
+\hldef{> }\hldef{fit}
 \end{alltt}
 \begin{verbatim}
 The estimated shape parameter is 4.9544 
@@ -164,15 +164,15 @@ where $\ell(s;\mathbf{x})$ is value of the log-likelihood given shape parameter 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{ci} \hlkwb{=} \hlkwd{confint}\hlstd{(fit)}
-\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{wald}
+\hldef{> }\hldef{ci} \hlkwb{=} \hlkwd{confint}\hldef{(fit)}
+\hldef{> }\hldef{ci}\hlopt{$}\hldef{wald}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
 3.490761 4.418099 
 \end{verbatim}
 \begin{alltt}
-\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{prof}
+\hldef{> }\hldef{ci}\hlopt{$}\hldef{prof}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
@@ -184,14 +184,14 @@ You will notice that neither of these intervals contain the value shown in the p
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{wald} \hlopt{+} \hlnum{1}
+\hldef{> }\hldef{ci}\hlopt{$}\hldef{wald} \hlopt{+} \hlnum{1}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
 4.490761 5.418099 
 \end{verbatim}
 \begin{alltt}
-\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{prof} \hlopt{+} \hlnum{1}
+\hldef{> }\hldef{ci}\hlopt{$}\hldef{prof} \hlopt{+} \hlnum{1}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 

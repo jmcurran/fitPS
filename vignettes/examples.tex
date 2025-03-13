@@ -13,10 +13,10 @@
 
 \definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
 \newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
-\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlsng}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
 \newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
 \newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
-\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hldef}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
 \newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
 \newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
 \newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
@@ -73,8 +73,8 @@ Let us consider again the data from \citet{roux2001}. This data set is built int
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlkwd{data}\hlstd{(}\hlstr{"Psurveys"}\hlstd{)}
-\hlstd{> }\hlstd{roux} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{roux}
+\hldef{> }\hlkwd{data}\hldef{(}\hlsng{"Psurveys"}\hldef{)}
+\hldef{> }\hldef{roux} \hlkwb{=} \hldef{Psurveys}\hlopt{$}\hldef{roux}
 \end{alltt}
 \end{kframe}
 \end{knitrout}\noindent
@@ -82,7 +82,7 @@ The package includes a special printing function that summarises the data for re
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{roux}
+\hldef{> }\hldef{roux}
 \end{alltt}
 \begin{verbatim}
 Number of Groups
@@ -107,7 +107,7 @@ It is very simple to fit a zeta distribution to this data set. We do this using 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{fit} \hlkwb{=} \hlkwd{fitDist}\hlstd{(roux)}
+\hldef{> }\hldef{fit} \hlkwb{=} \hlkwd{fitDist}\hldef{(roux)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}\noindent
@@ -118,7 +118,7 @@ The \rcode{print} method displays the first 10 fitted probabilities from the mod
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{fit}
+\hldef{> }\hldef{fit}
 \end{alltt}
 \begin{verbatim}
 The estimated shape parameter is 4.9544 
@@ -143,7 +143,7 @@ This information is probably sufficient for most casework. However, the package 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{P} \hlkwb{=} \hlkwd{probfun}\hlstd{(fit)}
+\hldef{> }\hldef{P} \hlkwb{=} \hlkwd{probfun}\hldef{(fit)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}\noindent
@@ -151,7 +151,7 @@ This information is probably sufficient for most casework. However, the package 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlkwd{P}\hlstd{(}\hlnum{5}\hlstd{)}
+\hldef{> }\hlkwd{P}\hldef{(}\hlnum{5}\hldef{)}
 \end{alltt}
 \begin{verbatim}
           P5 
@@ -164,8 +164,8 @@ We can also easily fit a zero-inflated zeta model using the \rcode{fitZIDist} fu
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{fit.zi} \hlkwb{=} \hlkwd{fitZIDist}\hlstd{(roux)}
-\hlstd{> }\hlstd{fit.zi}
+\hldef{> }\hldef{fit.zi} \hlkwb{=} \hlkwd{fitZIDist}\hldef{(roux)}
+\hldef{> }\hldef{fit.zi}
 \end{alltt}
 \begin{verbatim}
 The estimated mixing parameter, pi, is 0.8465 
@@ -187,8 +187,8 @@ The first  10 fitted values are:
 \end{kframe}
 \end{knitrout}\noindent
 In the example above we fit a zero-inflated model to Roux et al.'s data, and print out the resulting fit. We get, as with the zeta model, estimates of the parameters and a default set of fitted values. The output is interesting in that we can see (from the value of $\hat{\pi}$) that the \emph{zero} part of the zero-inflated model is picking up about 85\% of the zeros. It is interesting to compare the estimates from the raw frequencies, the zeta model, and those of the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
-% latex table generated in R 4.4.0 by xtable 1.8-4 package
-% Wed Jun 26 13:08:36 2024
+% latex table generated in R 4.4.3 by xtable 1.8-4 package
+% Thu Mar 13 09:31:46 2025
 \begin{table}[ht]
 \centering
 \begin{tabular}{cccc}
@@ -215,15 +215,15 @@ The \texttt{fitPS} package provides a \rcode{confint} method for the fitted valu
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{ci} \hlkwb{=} \hlkwd{confint}\hlstd{(fit)}
-\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{wald}
+\hldef{> }\hldef{ci} \hlkwb{=} \hlkwd{confint}\hldef{(fit)}
+\hldef{> }\hldef{ci}\hlopt{$}\hldef{wald}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
 3.490761 4.418099 
 \end{verbatim}
 \begin{alltt}
-\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{prof}
+\hldef{> }\hldef{ci}\hlopt{$}\hldef{prof}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
@@ -235,14 +235,14 @@ It must be noticed that neither of these intervals contain the estimated value s
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{wald} \hlopt{+} \hlnum{1}
+\hldef{> }\hldef{ci}\hlopt{$}\hldef{wald} \hlopt{+} \hlnum{1}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
 4.490761 5.418099 
 \end{verbatim}
 \begin{alltt}
-\hlstd{> }\hlstd{ci}\hlopt{$}\hlstd{prof} \hlopt{+} \hlnum{1}
+\hldef{> }\hldef{ci}\hlopt{$}\hldef{prof} \hlopt{+} \hlnum{1}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
@@ -257,11 +257,11 @@ The package includes the facility to compute both bootstrapped and profile likel
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{cr} \hlkwb{=} \hlkwd{confint}\hlstd{(fit.zi,} \hlkwc{level} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{0.80}\hlstd{,} \hlnum{0.95}\hlstd{))}
-\hlstd{> }\hlkwd{plot}\hlstd{(cr[[}\hlstr{"0.95"}\hlstd{]],} \hlkwc{type} \hlstd{=} \hlstr{"l"}\hlstd{)}
-\hlstd{> }\hlkwd{polygon}\hlstd{(cr[[}\hlstr{"0.8"}\hlstd{]],} \hlkwc{border} \hlstd{=} \hlstr{"red"}\hlstd{)}
-\hlstd{> }\hlkwd{legend}\hlstd{(}\hlstr{"topright"}\hlstd{,} \hlkwc{lty} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{lwd} \hlstd{=} \hlnum{2}\hlstd{,} \hlkwc{col} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"red"}\hlstd{,} \hlstr{"black"}\hlstd{),}
-\hlstd{+ }       \hlkwc{legend} \hlstd{=} \hlkwd{c}\hlstd{(}\hlstr{"80%"}\hlstd{,} \hlstr{"95%"}\hlstd{),} \hlkwc{bty} \hlstd{=} \hlstr{"n"}\hlstd{)}
+\hldef{> }\hldef{cr} \hlkwb{=} \hlkwd{confint}\hldef{(fit.zi,} \hlkwc{level} \hldef{=} \hlkwd{c}\hldef{(}\hlnum{0.80}\hldef{,} \hlnum{0.95}\hldef{))}
+\hldef{> }\hlkwd{plot}\hldef{(cr[[}\hlsng{"0.95"}\hldef{]],} \hlkwc{type} \hldef{=} \hlsng{"l"}\hldef{)}
+\hldef{> }\hlkwd{polygon}\hldef{(cr[[}\hlsng{"0.8"}\hldef{]],} \hlkwc{border} \hldef{=} \hlsng{"red"}\hldef{)}
+\hldef{> }\hlkwd{legend}\hldef{(}\hlsng{"topright"}\hldef{,} \hlkwc{lty} \hldef{=} \hlnum{1}\hldef{,} \hlkwc{lwd} \hldef{=} \hlnum{2}\hldef{,} \hlkwc{col} \hldef{=} \hlkwd{c}\hldef{(}\hlsng{"red"}\hldef{,} \hlsng{"black"}\hldef{),}
+\hldef{+ }       \hlkwc{legend} \hldef{=} \hlkwd{c}\hldef{(}\hlsng{"80%"}\hldef{,} \hlsng{"95%"}\hldef{),} \hlkwc{bty} \hldef{=} \hlsng{"n"}\hldef{)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}\noindent
@@ -276,7 +276,7 @@ region(s) as and hide or display the function's progress. The latter is importan
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{bcr} \hlkwb{=} \hlkwd{bootCI}\hlstd{(roux,} \hlkwc{model} \hlstd{=} \hlstr{"ziz"}\hlstd{,} \hlkwc{plot} \hlstd{=} \hlnum{TRUE}\hlstd{,} \hlkwc{silent} \hlstd{=} \hlnum{TRUE}\hlstd{)}
+\hldef{> }\hldef{bcr} \hlkwb{=} \hlkwd{bootCI}\hldef{(roux,} \hlkwc{model} \hldef{=} \hlsng{"ziz"}\hldef{,} \hlkwc{plot} \hldef{=} \hlnum{TRUE}\hldef{,} \hlkwc{silent} \hldef{=} \hlnum{TRUE}\hldef{)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}\noindent
@@ -289,8 +289,8 @@ region(s) as and hide or display the function's progress. The latter is importan
 
 \subsection{Comparing two surveys}
 We can use the methodology that has been demonstrated so far to compare surveys. One reason for comparing surveys is to explore the hypothesis that there is no difference in the underlying ``true\footnote{Readers may be aware that one of the authors is fundementally Bayesian at heart, and the so the concept of the true value of a population parameter is antithetical to the school of thought. We, however, proceed on the basis that the Frequenist school of thought is not incorrect, but just differs in interpretation.}'' value of $\alpha$. If there is insufficient evidence to reject this hypothesis, then one may feel justified in combining data from two surveys. In the first instance we will take an ad-hoc approach, and then treat this problem more formally. In our ad-hoc approach we will compare confidence intervals for two-surveys. If these confidence intervals overlap, then we might conclude that there is insufficient evidence in the data to suggest that the estimates of $\alpha$ are different. We will illustrate this with the surveys conducted by \citet{lau1997} and \citet{jackson2013}. \citet{lau1997} surveyed the clothing of 213 Canadian high school students and observed two sets of clothing with one fragment on each. Similarly, \citet{jackson2013} surveyed 232 ``randomly'' selected members of the population of New South Wales in Australia. We place ``randomly'' in quotes because this was not a true random sample, but rather a convenience sample. That being said, it is unlikely that using a truly random mechanism would have significantly changed the results. \citet{jackson2013} found a single fragment of glass on each of six people. The data from each of these two surveys is summarised in Table \ref{tab:lau_and_jackson}.
-% latex table generated in R 4.4.0 by xtable 1.8-4 package
-% Wed Jun 26 13:08:38 2024
+% latex table generated in R 4.4.3 by xtable 1.8-4 package
+% Thu Mar 13 09:31:49 2025
 \begin{table}[ht]
 \centering
 \begin{tabular}{r|r|r}
@@ -306,18 +306,18 @@ Visual inspection of these surveys would suggest that they are fairly similar. W
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlstd{lau} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{lau}
-\hlstd{> }\hlstd{jackson} \hlkwb{=} \hlstd{Psurveys}\hlopt{$}\hlstd{jackson}
-\hlstd{> }\hlstd{fit.lau} \hlkwb{=} \hlkwd{fitDist}\hlstd{(lau)}
-\hlstd{> }\hlstd{fit.jackson} \hlkwb{=} \hlkwd{fitDist}\hlstd{(jackson)}
-\hlstd{> }\hlkwd{confint}\hlstd{(fit.lau)}\hlopt{$}\hlstd{wald}
+\hldef{> }\hldef{lau} \hlkwb{=} \hldef{Psurveys}\hlopt{$}\hldef{lau}
+\hldef{> }\hldef{jackson} \hlkwb{=} \hldef{Psurveys}\hlopt{$}\hldef{jackson}
+\hldef{> }\hldef{fit.lau} \hlkwb{=} \hlkwd{fitDist}\hldef{(lau)}
+\hldef{> }\hldef{fit.jackson} \hlkwb{=} \hlkwd{fitDist}\hldef{(jackson)}
+\hldef{> }\hlkwd{confint}\hldef{(fit.lau)}\hlopt{$}\hldef{wald}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
 3.948422 7.823417 
 \end{verbatim}
 \begin{alltt}
-\hlstd{> }\hlkwd{confint}\hlstd{(fit.jackson)}\hlopt{$}\hlstd{wald}
+\hldef{> }\hlkwd{confint}\hldef{(fit.jackson)}\hlopt{$}\hldef{wald}
 \end{alltt}
 \begin{verbatim}
     2.5%    97.5% 
@@ -350,7 +350,7 @@ All this theory has been integrated into a function called \rcode{compareSurveys
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{> }\hlkwd{compareSurveys}\hlstd{(lau, jackson)}
+\hldef{> }\hlkwd{compareSurveys}\hldef{(lau, jackson)}
 \end{alltt}
 \begin{verbatim}
 

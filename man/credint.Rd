@@ -2,9 +2,12 @@
 % Please edit documentation in R/credint.R
 \name{credint}
 \alias{credint}
+\alias{credInt}
 \title{Bayesian credible intervals or regions}
 \usage{
 credint(psFit, level = 0.95, plot = FALSE, silent = FALSE, ...)
+
+credInt(psFit, level = 0.95, plot = FALSE, silent = FALSE, ...)
 }
 \arguments{
 \item{psFit}{a object of class \code{psFit}.}
@@ -57,6 +60,11 @@ This function uses kernel density estimation to compute a Bayesian
  kernel density estimation is performed by the \code{ks} package using a
  smoothed cross-validated bandwidth selection procedure.
 }
+\section{Functions}{
+\itemize{
+\item \code{credInt()}: Bayesian credible intervals or regions
+
+}}
 \examples{
 \dontrun{
 data(Psurveys)

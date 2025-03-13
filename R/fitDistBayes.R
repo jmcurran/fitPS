@@ -63,6 +63,8 @@ fitDistBayes = function(x, nterms, ...){
   nTotal = nIter + nBurnIn
 
   shape0 = max(shape0 - 1, .Machine$double.eps)
+  log.shape  = runif(nTotal, a, b)
+  #draws = exp(log.shape)
   draws = runif(nTotal, exp(a), exp(b))
   shape1 = draws[1]
 

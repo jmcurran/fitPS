@@ -117,6 +117,7 @@
 #' fit
 fitDist = function(x, nterms = 10,
                    method = c("mle", "bayes"),
+                   prior,
                    ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
@@ -206,7 +207,11 @@ fitDist = function(x, nterms = 10,
 
     return(result)
   }else{ ## method == "bayes"
-    return(fitDistBayes(x = x, nterms = nterms, ...))
+    if (missing(prior)){
+      prior <- makePrior()
+    }
+
+    return(fitDistBayes(x = x, prior = prior, nterms = nterms, ...))
   }
 }
 

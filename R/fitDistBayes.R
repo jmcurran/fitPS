@@ -1,4 +1,4 @@
-fitDistBayes = function(x, nterms, ...){
+fitDistBayes = function(x, prior = makePrior(), nterms, ...){
 
   nvals = 1:nterms
   if(!is(x, "psData")){
@@ -18,8 +18,7 @@ fitDistBayes = function(x, nterms, ...){
   }
 
   shape0 = ifelse(is.arg("shape0"), dotargs$shape0, 1)
-  a = ifelse(is.arg("a"), dotargs$a, -2)
-  b = ifelse(is.arg("b"), dotargs$b, 2)
+
   nIter = ifelse(is.arg("nIter"), dotargs$nIter, 1e4)
   nBurnIn = ifelse(is.arg("nBurnIn"), dotargs$nBurnIn, 1e3)
   silent = ifelse(is.arg("silent"), dotargs$silent, TRUE)
@@ -31,6 +30,9 @@ fitDistBayes = function(x, nterms, ...){
   if(nIter <= 0 || nBurnIn <=0){
     stop("nIter and nBurnIn must be greater than zero.")
   }
+
+  a = prior$range[1]
+  b = prior$range[2]
 
   if(b <= a){
     stop("b must be greater than a!")
@@ -62,27 +64,27 @@ fitDistBayes = function(x, nterms, ...){
 
   nTotal = nIter + nBurnIn
 
-  shape0 = max(shape0 - 1, .Machine$double.eps)
-  log.shape  = runif(nTotal, a, b)
-  #draws = exp(log.shape)
-  draws = runif(nTotal, exp(a), exp(b))
-  shape1 = draws[1]
+  draws = runif(nTotal, a, b)
 
-  chain = rep(shape0, nIter)
+  chain = numeric(nIter)
   log.u = log(runif(nTotal))
 
-  ll0 = logLik(shape0) - log(W * shape0)
-  i = 1
+  priorLogd <- prior$logd
+  ll0 = logLik(shape0) + priorLogd(shape0)
+
+  if (!is.finite(ll0)){
+    stop("Log likelihood is not finite at starting value")
+  }
 
   if(!silent){
     pb = txtProgressBar(1, nTotal, 1, style = 3, label = 'Burning in')
   }
 
+  i = 1
   while(i <= nTotal){
-    if(i <= nTotal){
-      shape1 = draws[i]
-      ll1 = logLik(shape1) - log(W * shape1)
-    }
+
+    shape1 = draws[i]
+    ll1 = logLik(shape1) + priorLogd(shape1)
 
     if(ll1 > ll0 || log.u[i] < (ll1 - ll0)){
       shape0 = shape1

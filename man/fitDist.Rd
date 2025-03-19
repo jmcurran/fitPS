@@ -5,9 +5,9 @@
 \alias{fitdist}
 \title{Fit a Zeta Distribution to Forensic Data}
 \usage{
-fitDist(x, nterms = 10, method = c("mle", "bayes"), ...)
+fitDist(x, nterms = 10, method = c("mle", "bayes"), prior, ...)
 
-fitdist(x, nterms = 10, method = c("mle", "bayes"), ...)
+fitdist(x, nterms = 10, method = c("mle", "bayes"), prior, ...)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from

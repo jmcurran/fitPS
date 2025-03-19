@@ -5,9 +5,9 @@
 \alias{fitdist}
 \title{Fit a Zeta Distribution to Forensic Data}
 \usage{
-fitDist(x, nterms = 10, method = c("mle", "bayes"), prior, ...)
+fitDist(x, nterms = 10, method = c("mle", "bayes", "integrate"), prior, ...)
 
-fitdist(x, nterms = 10, method = c("mle", "bayes"), prior, ...)
+fitdist(x, nterms = 10, method = c("mle", "bayes", "integrate"), prior, ...)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from
@@ -16,11 +16,12 @@ fitdist(x, nterms = 10, method = c("mle", "bayes"), prior, ...)
 \item{nterms}{the number of terms to compute the probability distribution
 for.}
 
-\item{method}{either \code{"mle"} or \code{"bayes"}. Lets the user choose
-maximum likelihood estimation or Bayesian estimation. NOTE: each of these
-modes of estimation has a different set of optional parameters and
-defaults. See the description of the \code{\ldots} parameter below for
-details.}
+\item{method}{either \code{"mle"}, \code{"bayes"} or \code{"integrate"}.
+Maximum likelihood estimation (\code{"mle"}) or Bayesian estimation using
+MCMC (\code{"bayes"}) or numerical integration (\code{"integrate"}).
+NOTE: each of these modes of estimation has a different set of optional
+parameters and defaults. See the description of the \code{\ldots} parameter
+below for details.}
 
 \item{...}{other arguments that control the estimation methods. If
   \code{method == "mle"}, then the user can provide an optional argument
@@ -114,9 +115,12 @@ p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))
 fit = fitDist(p)
 fit
 
-## Compare to the Bayesian estimate
-fit = fitDist(p, method = "bayes", silent = FALSE)
-fit
+## Compare to the Bayesian estimates
+fit2 = fitDist(p, method = "bayes")
+fit2
+
+fit3 = fitDist(p, method = "integrate")
+fit3
 }
 \references{
 Coulson, S. A., Buckleton, J. S., Gummer, A. B., and Triggs,

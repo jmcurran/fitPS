@@ -77,11 +77,12 @@
 #'   \code{\link{readData}}.
 #' @param nterms the number of terms to compute the probability distribution
 #'   for.
-#' @param method either \code{"mle"} or \code{"bayes"}. Lets the user choose
-#'   maximum likelihood estimation or Bayesian estimation. NOTE: each of these
-#'   modes of estimation has a different set of optional parameters and
-#'   defaults. See the description of the \code{\ldots} parameter below for
-#'   details.
+#' @param method either \code{"mle"}, \code{"bayes"} or \code{"integrate"}.
+#'   Maximum likelihood estimation (\code{"mle"}) or Bayesian estimation using
+#'   MCMC (\code{"bayes"}) or numerical integration (\code{"integrate"}).
+#'   NOTE: each of these modes of estimation has a different set of optional
+#'   parameters and defaults. See the description of the \code{\ldots} parameter
+#'   below for details.
 #' @param ... other arguments that control the estimation methods. If
 #'   \code{method == "mle"}, then the user can provide an optional argument
 #'   \code{start} which is the starting value for the numerical optimisation. If
@@ -112,11 +113,14 @@
 #' fit = fitDist(p)
 #' fit
 #'
-#' ## Compare to the Bayesian estimate
-#' fit = fitDist(p, method = "bayes", silent = FALSE)
-#' fit
+#' ## Compare to the Bayesian estimates
+#' fit2 = fitDist(p, method = "bayes")
+#' fit2
+#'
+#' fit3 = fitDist(p, method = "integrate")
+#' fit3
 fitDist = function(x, nterms = 10,
-                   method = c("mle", "bayes"),
+                   method = c("mle", "bayes", "integrate"),
                    prior,
                    ...){
   nvals = 1:nterms
@@ -206,12 +210,15 @@ fitDist = function(x, nterms = 10,
     class(result) = "psFit"
 
     return(result)
-  }else{ ## method == "bayes"
-    if (missing(prior)){
-      prior <- makePrior()
-    }
-
+  }else if (method=="bayes"){ ## method == "bayes"
+    if (missing(prior)) prior = makePrior()
     return(fitDistBayes(x = x, prior = prior, nterms = nterms, ...))
+  }else if (method=="integrate"){
+    if (missing(prior)) prior = makePrior()
+    return(fitDistBayesIntegrate(x = x, prior = prior, nterms = nterms, ...))
+  }
+  else{
+    stop("Unknown method:", method)
   }
 }
 

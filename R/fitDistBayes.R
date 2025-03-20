@@ -119,6 +119,9 @@ fitDistBayes = function(x, prior = makePrior(), nterms, ...){
     paste0("S", nvals)
   }
 
+  d = density(chain, from = 0)
+  pdf = splinefun(d$x, d$y)
+
   result = list(
     psData = x,
     fit = fit,
@@ -126,6 +129,7 @@ fitDistBayes = function(x, prior = makePrior(), nterms, ...){
     var.shape = var.shape,
     fitted = fitted,
     chain = chain,
+    pdf = pdf,
     model = "zeta",
     method = "bayes"
   )

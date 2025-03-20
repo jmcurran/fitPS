@@ -89,6 +89,7 @@ fitDistBayesIntegrate = function(x, prior = makePrior(), nterms, ...){
     shape = shape,
     var.shape = var.shape,
     fitted = fitted,
+    pdf = s_posterior,
     model = "zeta",
     method = "integrate"
   )

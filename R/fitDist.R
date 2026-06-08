@@ -149,10 +149,12 @@ fitDist = function(x, nterms = 10,
   if(method == "mle"){
 
     dotargs = list(...)
-    if(!("start" %in% names(dotargs))){
-      start = 1
-    }else{
+    if("start" %in% names(dotargs)){
+      start = dotargs$start
+    }else if("shape" %in% names(dotargs)){
       start = dotargs$shape
+    }else{
+      start = 1
     }
 
     if(start <= 0){

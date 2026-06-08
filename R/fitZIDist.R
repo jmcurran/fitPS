@@ -138,10 +138,12 @@ fitZIDist = function(x, nterms = 10,
   if(method == "mle"){
 
     dotargs = list(...)
-    if(!("start" %in% names(dotargs))){
-      start = c(0.5, 1)
-    }else{
+    if("start" %in% names(dotargs)){
+      start = dotargs$start
+    }else if("shape" %in% names(dotargs)){
       start = dotargs$shape
+    }else{
+      start = c(0.5, 1)
     }
 
     if(start[1] <= 0 || start[1] >= 1){

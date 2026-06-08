@@ -1,3 +1,4 @@
+^[.]fitps[_]built[_]pkg[_]path$
 ^.*[.]Rproj$
 ^\.Rproj\.user$
 [.]bbl$

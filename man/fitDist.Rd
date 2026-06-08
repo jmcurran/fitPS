@@ -23,6 +23,10 @@ NOTE: each of these modes of estimation has a different set of optional
 parameters and defaults. See the description of the \code{\ldots} parameter
 below for details.}
 
+\item{prior}{optional prior object used by the Bayesian and numerical
+integration methods. If omitted, \code{makePrior()} is used for those
+methods.}
+
 \item{...}{other arguments that control the estimation methods. If
   \code{method == "mle"}, then the user can provide an optional argument
   \code{start} which is the starting value for the numerical optimisation. If

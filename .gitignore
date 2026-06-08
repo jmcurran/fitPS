@@ -5,3 +5,6 @@
 .DS_Store
 inst/doc
 *conflicted*
+
+*.zip
+*.tar.gz

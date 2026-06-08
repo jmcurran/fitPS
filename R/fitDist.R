@@ -83,6 +83,9 @@
 #'   NOTE: each of these modes of estimation has a different set of optional
 #'   parameters and defaults. See the description of the \code{\ldots} parameter
 #'   below for details.
+#' @param prior optional prior object used by the Bayesian and numerical
+#'   integration methods. If omitted, \code{makePrior()} is used for those
+#'   methods.
 #' @param ... other arguments that control the estimation methods. If
 #'   \code{method == "mle"}, then the user can provide an optional argument
 #'   \code{start} which is the starting value for the numerical optimisation. If
@@ -101,7 +104,7 @@
 #'  \item{\code{silent}}{ -- A logical variable which allows the user to get a progress bar if they want. \code{TRUE} by default.}
 #' }
 #'
-#' @importFrom stats optim runif
+#' @importFrom stats density integrate optim runif splinefun
 #' @importFrom VGAM dzeta
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #'

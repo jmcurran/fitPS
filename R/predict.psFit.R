@@ -56,9 +56,9 @@ predict.psFit = function(object, newdata, interval = c("none", "prof", "wald"),
       predicted = (1 - object$pi) * VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
                                                 shape = object$shape)
       if(object$psData$type == "P"){
-        predicted[newdata == 0] = predicted[newdata == 0] + pi
+        predicted[newdata == 0] = predicted[newdata == 0] + object$pi
       }else{
-        predicted[newdata == 1] = predicted[newdata == 1] + pi
+        predicted[newdata == 1] = predicted[newdata == 1] + object$pi
       }
     }else{
       cat("This method is not currently implemented for the logarithmic distribution\n")

@@ -149,7 +149,7 @@ fitDist = function(x, nterms = 10,
     if(!("start" %in% names(dotargs))){
       start = 1
     }else{
-      start = dotargs$shape
+      start = dotargs$start
     }
 
     if(start <= 0){

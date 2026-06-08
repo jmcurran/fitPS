@@ -141,7 +141,7 @@ fitZIDist = function(x, nterms = 10,
     if(!("start" %in% names(dotargs))){
       start = c(0.5, 1)
     }else{
-      start = dotargs$shape
+      start = dotargs$start
     }
 
     if(start[1] <= 0 || start[1] >= 1){

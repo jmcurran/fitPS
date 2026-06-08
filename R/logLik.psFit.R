@@ -10,6 +10,7 @@
 #'
 #' @return An object of class `"logLik"` with attributes `"df"` and `"nobs"`.
 #'
+#' @importFrom stats logLik
 #' @export
 logLik.psFit = function(object, ...) {
   if (!is(object, "psFit")) {

@@ -8,3 +8,5 @@ inst/doc
 
 *.zip
 *.tar.gz
+.fitps_built_pkg_path
+.fitps_built_pkgpath

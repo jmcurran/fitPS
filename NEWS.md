@@ -4,6 +4,14 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.0.4.010
+
+- Added README.md with installation, data-format, fitting, prediction, comparison, and development-check examples.
+- Updated `.gitignore` to exclude the fitPS built-package path marker produced by stage runners.
+- Kept the stage focused on documentation and local-build hygiene without changing package APIs.
+- Validated by the strict stage 1.4 package workflow before commit.
+
+
 ## fitPS 1.0.4.009
 
 - Added NEWS.md as durable package release notes rather than a stage transcript.

@@ -1,0 +1,82 @@
+---
+title: "Using fitPS to fit number of groups data"
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Using fitPS to fit number of groups data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, echo=FALSE}
+options(width = 70)
+knitr::opts_chunk$set(
+  message = FALSE,
+  comment = "",
+  highlight = TRUE,
+  prompt = TRUE,
+  tidy = TRUE,
+  tidy.opts = list(arrow = FALSE),
+  warning = FALSE
+)
+suppressWarnings(suppressPackageStartupMessages(library(fitPS)))
+```
+
+In this example we will learn how to use `fitPS` to fit a zeta distribution to data from a survey where the number of groups of glass found is recorded. The data in this example comes from Roux et al. (2001), who surveyed the footwear of 776 individuals in south-eastern Australia, and is summarised in the table below.
+
+```{r table-roux, results='asis', echo=FALSE}
+library(xtable)
+
+tbl = Psurveys$roux$data
+colnames(tbl) = c("$n$", "$r_n$")
+tbl = xtable(tbl, align = "rrr", digits = 0)
+print(tbl, type = "latex", include.rownames = FALSE, sanitize.text.function = function(x) { x })
+```
+
+This data set is built into the package and can be accessed from the `Psurveys` object. That is, we can type:
+
+```{r load-data}
+data("Psurveys")
+roux = Psurveys$roux
+```
+
+The data is stored as an object of class `psData`. This probably will not be important to most users. Details can be found in the **Value** section of the help page for `readData`. There is an S3 `print` method for objects of this type, meaning that if we print the object--either by typing its name at the command prompt, or by explicitly calling `print`--we will get formatted printing of the information contained within the object. Specifically:
+
+- the values of $n$ and $r_n$ are printed in tabular format, where $n$ is the number of groups or the size of the groups, and $r_n$ is the number of times $n$ has been observed in the survey;
+- the type of survey is printed, either "Number of Groups" or "Group Size";
+- if the object has a reference or notes attached to it, these are printed as well.
+
+For example:
+
+```{r print-data}
+roux
+```
+
+It is very simple to fit a zeta distribution to this data set. We do this using the `fitDist` function.
+
+```{r fit-data}
+fit = fitDist(roux)
+```
+
+The function returns an object of class `psFit`, the details of which can be found in the help page for `fitDist`. There are both S3 `print` and S3 `plot` methods for objects of this class. The `print` method displays an estimate of the shape parameter $\alpha$ and the standard error of that estimate, $\widehat{\mathrm{sd}}(\hat{\alpha}) = \mathrm{se}(\hat{\alpha})$. The reported value is the same shape parameter used throughout `fitPS` and stored in the fitted object. The `print` method also displays the first 10 fitted probabilities from the model by default.
+
+```{r print-fit}
+fit
+```
+
+The package provides a `confint` method for fitted values. The method returns both a Wald confidence interval and a profile likelihood interval. The Wald interval has lower and upper bounds given by $\hat{\alpha} \pm z^* \times \mathrm{se}(\hat{\alpha})$. The profile likelihood interval finds the endpoints of the interval that satisfies
+
+\[
+-2\left[\ell(\hat{\alpha};\mathbf{x}) - \ell(\alpha;\mathbf{x})\right] \le \chi^2_1(\alpha),
+\]
+
+where $\ell(\alpha;\mathbf{x})$ is the value of the log-likelihood for shape parameter $\alpha$. The two intervals are returned as elements of a `list` named `wald` and `prof`, respectively.
+
+```{r confidence-intervals}
+ci = confint(fit)
+ci$wald
+ci$prof
+```
+
+## References
+
+Roux, C., Kirk, R., Benson, S., Van Haren, T., and Petterd, C. I. (2001). Glass particles in footwear of members of the public in south-eastern Australia: a survey. *Forensic Science International*, 116(2), 149-156.

@@ -19,7 +19,7 @@ fitzidist(x, nterms = 10, method = c("mle", "bayes"), ...)
 \item{nterms}{the number of terms to compute the probability distribution
 for.}
 
-\item{method}{either \code{"mle"} or \code{"bayes"}. Lets the user choose
+\item{method}{either \code{"mle"} or \code{"bayes"}. Allows the user to choose
 maximum likelihood estimation or Bayesian estimation. NOTE: each of these
 modes of estimation has a different set of optional parameters and
 defaults. See the description of the \code{\ldots} parameter below for
@@ -29,16 +29,16 @@ details.}
   \code{method == "mle"}, then the user can provide an optional argument
   \code{start} which is the starting value for the numerical optimisation. If
   this is not provided, then \code{start = c(0.5, 2)} by default. If you specify your
-  own starting value, it would be sensible to keep it above 0.5 for pi and above 1 for the shape.
+  own starting value, keep the mixing parameter greater than 0.5 and use \code{shape > 1}.
 
-  If \code{method == "bayes"}, then there are seven optional parameters (which
-  despite the documentation are actually case insensitive):
+  If \code{method == "bayes"}, then there are seven optional parameters (which,
+  despite the documentation, are actually case-insensitive):
 \describe{
-  \item{\code{theta0}}{ -- The initial value of the mixing parameter and the shape parameter, set to \code{c(0.5, 2), by default} }
+  \item{\code{theta0}}{ -- The initial values of the mixing parameter and shape parameter. The default is \code{c(0.5, 2)}. }
   \item{\code{a}}{ -- The lower bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is -2. }
   \item{\code{b}}{ -- The upper bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is +2. }
-  \item{\code{shape1}}{ -- The first shape parameter for the beta prior on the mixing distribution which is Beta(shape1, shape2) .The default is 1. }
-  \item{\code{shape2}}{ -- The second shape parameter for the beta prior on the mixing distribution which is Beta(shape1, shape2) .The default is 1. }
+  \item{\code{shape1}}{ -- The first shape parameter for the beta prior on the mixing distribution, Beta(shape1, shape2). The default is 1. }
+  \item{\code{shape2}}{ -- The second shape parameter for the beta prior on the mixing distribution, Beta(shape1, shape2). The default is 1. }
   \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000. }
   \item{\code{nBurnIn}}{ -- The number of samples to discard from the chain. Must be greater than zero. **NOTE**: the sampler runs for \code{nIter + nBurnIn} iterations,
   so you do not need to factor this number into your number of samples, \code{nIter}. }
@@ -55,9 +55,9 @@ zero-inflated zeta distribution from a set of observed counts for either the
 number of groups/sources of forensically interesting material (mostly glass
 or paint) recovered from clothing, or the number of fragments/particles in
 each group. This, in turn, allows the estimation of the P and S
-probabilities, as described by Evett and Buckleton (1990), which used in
+probabilities, as described by Evett and Buckleton (1990), which are used in
 computing the likelihood ratio (LR) for activity level propositions. The data
-itself arises from clothing surveys. The zero-inflated zeta distribution has
+arise from clothing surveys. The zero-inflated zeta distribution has
 probability mass function
 \deqn{p(k) = \begin{cases}
 \pi + \frac{(1-\pi)}{\zeta(s)}&,k=0, \\
@@ -66,11 +66,11 @@ probability mass function
 }{
 p(0) = pi + (1-pi)/zeta(s),k = 0 and p(k) = (1-pi)k^-s/zeta(s),k>1
 }
-where \eqn{\zeta(s)}{zeta(s)} is the Reimann Zeta function.
+where \eqn{\zeta(s)}{zeta(s)} is the Riemann zeta function.
 }
 \details{
 The function returns an object of class \code{psFit} which is a
-  \code{list} contains eight or nine elements:
+  \code{list} containing eight or nine elements:
 \describe{
 \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
 \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
@@ -82,12 +82,12 @@ The function returns an object of class \code{psFit} which is a
 \item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"},}
 \item{\code{chain}}{ -- if \code{method == "bayes"}, then this element will contain the Markov Chain from the sampler,
 that is, hopefully a sample from the posterior density of the mixing parameter and the shape parameter.
-if \code{method == "mle"} then this element does not exist.}
+If \code{method == "mle"}, then this element does not exist.}
 }
 
 The output can be used in a variety of ways. If the interest is just in the
 mixing and shape parameter estimates, then the \code{pi} and \code{shape}
-member of the \code{psFit} object contains this information. It is also
+members of the \code{psFit} object contain this information. It is also
 displayed along with a number of fitted probabilities by the
 \code{\link{print.psFit}} method. The fitted object can also be plotted using
 the plot method \code{\link{plot.psFit}}, and to create a probability
@@ -98,7 +98,7 @@ the fitted object is the standard zeta parameter \eqn{\alpha}{alpha}, with
 VGAM-backed zeta functions.
 
 This function implements both maximum likelihood estimation (MLE) and
-Bayesian estimation. Both modes of estimation require addition information
+Bayesian estimation. Both modes of estimation require additional information
 such as starting values and parameters for priors. Please read the
 documentation for the \code{...} argument closely because it explains what
 you can change and what the default values are.
@@ -107,8 +107,8 @@ Currently the Bayesian estimation is done assuming a Beta(shape1, shape2)
 distribution for the prior of the mixing proportion and the prior returned
 by \code{\link{makePrior}} for the zeta shape parameter. By default this is
 a Uniform[a, b] prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}, so
-the prior support is always above \code{shape = 1}. This may change to be more flexible in the
-future. Similarly, the estimation is done using a simple Metropolis-Hastings
+the prior support always has \code{shape > 1}. This may become more
+flexible in the future. Similarly, the estimation is done using a simple Metropolis-Hastings
 sampler. It might be more efficient to sample through adaptive rejection
 sampling, but it is unclear whether it is worth the effort.
 }

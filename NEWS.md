@@ -6,6 +6,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.4.016
+
+- Cleaned roxygen comments and README wording for the Stage 2 zeta shape parameterisation documentation.
+- Fixed spelling, punctuation, and grammar in the fitDist(), fitZIDist(), and predict.psFit() help source.
+- Kept documentation on NZ English wording, including parameterisation and optimisation.
+- Left generated help files to be refreshed by devtools::document() during the stage workflow.
+
 ## fitPS 1.0.4.015
 
 - Updated documentation so `shape` consistently refers to the standard zeta parameter alpha with `shape > 1`.

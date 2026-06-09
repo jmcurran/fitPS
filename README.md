@@ -88,8 +88,8 @@ pData = readData("survey.csv")
 ## Zeta shape parameterisation
 
 fitPS uses `shape` for the standard zeta parameter alpha, with `shape > 1`.
-VGAM uses a shifted parameter internally, equal to `shape - 1`; fitPS converts
-to that shifted value only at VGAM-backed zeta function boundaries. Users should
+VGAM uses a shifted parameter internally equal to `shape - 1`. fitPS converts
+to this parameter only when calling VGAM zeta functions. Users should
 supply, inspect, compare, and report `shape` on the standard alpha scale.
 
 ## Fitting a zeta model

@@ -21,10 +21,10 @@ or \code{\link{fitZIDist}}.}
 
 \item{interval}{either \code{"none"}, \code{"prof"}, or \code{"wald"} and can
 be abbreviated. If \code{"prof"} or \code{"wald"} AND the zeta model has
-been used  then an interval, based on the bounds of a 100 * \code{level}
+been used, then an interval, based on the bounds of a 100 * \code{level}
 confidence interval for the shape parameter, is given for each predicted
-probability. The interval is provided based on either a Profile Likelihood,
-or a Wald, confidence interval for the shape, and therefore cannot really
+probability. The interval is provided based on either a profile likelihood
+or a Wald confidence interval for shape, and therefore cannot really
 be regarded as a confidence interval for the probabilities. The intervals
 might be more sensibly regarded as a measure of how sensitive the
 probabilities are to the choice of shape parameter. NOTE: this parameter is
@@ -38,7 +38,7 @@ ignored if the Zero-inflated (ZIZ) model has been used.}
 \value{
 either a named vector of fitted probabilities, or a \code{data.frame}
   with columns \code{predicted}, \code{lower}, and \code{upper} and the row
-  names set to show what terms are being calculatd
+  names set to show what terms are being calculated
 }
 \description{
 S3 predict method for an object of class \code{psFit}

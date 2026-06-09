@@ -12,6 +12,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.5.008
+
+- Stabilised the generated stage runner so controlled paths are staged one at a time.
+- Prevented absent optional directories from masking `git add` failures and leaving new files untracked.
+- Preserved the controlled commit scope while keeping the workflow compatible with package roots that do not contain every optional directory.
+- Kept the no-ChatGPT-bundle workflow and completed-stage archive cleanup behaviour.
+- Validated by the strict fitPS stage workflow.
+
 ## fitPS 1.0.5.007
 
 - Added `plotPosterior()` for posterior-density plots from Bayesian `psFit` objects.

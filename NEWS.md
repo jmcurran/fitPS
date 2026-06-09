@@ -13,6 +13,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.6.006
+
+- Added Bayesian options plumbing so method = "bayes" can select posterior engines through bayesOptions$posteriorMethod.
+- Stripped inherited names from scalar transform inputs and outputs before constructing working-scale vectors.
+- Routed fitDist() numerical integration through method = "bayes" with posteriorMethod = "numerical" while retaining method = "integrate" as a legacy alias.
+- Kept zero-inflated zeta MCMC available through posteriorMethod = "mcmc" until the numerical Stage 4 posterior is implemented.
+- Kept deterministic offline test coverage unchanged while repairing the helper implementation.
+
 ## fitPS 1.0.6.001
 
 - Added the Stage 4.1 design audit for deterministic and semi-deterministic Bayesian posterior approximations for zero-inflated zeta fits.

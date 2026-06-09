@@ -6,11 +6,32 @@
 \alias{fitzidist}
 \title{Fit a Zero-Inflated Zeta Distribution to Forensic Data}
 \usage{
-fitZIDist(x, nterms = 10, method = c("mle", "bayes"), ...)
+fitZIDist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 
-fitZIdist(x, nterms = 10, method = c("mle", "bayes"), ...)
+fitZIdist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 
-fitzidist(x, nterms = 10, method = c("mle", "bayes"), ...)
+fitzidist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from
@@ -24,6 +45,17 @@ maximum likelihood estimation or Bayesian estimation. NOTE: each of these
 modes of estimation has a different set of optional parameters and
 defaults. See the description of the \code{\ldots} parameter below for
 details.}
+
+\item{prior}{optional prior object used by Bayesian posterior approximation
+methods where applicable. This is retained for consistency with
+\code{fitDist()}; new code should usually pass priors through
+\code{bayesOptions}.}
+
+\item{bayesOptions}{optional list controlling Bayesian fitting. The
+\code{posteriorMethod} element selects \code{"numerical"},
+\code{"mcmc"}, \code{"laplace"}, or \code{"importance"}. The
+default is \code{"numerical"}. The \code{prior} element may contain
+a prior object returned by \code{makePrior()}.}
 
 \item{...}{other arguments that control the estimation methods. If
   \code{method == "mle"}, then the user can provide an optional argument

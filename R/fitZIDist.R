@@ -77,6 +77,15 @@
 #'   modes of estimation has a different set of optional parameters and
 #'   defaults. See the description of the \code{\ldots} parameter below for
 #'   details.
+#' @param prior optional prior object used by Bayesian posterior approximation
+#'   methods where applicable. This is retained for consistency with
+#'   \code{fitDist()}; new code should usually pass priors through
+#'   \code{bayesOptions}.
+#' @param bayesOptions optional list controlling Bayesian fitting. The
+#'   \code{posteriorMethod} element selects \code{"numerical"},
+#'   \code{"mcmc"}, \code{"laplace"}, or \code{"importance"}. The
+#'   default is \code{"numerical"}. The \code{prior} element may contain
+#'   a prior object returned by \code{makePrior()}.
 #' @param ... other arguments that control the estimation methods. If
 #'   \code{method == "mle"}, then the user can provide an optional argument
 #'   \code{start} which is the starting value for the numerical optimisation. If
@@ -111,6 +120,8 @@
 #' fit
 fitZIDist = function(x, nterms = 10,
                      method = c("mle", "bayes"),
+                     prior,
+                     bayesOptions = NULL,
                      ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
@@ -211,7 +222,24 @@ fitZIDist = function(x, nterms = 10,
 
     return(result)
   }else{ ## method == "bayes"
-    return(fitZIDistBayes(x = x, nterms = nterms, ... = ...))
+    options = if (missing(prior)) {
+      normaliseBayesOptions(bayesOptions = bayesOptions)
+    } else {
+      normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
+    }
+
+    if (options$posteriorMethod == "mcmc") {
+      result = fitZIDistBayes(x = x, nterms = nterms, ...)
+      result$posteriorMethod = "mcmc"
+      result$bayesOptions = options
+      return(result)
+    }
+
+    stop(
+      "posteriorMethod = ",
+      sQuote(options$posteriorMethod),
+      " is not implemented for fitZIDist() yet; use posteriorMethod = \"mcmc\" until the Stage 4 numerical posterior is added"
+    )
   }
 }
 

@@ -78,9 +78,14 @@
 #'   NOTE: each of these modes of estimation has a different set of optional
 #'   parameters and defaults. See the description of the \code{\ldots} parameter
 #'   below for details.
-#' @param prior optional prior object used by the Bayesian and numerical
-#'   integration methods. If omitted, \code{makePrior()} is used for those
-#'   methods.
+#' @param prior optional prior object used by the Bayesian methods. This is
+#'   retained for backward compatibility. New code should usually pass priors
+#'   through \code{bayesOptions}. If omitted, \code{makePrior()} is used.
+#' @param bayesOptions optional list controlling Bayesian fitting. The
+#'   \code{posteriorMethod} element selects \code{"numerical"},
+#'   \code{"mcmc"}, \code{"laplace"}, or \code{"importance"}. The
+#'   default is \code{"numerical"}. The \code{prior} element may contain
+#'   a prior object returned by \code{makePrior()}.
 #' @param ... other arguments that control the estimation methods. If
 #'   \code{method == "mle"}, then the user can provide an optional argument
 #'   \code{start} which is the starting value for the numerical optimisation. If
@@ -120,6 +125,7 @@
 fitDist = function(x, nterms = 10,
                    method = c("mle", "bayes", "integrate"),
                    prior,
+                   bayesOptions = NULL,
                    ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
@@ -203,14 +209,55 @@ fitDist = function(x, nterms = 10,
     class(result) = "psFit"
 
     return(result)
-  }else if (method=="bayes"){ ## method == "bayes"
-    if (missing(prior)) prior = makePrior()
-    return(fitDistBayes(x = x, prior = prior, nterms = nterms, ...))
-  }else if (method=="integrate"){
-    if (missing(prior)) prior = makePrior()
-    return(fitDistBayesIntegrate(x = x, prior = prior, nterms = nterms, ...))
-  }
-  else{
+  }else if (method == "bayes") {
+    options = if (missing(prior)) {
+      normaliseBayesOptions(bayesOptions = bayesOptions)
+    } else {
+      normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
+    }
+
+    if (options$posteriorMethod == "numerical") {
+      result = fitDistBayesIntegrate(
+        x = x,
+        prior = options$prior,
+        nterms = nterms,
+        ...
+      )
+    } else if (options$posteriorMethod == "mcmc") {
+      result = fitDistBayes(
+        x = x,
+        prior = options$prior,
+        nterms = nterms,
+        ...
+      )
+    } else {
+      stop(
+        "posteriorMethod = ",
+        sQuote(options$posteriorMethod),
+        " is not implemented for fitDist() yet"
+      )
+    }
+
+    result$method = "bayes"
+    result$posteriorMethod = options$posteriorMethod
+    result$bayesOptions = options
+    return(result)
+  }else if (method == "integrate") {
+    warning(
+      "method = \"integrate\" is retained as a legacy alias; use method = \"bayes\" with bayesOptions$posteriorMethod = \"numerical\"",
+      call. = FALSE
+    )
+    options = if (missing(prior)) {
+      normaliseBayesOptions(bayesOptions = bayesOptions)
+    } else {
+      normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
+    }
+    result = fitDistBayesIntegrate(x = x, prior = options$prior, nterms = nterms, ...)
+    result$method = "bayes"
+    result$posteriorMethod = "numerical"
+    result$bayesOptions = options
+    return(result)
+  } else {
     stop("Unknown method:", method)
   }
 }

@@ -9,7 +9,7 @@ rzeta(n, shape)
 \arguments{
 \item{n}{Same as \code{\link[stats]{Poisson}}.}
 
-\item{shape}{The positive shape parameter \deqn{s = \alpha - 1}{s = alpha - 1}.
+\item{shape}{The standard zeta shape parameter, greater than 1.
 
 See \code{\link[VGAM]{rzeta}}.}
 }

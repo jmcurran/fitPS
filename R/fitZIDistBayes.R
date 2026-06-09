@@ -18,7 +18,7 @@ fitZIDistBayes = function(x, nterms = 10,
   theta0 = if(is.arg("theta0")){
              dotargs$theta0
            }else{
-             c(0.5, 1)
+             c(0.5, 2)
            }
   a = ifelse(is.arg("a"), dotargs$a, -2)
   b = ifelse(is.arg("b"), dotargs$b, 2)
@@ -40,7 +40,7 @@ fitZIDistBayes = function(x, nterms = 10,
     stop("b must be greater than a!")
   }
 
-  W = b - a
+  W = exp(b) - exp(a)
   if(W <= 0){
     stop("This should never happen.")
   }
@@ -49,15 +49,13 @@ fitZIDistBayes = function(x, nterms = 10,
     stop("The starting value for pi must be in (0, 1)")
   }
 
-  if(theta0[2] <= 0){
-    stop("The Zeta function is undefined for shape = 0. Choose a start value > 0.")
-  }
+  validateZetaShape(theta0[2], "theta0 shape")
 
   if(b <= a){
     stop("b must be greater than a!")
   }
 
-  W = b - a
+  W = exp(b) - exp(a)
   if(W <= 0){
     stop("This should never happen.")
   }
@@ -83,7 +81,7 @@ fitZIDistBayes = function(x, nterms = 10,
   y = rep(obsData, x$data$rn)
 
   d.one.inflated.zeta = function(x, shape, p, log = FALSE){
-    rval = (1 - p) * VGAM::dzeta(x, shape = shape)
+    rval = (1 - p) * dzetaStandard(x, shape = shape)
     rval[x == 1] = rval[x == 1] + p
 
     if(log){
@@ -96,7 +94,7 @@ fitZIDistBayes = function(x, nterms = 10,
     p = params[1]
     shape = params[2]
 
-    rval = (1 - p) * VGAM::dzeta(obsData, shape = shape)
+    rval = (1 - p) * dzetaStandard(obsData, shape = shape)
     rval[obsData == 1] = rval[obsData == 1] + p
 
     r = sum(x$data$rn * log(rval))
@@ -108,8 +106,8 @@ fitZIDistBayes = function(x, nterms = 10,
 
   nTotal = nIter + nBurnIn
 
-  s0 = max(theta0[2] - 1, .Machine$double.eps)
-  s.draws = runif(nTotal, exp(a), exp(b))
+  s0 = theta0[2]
+  s.draws = runif(nTotal, 1 + exp(a), 1 + exp(b))
   s1 = s.draws[1]
 
   pi0 = min(max(theta0[1], .Machine$double.eps), 1 - .Machine$double.eps)
@@ -125,7 +123,7 @@ fitZIDistBayes = function(x, nterms = 10,
   chain = data.frame(pi = rep(pi0, nIter), shape = rep(s0, nIter))
   log.u = log(runif(nTotal))
 
-  ll0 = logLik(c(pi0, s0)) - log(W * s0) + dbeta(pi0, shape1, shape2, log = TRUE)
+  ll0 = logLik(c(pi0, s0)) - log(W * (s0 - 1)) + dbeta(pi0, shape1, shape2, log = TRUE)
   i = 1
 
   if(!silent){
@@ -139,7 +137,7 @@ fitZIDistBayes = function(x, nterms = 10,
       }else{
         pi1 = pi.draws[i]
       }
-      ll1 = logLik(c(pi1, s1)) - log(W * s1) - dbeta(pi1, shape1, shape2, log = TRUE)
+      ll1 = logLik(c(pi1, s1)) - log(W * (s1 - 1)) - dbeta(pi1, shape1, shape2, log = TRUE)
     }
 
     if(ll1 > ll0 || log.u[i] < (ll1 - ll0)){

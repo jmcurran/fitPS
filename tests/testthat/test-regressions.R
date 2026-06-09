@@ -45,7 +45,7 @@ test_that("predict.psFit uses fitted zero-inflation probability for ZIZ predicti
   fit = fitZIDist(pData, nterms = 4, start = c(0.25, 2))
 
   prediction = predict(fit, newdata = 0)
-  expected = (1 - fit$pi) * VGAM::dzeta(1, shape = fit$shape) + fit$pi
+  expected = (1 - fit$pi) * VGAM::dzeta(1, shape = fit$shape - 1) + fit$pi
 
   expect_named(prediction, "P0")
   expect_equal(unname(prediction), expected)

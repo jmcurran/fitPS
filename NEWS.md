@@ -5,6 +5,14 @@
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
 
+
+## fitPS 1.0.4.014
+
+- Refactored zeta and zero-inflated zeta workflows so fitPS `shape` means the standard zeta parameter alpha with `shape > 1`.
+- Converted to VGAM's shifted parameter only at VGAM boundaries using `shape - 1`.
+- Added active regression tests for fitting, probability functions, prediction, fitted values, and random generation under the standard-shape convention.
+- Validated by the strict fitPS stage workflow.
+
 ## fitPS 1.0.4.012
 
 - Added Stage 2.1.1 corrective notes for the zeta shape parameterisation workflow.

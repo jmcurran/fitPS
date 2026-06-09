@@ -78,8 +78,8 @@ plot.psFit = function(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95,
       lbShape = ci[1]
       ubShape = ci[2]
       nvals = 1:length(b)
-      lb = VGAM::dzeta(nvals, lbShape)
-      ub = VGAM::dzeta(nvals, ubShape)
+      lb = dzetaStandard(nvals, lbShape)
+      ub = dzetaStandard(nvals, ubShape)
       Hmisc::errbar(b, x$fitted, ub, lb, add = TRUE)
     }
   }else{
@@ -112,8 +112,8 @@ plot.psFit = function(x, ylim = c(0, 1), conf = FALSE, conf.level = 0.95,
       lbShape = ci[1]
       ubShape = ci[2]
       nvals = 1:length(b)
-      lb = log10(VGAM::dzeta(nvals, lbShape))
-      ub = log10(VGAM::dzeta(nvals, ubShape))
+      lb = log10(dzetaStandard(nvals, lbShape))
+      ub = log10(dzetaStandard(nvals, ubShape))
       Hmisc::errbar(b, log10(x$fitted), ub, lb, add = TRUE)
     }
   }

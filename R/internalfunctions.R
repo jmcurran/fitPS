@@ -2,11 +2,11 @@ zetaloglikelihood = function(x, shape){
   offset = ifelse(x$type == 'P', 1, 0)
   if(length(shape) > 1){
     ll = function(s){
-      sum(x$data$rn * VGAM::dzeta(x$data$n + offset, shape = s, log = TRUE))
+      sum(x$data$rn * dzetaStandard(x$data$n + offset, shape = s, log = TRUE))
     }
     sapply(shape, ll)
   }else{
-    sum(x$data$rn * VGAM::dzeta(x$data$n + offset, shape = shape, log = TRUE))
+    sum(x$data$rn * dzetaStandard(x$data$n + offset, shape = shape, log = TRUE))
   }
 }
 

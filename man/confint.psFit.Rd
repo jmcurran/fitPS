@@ -22,9 +22,7 @@ if the zeta model is used (i.e \code{object} comes from a call to
   \code{prof} containing the Wald and profile likelihood confidence intervals
   respectively for the shape parameter of the fitted zeta distribution is
   returned. In general these should be relatively close to each other.
-  **NOTE** These values are for the \pkg{VGAM} parameterisation of the Zeta
-  distribution which uses \eqn{s^\prime = s - 1}{s' = s - 1}. This means they
-  can be used without alteration in \code{\link[VGAM]{dzeta}}. If a
+  These values use the fitPS standard zeta shape parameter alpha, with shape > 1. VGAM uses a shifted parameter internally, equal to shape - 1. If a
   zero-inflated zeta model is used (i.e. \code{object} comes from a call to
   \code{\link{fitZIDist}}) then list of a confidence regions is returned with
   and element for each value of \code{level}. The confidence regions are

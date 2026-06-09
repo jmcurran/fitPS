@@ -36,7 +36,7 @@ methods.}
   If \code{method == "bayes"}, then there are five optional parameters (which
   depsite the documentation are actually case insenstive):
 \describe{
- \item{\code{shape0}}{ -- The initial value of the shape parameter, set just above 1 by default}
+ \item{\code{shape0}}{ -- The initial value of the shape parameter, set to 2 by default}
  \item{\code{a}}{ -- The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2.}
  \item{\code{b}}{ -- The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2.}
  \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000.}

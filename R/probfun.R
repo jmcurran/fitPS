@@ -18,22 +18,22 @@ probfun = function(psFitobj){
   pf = function(x){
     if(psFitobj$model == "zeta"){
       if(psFitobj$psData$type == "P"){
-        p = dzeta(x + 1, shape = psFitobj$shape)
+        p = dzetaStandard(x + 1, shape = psFitobj$shape)
         names(p) = paste0("P", x)
         return(p)
       }else{
-        p = dzeta(x, shape = psFitobj$shape)
+        p = dzetaStandard(x, shape = psFitobj$shape)
         names(p) = paste0("S", x)
         return(p)
       }
     }else if(psFitobj$model == "ziz"){
       if(psFitobj$psData$type == "P"){
-        p = (1 - psFitobj$pi) * dzeta(x + 1, shape = psFitobj$shape)
+        p = (1 - psFitobj$pi) * dzetaStandard(x + 1, shape = psFitobj$shape)
         p[x == 0] = p[x == 0] + psFitobj$pi
         names(p) = paste0("P", x)
         return(p)
       }else{
-        p = (1 - psFitobj$pi) * dzeta(x, shape = psFitobj$shape)
+        p = (1 - psFitobj$pi) * dzetaStandard(x, shape = psFitobj$shape)
         p[x == 1] = p[x == 1] + psFitobj$pi
         names(p) = paste0("S", x)
         return(p)

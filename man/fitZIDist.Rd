@@ -28,13 +28,13 @@ details.}
 \item{...}{other arguments that control the estimation methods. If
   \code{method == "mle"}, then the user can provide an optional argument
   \code{start} which is the starting value for the numerical optimisation. If
-  this is not provided, then \code{start = c(0.5, 1)} by default. If you specify your
-  own starting value, it would be sensible to keep it above 0.5 for pi and 1 for the shape.
+  this is not provided, then \code{start = c(0.5, 2)} by default. If you specify your
+  own starting value, it would be sensible to keep it above 0.5 for pi and above 1 for the shape.
 
   If \code{method == "bayes"}, then there are seven optional parameters (which
   despite the documentation are actually case insensitive):
 \describe{
-  \item{\code{theta0}}{ -- The initial value of the mixing parameter and the shape parameter, set to \code{c(0.5, 1), by default} }
+  \item{\code{theta0}}{ -- The initial value of the mixing parameter and the shape parameter, set to \code{c(0.5, 2), by default} }
   \item{\code{a}}{ -- The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2. }
   \item{\code{b}}{ -- The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2. }
   \item{\code{shape1}}{ -- The first shape parameter for the beta prior on the mixing distribution which is Beta(shape1, shape2) .The default is 1. }

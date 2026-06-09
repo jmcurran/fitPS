@@ -17,7 +17,8 @@ fitDistBayes = function(x, prior = makePrior(), nterms, ...){
     return(tolower(arg) %in% tolower(names(dotargs)))
   }
 
-  shape0 = ifelse(is.arg("shape0"), dotargs$shape0, 1)
+  shape0 = ifelse(is.arg("shape0"), dotargs$shape0, 2)
+  validateZetaShape(shape0, "shape0")
 
   nIter = ifelse(is.arg("nIter"), dotargs$nIter, 1e4)
   nBurnIn = ifelse(is.arg("nBurnIn"), dotargs$nBurnIn, 1e3)
@@ -59,7 +60,7 @@ fitDistBayes = function(x, prior = makePrior(), nterms, ...){
 
   logLik = function(shape){
     #-sum(VGAM::dzeta(rep(obsData, x$data$rn), shape = shape, log = TRUE))
-    sum(x$data$rn * VGAM::dzeta(obsData, shape = shape, log = TRUE))
+    sum(x$data$rn * dzetaStandard(obsData, shape = shape, log = TRUE))
   }
 
   nTotal = nIter + nBurnIn
@@ -69,7 +70,7 @@ fitDistBayes = function(x, prior = makePrior(), nterms, ...){
   chain = numeric(nIter)
   log.u = log(runif(nTotal))
 
-  priorLogd <- prior$logd
+  priorLogd = prior$logd
   ll0 = logLik(shape0) + priorLogd(shape0)
 
   if (!is.finite(ll0)){
@@ -112,14 +113,14 @@ fitDistBayes = function(x, prior = makePrior(), nterms, ...){
   fit$par = shape = mean(chain)
   var.shape = var(chain)
 
-  fitted = VGAM::dzeta(nvals, shape = shape)
+  fitted = dzetaStandard(nvals, shape = shape)
   names(fitted) = if(x$type == 'P'){
     paste0("P", nvals - 1)
   }else{
     paste0("S", nvals)
   }
 
-  d = density(chain, from = 0)
+  d = density(chain, from = a)
   pdf = splinefun(d$x, d$y)
 
   result = list(

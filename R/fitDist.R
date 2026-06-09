@@ -95,7 +95,7 @@
 #'   If \code{method == "bayes"}, then there are five optional parameters (which
 #'   depsite the documentation are actually case insenstive):
 #' \describe{
-#'  \item{\code{shape0}}{ -- The initial value of the shape parameter, set just above 1 by default}
+#'  \item{\code{shape0}}{ -- The initial value of the shape parameter, set to 2 by default}
 #'  \item{\code{a}}{ -- The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2.}
 #'  \item{\code{b}}{ -- The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2.}
 #'  \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000.}
@@ -154,19 +154,13 @@ fitDist = function(x, nterms = 10,
     }else if("shape" %in% names(dotargs)){
       start = dotargs$shape
     }else{
-      start = 1
+      start = 2
     }
 
-    if(start <= 0){
-      msg = paste0("The Zeta function is undefined for shape = 1.",
-                   "This software uses s = shape - 1",
-                   "Choose a start value > 0.", collapse = "\n")
-      stop(msg)
-    }
+    validateZetaShape(start, "start")
 
     logLik = function(shape){
-      #-sum(VGAM::dzeta(rep(obsData, x$data$rn), shape = shape, log = TRUE))
-      -sum(x$data$rn * VGAM::dzeta(obsData, shape = shape, log = TRUE))
+      -sum(x$data$rn * dzetaStandard(obsData, shape = shape, log = TRUE))
     }
 
     # fit = nlminb(start = start,
@@ -176,17 +170,16 @@ fitDist = function(x, nterms = 10,
     fit = optim(par = start,
                   fn = logLik,
                   method = "L-BFGS-B",
-                  lower = 0,
+                  lower = 1 + sqrt(.Machine$double.eps),
                   hessian = TRUE)
 
-    shape = fit$par ## NOTE VGAM's dzeta is parameterised in terms of
-                    ## s = alpha - 1. This has consequences in the formula below
+    shape = fit$par
     N = sum(x$data$rn)
 
     vshape = function(shape){
-      z = VGAM::zeta(shape + 1)
-      zprime = VGAM::zeta(shape + 1, 1)
-      zprimeprime = VGAM::zeta(shape + 1, 2)
+      z = VGAM::zeta(shape)
+      zprime = VGAM::zeta(shape, 1)
+      zprimeprime = VGAM::zeta(shape, 2)
       numer = z^2
       denom = N *(z * zprimeprime - zprime^2)
 
@@ -195,7 +188,7 @@ fitDist = function(x, nterms = 10,
 
     var.shape = vshape(shape)
 
-    fitted = VGAM::dzeta(nvals, shape = shape)
+    fitted = dzetaStandard(nvals, shape = shape)
     names(fitted) = if(x$type == 'P'){
       paste0("P", nvals - 1)
     }else{

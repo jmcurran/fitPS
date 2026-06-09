@@ -5,11 +5,11 @@
 \alias{rzizeta}
 \title{Generate zero inflated zeta random variates}
 \usage{
-rZIzeta(n, pi = 0.5, shape = 1, offset = 0)
+rZIzeta(n, pi = 0.5, shape = 2, offset = 0)
 
-rzizeta(n, pi = 0.5, shape = 1, offset = 0)
+rzizeta(n, pi = 0.5, shape = 2, offset = 0)
 
-rzizeta(n, pi = 0.5, shape = 1, offset = 0)
+rzizeta(n, pi = 0.5, shape = 2, offset = 0)
 }
 \arguments{
 \item{n}{the number of observations.}
@@ -18,7 +18,7 @@ rzizeta(n, pi = 0.5, shape = 1, offset = 0)
 (0, 1).}
 
 \item{shape}{the shape parameter for the zero-inflated zeta. Must be greater
-than zero.}
+than 1.}
 
 \item{offset}{the zeta distribution returns random variates that are greater
 than, or equal to one. If the offset is greater than 0, then the

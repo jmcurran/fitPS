@@ -50,10 +50,10 @@ predict.psFit = function(object, newdata, interval = c("none", "prof", "wald"),
 
   if(is.null(predicted)){
     if(object$model == "zeta"){
-      predicted = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+      predicted = dzetaStandard(newdata + ifelse(object$psData$type == "P", 1, 0),
                               shape = object$shape)
     }else if(object$model == "ziz"){
-      predicted = (1 - object$pi) * VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+      predicted = (1 - object$pi) * dzetaStandard(newdata + ifelse(object$psData$type == "P", 1, 0),
                                                 shape = object$shape)
       if(object$psData$type == "P"){
         predicted[newdata == 0] = predicted[newdata == 0] + object$pi
@@ -72,9 +72,9 @@ predict.psFit = function(object, newdata, interval = c("none", "prof", "wald"),
       }
 
       zstar = qnorm((1 - level) * 0.5, lower.tail = FALSE)
-      lwr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+      lwr = dzetaStandard(newdata + ifelse(object$psData$type == "P", 1, 0),
                         shape = object$shape - zstar * sqrt(object$var.shape))
-      upr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+      upr = dzetaStandard(newdata + ifelse(object$psData$type == "P", 1, 0),
                         shape = object$shape + zstar * sqrt(object$var.shape))
 
       results = data.frame(predicted = predicted, lower = lwr, upper = upr)

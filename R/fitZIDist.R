@@ -84,13 +84,13 @@
 #' @param ... other arguments that control the estimation methods. If
 #'   \code{method == "mle"}, then the user can provide an optional argument
 #'   \code{start} which is the starting value for the numerical optimisation. If
-#'   this is not provided, then \code{start = c(0.5, 1)} by default. If you specify your
-#'   own starting value, it would be sensible to keep it above 0.5 for pi and 1 for the shape.
+#'   this is not provided, then \code{start = c(0.5, 2)} by default. If you specify your
+#'   own starting value, it would be sensible to keep it above 0.5 for pi and above 1 for the shape.
 #'
 #'   If \code{method == "bayes"}, then there are seven optional parameters (which
 #'   despite the documentation are actually case insensitive):
 #' \describe{
-#'   \item{\code{theta0}}{ -- The initial value of the mixing parameter and the shape parameter, set to \code{c(0.5, 1), by default} }
+#'   \item{\code{theta0}}{ -- The initial value of the mixing parameter and the shape parameter, set to \code{c(0.5, 2), by default} }
 #'   \item{\code{a}}{ -- The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2. }
 #'   \item{\code{b}}{ -- The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2. }
 #'   \item{\code{shape1}}{ -- The first shape parameter for the beta prior on the mixing distribution which is Beta(shape1, shape2) .The default is 1. }
@@ -143,22 +143,20 @@ fitZIDist = function(x, nterms = 10,
     }else if("shape" %in% names(dotargs)){
       start = dotargs$shape
     }else{
-      start = c(0.5, 1)
+      start = c(0.5, 2)
     }
 
     if(start[1] <= 0 || start[1] >= 1){
       stop("The starting value for pi must be in (0, 1)")
     }
 
-    if(start[2] <= 0){
-      stop("The Zeta function is undefined for shape = 0. Choose a start value > 0.")
-    }
+    validateZetaShape(start[2], "start shape")
 
 
     y = rep(obsData, x$data$rn)
 
     d.one.inflated.zeta = function(x, shape, p, log = FALSE){
-      rval = (1 - p) * VGAM::dzeta(x, shape = shape)
+      rval = (1 - p) * dzetaStandard(x, shape = shape)
       rval[x == 1] = rval[x == 1] + p
 
       if(log){
@@ -171,7 +169,8 @@ fitZIDist = function(x, nterms = 10,
       p = params[1]
       shape = params[2]
 
-      rval = (1 - p) * VGAM::dzeta(obsData, shape = shape)
+      validateZetaShape(shape)
+      rval = (1 - p) * dzetaStandard(obsData, shape = shape)
       rval[obsData == 1] = rval[obsData == 1] + p
 
       r = -sum(x$data$rn * log(rval))
@@ -188,7 +187,7 @@ fitZIDist = function(x, nterms = 10,
     fit = optim(par = start,
                 fn = logLik,
                 method = "L-BFGS-B",
-                lower = c(sqrt(.Machine$double.eps), 0.1),
+                lower = c(sqrt(.Machine$double.eps), 1 + sqrt(.Machine$double.eps)),
                 upper  = c(1 - .Machine$double.eps, Inf),
                 hessian = TRUE)
 
@@ -230,14 +229,14 @@ fitzidist = fitZIDist
 zi.loglik = function(y, theta){
   p = theta[1]
   shape = theta[2]
-  rval = (1 - p) * VGAM::dzeta(y$n, shape = shape)
+  rval = (1 - p) * dzetaStandard(y$n, shape = shape)
   rval[y$n == 1] = rval[y$n == 1] + p
   sum(y$rn *log(rval))
 }
 
 
 fitZIDistPL = function(x, nterms = 10,
-                       start = c(0.5, 1),
+                       start = c(0.5, 2),
                        lambda = 0.1,
                      ...){
   nvals = 1:nterms
@@ -249,9 +248,7 @@ fitZIDistPL = function(x, nterms = 10,
     stop("The starting value for pi must be in (0, 1)")
   }
 
-  if(start[2] <= 0){
-    stop("The Zeta function is undefined for shape = 0. Choose a start value > 0.")
-  }
+  validateZetaShape(start[2], "start shape")
 
   if(length(x$data$n) < 2){
     if(x$type == "S"){
@@ -270,7 +267,7 @@ fitZIDistPL = function(x, nterms = 10,
   y = rep(obsData, x$data$rn)
 
   d.one.inflated.zeta = function(x, shape, p, log = FALSE){
-    rval = (1 - p) * VGAM::dzeta(x, shape = shape)
+    rval = (1 - p) * dzetaStandard(x, shape = shape)
     rval[x == 1] = rval[x == 1] + p
 
     if(log){
@@ -283,7 +280,8 @@ fitZIDistPL = function(x, nterms = 10,
     p = params[1]
     shape = params[2]
 
-    rval = (1 - p) * VGAM::dzeta(obsData, shape = shape)
+    validateZetaShape(shape)
+    rval = (1 - p) * dzetaStandard(obsData, shape = shape)
     rval[obsData == 1] = rval[obsData == 1] + p
 
     r = -(sum(x$data$rn * log(rval)) - lambda * (log(p)  + log(1-p)))
@@ -300,7 +298,7 @@ fitZIDistPL = function(x, nterms = 10,
   fit = optim(par = start,
               fn = logLik,
               method = "L-BFGS-B",
-              lower = c(sqrt(.Machine$double.eps), 0.1),
+              lower = c(sqrt(.Machine$double.eps), 1 + sqrt(.Machine$double.eps)),
               upper  = c(1 - .Machine$double.eps, Inf),
               hessian = TRUE)
 

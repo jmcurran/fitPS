@@ -35,10 +35,6 @@ print.psFit = function(x, ...){
   }
 
   if(x$model %in% c("zeta", "ziz")){
-    cat("------\n")
-    writeLines(strwrap("NOTE: The shape parameter is the standard zeta parameter alpha and must be greater than 1. VGAM uses a shifted parameter internally, equal to shape - 1, and fitPS converts to that value only at VGAM boundaries.\n"))
-    cat("------\n\n")
-
     args = list(...)
     if("nterms" %in% names(args)){
       nterms = as.integer(args$nterms[1])

@@ -31,7 +31,7 @@ methods.}
   \code{method == "mle"}, then the user can provide an optional argument
   \code{start} which is the starting value for the numerical optimisation. If
   this is not provided, then \code{start = 1} by default. If you specify your
-  own starting value, it must be greater than 1.
+  own starting value, it must satisfy \code{shape > 1}.
 
   If \code{method == "bayes"}, then there are five optional parameters (which,
   despite the documentation, are actually case-insensitive):
@@ -87,10 +87,8 @@ that is, hopefully a sample from the posterior density of the shape parameter. I
   of fitted probabilities by the \code{\link{print.psFit}} method. The fitted
   object can also be plotted using the plot method \code{\link{plot.psFit}},
   and to create a probability function with \code{\link{probfun}}. The
-  \code{shape} value stored in the fitted object is the standard zeta
-  parameter \eqn{\alpha}{alpha}, with \code{shape > 1}. \pkg{VGAM} uses a
-  shifted parameter internally, equal to \code{shape - 1}; fitPS performs
-  that conversion only when calling VGAM-backed zeta functions.
+  \code{shape} value stored in the fitted object is the zeta distribution
+  shape parameter and must satisfy \code{shape > 1}.
 
   This function implements both maximum likelihood estimation (MLE) and
   Bayesian estimation. Both modes of estimation require additional information

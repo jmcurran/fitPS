@@ -7,6 +7,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.4.017
+
+- Removed user-facing discussion of VGAM's shifted zeta parameterisation from help and vignette source text.
+- Kept documentation focused on the fitPS shape parameter, where shape > 1.
+- Corrected spelling, grammar, and punctuation issues in the vignette source using NZ English conventions.
+- Regenerated help with devtools::document() during the strict stage workflow.
+
 ## fitPS 1.0.4.016
 
 - Cleaned roxygen comments and README wording for the Stage 2 zeta shape parameterisation documentation.

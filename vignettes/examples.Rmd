@@ -1,0 +1,192 @@
+---
+title: "Fitting a zeta distribution to a P survey: number of groups data"
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, echo=FALSE}
+options(width = 70)
+knitr::opts_chunk$set(
+  message = FALSE,
+  comment = "",
+  highlight = TRUE,
+  prompt = TRUE,
+  tidy = TRUE,
+  tidy.opts = list(arrow = FALSE),
+  warning = FALSE
+)
+suppressWarnings(suppressPackageStartupMessages(library(fitPS)))
+```
+
+## Fitting a zeta distribution
+
+Let us consider again the data from Roux et al. (2001). This data set is built into the package and can be accessed from the `Psurveys` object. That is, we can type:
+
+```{r load-roux}
+data("Psurveys")
+roux = Psurveys$roux
+```
+
+The package includes a special printing function that summarises the data for reading rather than displaying it in the way it is stored. R prints the values of objects, or variables, simply by typing their name. For example:
+
+```{r print-roux}
+roux
+```
+
+It is very simple to fit a zeta distribution to this data set. We do this using the `fitDist` function.
+
+```{r fit-roux}
+fit = fitDist(roux)
+```
+
+We have assigned the result of the fitting to an arbitrarily chosen variable name, `fit`, chosen because it is easy to remember that it is a fitted object. The package includes specialised functions for both printing and plotting the fitted object. The `print` method displays an estimate of the shape parameter $\alpha$ and the standard error of that estimate, $\widehat{\mathrm{sd}}(\hat{\alpha}) = \mathrm{se}(\hat{\alpha})$. The reported value is the same shape parameter used throughout `fitPS` and stored in the fitted object.
+
+### Using the fitted distribution to estimate P terms
+
+The `print` method displays the first 10 fitted probabilities from the model by default.
+
+```{r print-fit}
+fit
+```
+
+This information is probably sufficient for most casework. However, the package has a function, `probfun`, that returns a bespoke function that can calculate any probability term. This function is applied to a fitted object. For example:
+
+```{r probability-function}
+P = probfun(fit)
+```
+
+`P` is just a variable name and we could have used anything. We have chosen `P` because this probability function returns $P$ terms. To use it, we only need to provide the value of $k$, and the function will return $P_k$. For example:
+
+```{r probability-example}
+P(5)
+```
+
+## Fitting a zero-inflated zeta distribution
+
+We can also fit a zero-inflated zeta model using the `fitZIDist` function. As before, we can choose a variable name to store the results in.
+
+```{r fit-zero-inflated}
+fit.zi = fitZIDist(roux)
+fit.zi
+```
+
+In the example above we fit a zero-inflated model to Roux et al.'s data and print the resulting fit. We get estimates of the parameters and a default set of fitted values. The output is interesting because the value of $\hat{\pi}$ shows that the zero part of the zero-inflated model is picking up about `r round(100 * fit.zi$pi)`% of the zeros. It is interesting to compare the estimates from the raw frequencies, the zeta model, and the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
+
+```{r zero-inflated-table, echo=FALSE, results='asis'}
+library(xtable)
+raw = c(roux$data$rn / sum(roux$data$rn), 0)
+tbl = cbind(0:5, raw, fitted(fit, 6), fitted(fit.zi, 6))
+colnames(tbl) = c("$k$", "$P_k^{raw}$", "$P_k^{zeta}$", "$P_k^{ZIZ}$")
+tbl = xtable(tbl, align = "ccccc", digits = c(0, 0, 4, 4, 4))
+caption(tbl) = "Estimated probability that k groups of glass would be found in shoes of a random member of the population based on the data of Roux et al. (2001), the raw frequencies, and those produced from the zeta and ZIZ models respectively."
+label(tbl) = "tab:ex1"
+print(tbl, type = "latex", include.rownames = FALSE, sanitize.text.function = function(x) { x })
+```
+
+We can see from Table \ref{tab:ex1} that we now have a non-zero estimate for $P_5$, but this comes at the cost of smaller probabilities for the preceding terms $P_0$--$P_4$, which is not necessarily a negative. The survey data is dominated by zeros. However, we think it likely that the raw sample estimates for $P_0$--$P_4$ are overestimates. The model reduces the estimated value, which is in line with our thinking. Interestingly, the effect of including the zero-inflation factor is to increase nearly all of the probabilities, with the exception of $P_1$. A natural question to ask is "Which model is correct?" The answer, unhelpfully, is "Neither", because these are simply models. They can still help us without us having to believe that they are true.
+
+## Confidence intervals for the parameter estimates
+
+The `fitPS` package provides a `confint` method for the fitted value. The method returns both a Wald confidence interval and a profile likelihood interval. The two intervals are returned as elements of a `list` named `wald` and `prof`, respectively.
+
+```{r confidence-intervals}
+ci = confint(fit)
+ci$wald
+ci$prof
+```
+
+### Bootstrapped and profile likelihood confidence regions for the zero-inflated zeta
+
+The package includes the facility to compute both bootstrapped and profile likelihood confidence regions for the parameters of the zero-inflated zeta distribution. It also computes bootstrapped confidence intervals for the zeta distribution. The `confint` function returns a confidence region if the fitted object contains information from a zero-inflated zeta fit. As an example, we will first compute profile likelihood confidence regions for the Roux et al. (2001) data. To do this we use the fitted object we previously created, `fit.zi`, and, although not required, we supply a set of two levels so that we can compute both an 80% and a 95% confidence region. `confint` returns a list of confidence regions, one for each level, each of which is simply a set of $x$ and $y$ coordinates corresponding to the appropriate contour line.
+
+```{r confidence-region, eval=FALSE, tidy=FALSE}
+cr = confint(fit.zi, level = c(0.80, 0.95))
+plot(cr[["0.95"]], type = "l")
+polygon(cr[["0.8"]], border = "red")
+legend("topright", lty = 1, lwd = 2, col = c("red", "black"),
+       legend = c("80%", "95%"), bty = "n")
+```
+
+A bootstrapped confidence region can be computed using the `bootCI` function. The `bootCI` function includes the facility to plot the resulting confidence region or regions, and to hide or display the function's progress. The latter is important because this procedure is numerically intensive and, even when utilising parallel processing, can be quite slow.
+
+```{r boot-confidence-region, eval=FALSE}
+bcr = bootCI(roux,
+       model = "ziz",
+       plot = TRUE,
+       silent = TRUE)
+```
+
+## Comparing two surveys
+
+We can use the methodology that has been demonstrated so far to compare surveys. One reason for comparing surveys is to explore the hypothesis that there is no difference in the underlying true value of $\alpha$. If there is insufficient evidence to reject this hypothesis, then one may feel justified in combining data from two surveys. In the first instance we will take an ad hoc approach, and then treat this problem more formally. In our ad hoc approach we will compare confidence intervals for two surveys. If these confidence intervals overlap, then we might conclude that there is insufficient evidence in the data to suggest that the estimates of $\alpha$ are different. We will illustrate this with the surveys conducted by Lau et al. (1997) and Jackson et al. (2013). Lau et al. (1997) surveyed the clothing of 213 Canadian high school students and observed two sets of clothing with one fragment on each. Similarly, Jackson et al. (2013) surveyed 232 "randomly" selected members of the population of New South Wales in Australia. We place "randomly" in quotes because this was not a true random sample, but rather a convenience sample. That being said, it is unlikely that using a truly random mechanism would have significantly changed the results.
+
+```{r compare-data-table, echo=FALSE, results='asis'}
+lau = Psurveys$lau
+jackson = Psurveys$jackson
+tbl = cbind(0:1, lau$data$rn, jackson$data$rn)
+library(xtable)
+tbl = xtable(tbl, digits = 0)
+align(tbl) = "cr|r|r"
+caption(tbl) = "Survey results from Lau et al. (1997) and Jackson et al. (2013)."
+print(tbl, include.rownames = FALSE, include.colnames = FALSE)
+```
+
+Visual inspection of these surveys would suggest that they are fairly similar. We can fit a zeta distribution to each survey, and then compute a confidence interval for each survey. Again, these data sets are included in the `fitPS` package.
+
+```{r compare-fits}
+lau = Psurveys$lau
+jackson = Psurveys$jackson
+fit.lau = fitDist(lau)
+fit.jackson = fitDist(jackson)
+confint(fit.lau)$wald
+confint(fit.jackson)$wald
+```
+
+We can see from the output that there is substantial overlap between these two Wald confidence intervals. The results using profile likelihood intervals lead to the same conclusion but are not shown. We can test this more formally. Specifically, we wish to test the null hypothesis that
+
+\[
+H_0: \alpha_1 = \alpha_2 \quad \mbox{or equivalently} \quad H_0: \alpha_1 - \alpha_2 = 0,
+\]
+
+where $\alpha_1$ is the true value of $\alpha$ for the Lau et al. data, and $\alpha_2$ is the true value of $\alpha$ for the Jackson et al. data. We choose a two-tailed alternative, meaning we are not concerned about the sign of any difference, but simply the magnitude of the difference. That is,
+
+\[
+H_1: \alpha_1 \neq \alpha_2 \quad \mbox{or equivalently} \quad H_1: \alpha_1 - \alpha_2 \neq 0.
+\]
+
+We test this hypothesis by constructing a test statistic and then computing a P-value under the assumption that the null hypothesis is true. We are interested in the difference between the two population values of $\alpha$. We estimate this by computing the difference in the sample estimates. That is, our estimate of $\alpha_1 - \alpha_2$ is given by $\hat{\alpha}_1 - \hat{\alpha}_2$, where $\hat{\alpha}_1$ and $\hat{\alpha}_2$ are the maximum likelihood estimates based on the survey data. We scale this difference by the estimated standard deviation in the difference, that is, by the standard error of the difference, $\mathrm{se}(\hat{\alpha}_1 - \hat{\alpha}_2)$. We estimate this--to keep the statistical theory to a minimum--as the square root of the sum of the two estimated variances, i.e.
+
+\[
+\mathrm{se}(\hat{\alpha}_1 - \hat{\alpha}_2) = \sqrt{\hat{V}(\hat{\alpha}_1) + \hat{V}(\hat{\alpha}_2)}.
+\]
+
+Our test statistic is then
+
+\[
+Z_0 = \frac{\hat{\alpha}_1 - \hat{\alpha}_2}{\mathrm{se}(\hat{\alpha}_1 - \hat{\alpha}_2)}.
+\]
+
+It can be shown that this test statistic follows an approximate normal distribution under the null hypothesis, which means our P-value can be computed by evaluating
+
+\[
+P = \Pr(Z > |Z_0|) = 2(1 - \Pr(Z < |Z_0|)).
+\]
+
+All this theory has been integrated into a function called `compareSurveys`.
+
+```{r compare-surveys}
+compareSurveys(lau, jackson)
+```
+
+The P-value is `r round(compareSurveys(lau, jackson)$p.value, 2)` (2 d.p.). This is significantly larger than either 0.05 or 0.01. Based on this, we would conclude that there is insufficient evidence to reject the null hypothesis of a common value of $\alpha$, and therefore it may be sensible to combine data from these two surveys. We could have also used the theory of likelihood ratio tests to test this hypothesis, but that is beyond the scope of this article. We note, however, that the `fitPS` package contains a function called `compareSurveysLRT` which can compare two or more surveys simultaneously using a likelihood ratio test.
+
+## References
+
+Jackson, F., Maynard, P., Cavanagh-Steer, K., Dusting, T., and Roux, C. (2013). A survey of glass found on the headwear and head hair of a random population vs. people working with glass. *Forensic Science International*, 226(1), 125-131.
+
+Lau, L., Beveridge, A. D., Callowhill, B. C., Conners, N., Foster, K., Groves, R. J., Ohashi, K. N., Sumner, A. M., and Wong, H. (1997). The frequency of occurrence of paint and glass on the clothing of high school students. *Canadian Society of Forensic Science Journal*, 30(4), 233-240.
+
+Roux, C., Kirk, R., Benson, S., Van Haren, T., and Petterd, C. I. (2001). Glass particles in footwear of members of the public in south-eastern Australia: a survey. *Forensic Science International*, 116(2), 149-156.

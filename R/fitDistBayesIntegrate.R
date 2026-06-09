@@ -39,7 +39,7 @@ fitDistBayesIntegrate = function(x, prior = makePrior(), nterms, ...){
   }
 
   logLik = function(shape){
-    sum(x$data$rn * VGAM::dzeta(obsData, shape = shape, log = TRUE))
+    sum(x$data$rn * dzetaStandard(obsData, shape = shape, log = TRUE))
   }
 
   negLogLikTimesPrior = function(shape){
@@ -48,35 +48,50 @@ fitDistBayesIntegrate = function(x, prior = makePrior(), nterms, ...){
 
   # find the maximum of log likelihood times prior to determine a scaling factor
   # we scale with respect to the posterior mode
-  opt <- optim(par = 1, fn = negLogLikTimesPrior, method = "L-BFGS-B")
-  k0 <- opt$value
+  opt = optim(
+    par = mean(c(a, b)),
+    fn = negLogLikTimesPrior,
+    method = "L-BFGS-B",
+    lower = a,
+    upper = b
+  )
+  k0 = opt$value
 
-  s_posterior_unnormalised <- Vectorize(function(s)
-    exp(-negLogLikTimesPrior(s) + k0))
+  sPosteriorUnnormalised = Vectorize(function(s) {
+    exp(-negLogLikTimesPrior(s) + k0)
+  })
 
   # integrate to determine the constant of proportionality K
-  s_posterior_unnormalised_int <- integrate(s_posterior_unnormalised,
-                                            lower = a, upper = b)
-  logK <- log(s_posterior_unnormalised_int$value)
+  sPosteriorUnnormalisedInt = integrate(
+    sPosteriorUnnormalised,
+    lower = a,
+    upper = b
+  )
+  logK = log(sPosteriorUnnormalisedInt$value)
 
   # obtain true posterior such that the area under the curve is 1
-  s_posterior <- Vectorize(function(s)
-    exp(-negLogLikTimesPrior(s) + k0 - logK))
+  sPosterior = Vectorize(function(s) {
+    exp(-negLogLikTimesPrior(s) + k0 - logK)
+  })
 
   # posterior mean and var by numerical integration
-  s_posterior_mean_int <- integrate(f = function(s) s * s_posterior(s), lower = a, upper = b)
-  s_posterior_mean2_int <- integrate(f = function(s) s^2 * s_posterior(s), lower = a, upper = b)
+  sPosteriorMeanInt = integrate(f = function(s) {
+    s * sPosterior(s)
+  }, lower = a, upper = b)
+  sPosteriorMean2Int = integrate(f = function(s) {
+    s^2 * sPosterior(s)
+  }, lower = a, upper = b)
 
-  s_posterior_variance <- s_posterior_mean2_int$value - s_posterior_mean_int$value^2
+  sPosteriorVariance = sPosteriorMean2Int$value - sPosteriorMeanInt$value^2
 
   fit = list()
 
-  shape = s_posterior_mean_int$value
-  var.shape = s_posterior_variance
+  shape = sPosteriorMeanInt$value
+  var.shape = sPosteriorVariance
 
   fit$par = shape
 
-  fitted = VGAM::dzeta(nvals, shape = shape)
+  fitted = dzetaStandard(nvals, shape = shape)
   names(fitted) = if(x$type == 'P'){
     paste0("P", nvals - 1)
   }else{
@@ -89,7 +104,7 @@ fitDistBayesIntegrate = function(x, prior = makePrior(), nterms, ...){
     shape = shape,
     var.shape = var.shape,
     fitted = fitted,
-    pdf = s_posterior,
+    pdf = sPosterior,
     model = "zeta",
     method = "integrate"
   )

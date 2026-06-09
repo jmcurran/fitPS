@@ -10,8 +10,9 @@ makePrior(family = c("loguniform", "uniform", "custom"), range, logd)
 \item{family}{One of \code{"loguniform"}, \code{"uniform"} or \code{"custom"}.}
 
 \item{range}{Optionally the range for which the prior density is
-evaluated. It is zero outside of this range. Parameter is
-required when \code{family="custom"}.}
+evaluated. It is zero outside of this range. For zeta models
+this range is on the standard \code{shape} scale, where
+\code{shape > 1}.}
 
 \item{logd}{Optionally (required when \code{family="custom"}.) a function
 that evaluates the log density of the prior inside the range.}
@@ -23,26 +24,29 @@ an object of type \code{psPrior}
 Construct a prior that can be used in the \code{\link{fitdist}} function.
 }
 \details{
-The default is a LogUniform[-2,2] prior.
+The default is a LogUniform[-2, 2] prior on \code{shape - 1}.
+Equivalently, the prior range on the fitPS standard zeta \code{shape}
+parameter is \code{1 + exp(c(-2, 2))}.
 }
 \examples{
 ## With default parameters, the prior will be LogUniform[-2, 2]
+## on shape - 1, so the prior support is above shape = 1.
 p1 <- makePrior()
 
 # plot the prior density
-xPlot <- seq(from = 0, to = 10, length = 100)
-plot(xPlot, exp(p1$logd(xPlot)), type="l")
+xPlot <- seq(from = 1.01, to = 10, length = 100)
+plot(xPlot, exp(p1$logd(xPlot)), type = "l")
 
-# Alternatively, a Uniform[a, b] prior can be used
-p2 <- makePrior(family = "uniform", range = c(1,10))
-plot(xPlot, exp(p2$logd(xPlot)), type="l")
+# Alternatively, a Uniform[a, b] prior can be used on standard shape
+p2 <- makePrior(family = "uniform", range = c(1.01, 10))
+plot(xPlot, exp(p2$logd(xPlot)), type = "l")
 
 # A custom prior needs the log density function to be specified
-# We define an exponential prior with rate = 1
-logdexp <- function(x) dexp(x, rate = 1/10, log = TRUE)
-p3 <- makePrior(family = "custom", range = c(1, 10), logd = logdexp)
+# We define an exponential prior with rate = 1 on shape - 1
+logdexp <- function(x) dexp(x - 1, rate = 1 / 10, log = TRUE)
+p3 <- makePrior(family = "custom", range = c(1.01, 10), logd = logdexp)
 
-plot(xPlot, exp(p3$logd(xPlot)), type="l")
+plot(xPlot, exp(p3$logd(xPlot)), type = "l")
 
 }
 \seealso{

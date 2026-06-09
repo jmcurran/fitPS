@@ -7,10 +7,10 @@
 
 #' @param interval either \code{"none"}, \code{"prof"}, or \code{"wald"} and can
 #'   be abbreviated. If \code{"prof"} or \code{"wald"} AND the zeta model has
-#'   been used  then an interval, based on the bounds of a 100 * \code{level}
+#'   been used, then an interval, based on the bounds of a 100 * \code{level}
 #'   confidence interval for the shape parameter, is given for each predicted
-#'   probability. The interval is provided based on either a Profile Likelihood,
-#'   or a Wald, confidence interval for the shape, and therefore cannot really
+#'   probability. The interval is provided based on either a profile likelihood
+#'   or a Wald confidence interval for shape, and therefore cannot really
 #'   be regarded as a confidence interval for the probabilities. The intervals
 #'   might be more sensibly regarded as a measure of how sensitive the
 #'   probabilities are to the choice of shape parameter. NOTE: this parameter is
@@ -21,7 +21,7 @@
 #'
 #' @return either a named vector of fitted probabilities, or a \code{data.frame}
 #'   with columns \code{predicted}, \code{lower}, and \code{upper} and the row
-#'   names set to show what terms are being calculatd
+#'   names set to show what terms are being calculated
 #' @examples
 #' data(Psurveys)
 #' roux = Psurveys$roux
@@ -50,15 +50,15 @@ predict.psFit = function(object, newdata, interval = c("none", "prof", "wald"),
 
   if(is.null(predicted)){
     if(object$model == "zeta"){
-      predicted = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+      predicted = dzetaStandard(newdata + ifelse(object$psData$type == "P", 1, 0),
                               shape = object$shape)
     }else if(object$model == "ziz"){
-      predicted = (1 - object$pi) * VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+      predicted = (1 - object$pi) * dzetaStandard(newdata + ifelse(object$psData$type == "P", 1, 0),
                                                 shape = object$shape)
       if(object$psData$type == "P"){
-        predicted[newdata == 0] = predicted[newdata == 0] + pi
+        predicted[newdata == 0] = predicted[newdata == 0] + object$pi
       }else{
-        predicted[newdata == 1] = predicted[newdata == 1] + pi
+        predicted[newdata == 1] = predicted[newdata == 1] + object$pi
       }
     }else{
       cat("This method is not currently implemented for the logarithmic distribution\n")
@@ -72,9 +72,9 @@ predict.psFit = function(object, newdata, interval = c("none", "prof", "wald"),
       }
 
       zstar = qnorm((1 - level) * 0.5, lower.tail = FALSE)
-      lwr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+      lwr = dzetaStandard(newdata + ifelse(object$psData$type == "P", 1, 0),
                         shape = object$shape - zstar * sqrt(object$var.shape))
-      upr = VGAM::dzeta(newdata + ifelse(object$psData$type == "P", 1, 0),
+      upr = dzetaStandard(newdata + ifelse(object$psData$type == "P", 1, 0),
                         shape = object$shape + zstar * sqrt(object$var.shape))
 
       results = data.frame(predicted = predicted, lower = lwr, upper = upr)

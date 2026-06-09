@@ -10,6 +10,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.5.003
+
+- Added Stage 3.2 workflow documentation for the Windows Ghostscript `R CMD check` NOTE under `dev/`.
+- Kept strict package validation while allowing only the known missing-Ghostscript PDF-size reduction NOTE in the stage runner.
+- Documented why the Ghostscript NOTE is a local check-environment issue rather than a package failure.
+- Preserved the Stage 3 `1.0.5.xxx` build convention, including one consumed build number per attempt.
+- Validated by the strict fitPS stage workflow.
+
 ## fitPS 1.0.5.002
 
 - Added the Stage 3.1 Bayesian posterior plotting audit under `dev/`.

@@ -4,6 +4,14 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+
+## fitPS 1.0.4.012
+
+- Added Stage 2.1.1 corrective notes for the zeta shape parameterisation workflow.
+- Removed active target-behaviour tests from `tests/testthat` because they intentionally fail before the Stage 2.2 refactor.
+- Preserved the standard-shape expectations in `dev/` so Stage 2.2 can reinstate them with the implementation repair.
+- Validated by the strict fitPS stage workflow.
+
 ## fitPS 1.0.4.010
 
 - Added README.md with installation, data-format, fitting, prediction, comparison, and development-check examples.

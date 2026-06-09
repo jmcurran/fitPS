@@ -9,6 +9,42 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+
+
+
+## fitPS 1.0.5.008
+
+- Stabilised the generated stage runner so controlled paths are staged one at a time.
+- Prevented absent optional directories from masking `git add` failures and leaving new files untracked.
+- Preserved the controlled commit scope while keeping the workflow compatible with package roots that do not contain every optional directory.
+- Kept the no-ChatGPT-bundle workflow and completed-stage archive cleanup behaviour.
+- Validated by the strict fitPS stage workflow.
+
+## fitPS 1.0.5.007
+
+- Added `plotPosterior()` for posterior-density plots from Bayesian `psFit` objects.
+- Supported zeta MCMC chains, zeta numerical posterior density functions, and zero-inflated MCMC chains for `shape` and `pi`.
+- Kept existing `plot.psFit()` fitted-probability plots unchanged for backward compatibility.
+- Added deterministic offline tests using small fake `psFit` objects rather than long MCMC runs.
+- Validated by the strict fitPS stage workflow.
+
+## fitPS 1.0.5.003
+
+- Added Stage 3.2 workflow documentation for the Windows Ghostscript `R CMD check` NOTE under `dev/`.
+- Kept strict package validation while allowing only the known missing-Ghostscript PDF-size reduction NOTE in the stage runner.
+- Documented why the Ghostscript NOTE is a local check-environment issue rather than a package failure.
+- Preserved the Stage 3 `1.0.5.xxx` build convention, including one consumed build number per attempt.
+- Validated by the strict fitPS stage workflow.
+
+## fitPS 1.0.5.002
+
+- Added the Stage 3.1 Bayesian posterior plotting audit under `dev/`.
+- Recommended a separate `plotPosterior()` API for posterior parameter-density plots while preserving `plot.psFit()` for fitted probabilities.
+- Documented support requirements for MCMC-backed zeta and zero-inflated zeta fits, integrated zeta posterior densities, credible intervals, deterministic tests, and shape-parameterisation safeguards.
+- Reset the Stage 3 development series to the `1.0.5.xxx` build convention.
+- Validated by the strict fitPS stage workflow.
+
 ## fitPS 1.0.4.018
 
 - Migrated the user-facing vignette sources from Sweave `.Rnw` files to R Markdown `.Rmd` files.

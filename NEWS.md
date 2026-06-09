@@ -9,6 +9,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.5.002
+
+- Added the Stage 3.1 Bayesian posterior plotting audit under `dev/`.
+- Recommended a separate `plotPosterior()` API for posterior parameter-density plots while preserving `plot.psFit()` for fitted probabilities.
+- Documented support requirements for MCMC-backed zeta and zero-inflated zeta fits, integrated zeta posterior densities, credible intervals, deterministic tests, and shape-parameterisation safeguards.
+- Reset the Stage 3 development series to the `1.0.5.xxx` build convention.
+- Validated by the strict fitPS stage workflow.
+
 ## fitPS 1.0.4.018
 
 - Migrated the user-facing vignette sources from Sweave `.Rnw` files to R Markdown `.Rmd` files.

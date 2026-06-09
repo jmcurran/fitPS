@@ -11,6 +11,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.5.007
+
+- Added `plotPosterior()` for posterior-density plots from Bayesian `psFit` objects.
+- Supported zeta MCMC chains, zeta numerical posterior density functions, and zero-inflated MCMC chains for `shape` and `pi`.
+- Kept existing `plot.psFit()` fitted-probability plots unchanged for backward compatibility.
+- Added deterministic offline tests using small fake `psFit` objects rather than long MCMC runs.
+- Validated by the strict fitPS stage workflow.
+
 ## fitPS 1.0.5.003
 
 - Added Stage 3.2 workflow documentation for the Windows Ghostscript `R CMD check` NOTE under `dev/`.

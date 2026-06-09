@@ -13,6 +13,12 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.6.001
+
+- Added the Stage 4.1 design audit for deterministic and semi-deterministic Bayesian posterior approximations for zero-inflated zeta fits.
+- Recorded the recommended path for transformed posterior helpers, grid quadrature, Laplace diagnostics, importance sampling diagnostics, and plotting integration.
+- Preserved existing Bayesian MCMC behavior and user-facing defaults; this lightweight documentation stage did not run package validation.
+
 ## fitPS 1.0.5.008
 
 - Stabilised the generated stage runner so controlled paths are staged one at a time.

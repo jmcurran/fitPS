@@ -19,7 +19,7 @@ Behavior:
   The wrapper detects the platform, locates the matching runner and change-set
   zip in Downloads, and runs:
 
-    <downloads-prefix>/run_stageSTAGE.sh --install-files --changes-zip <downloads-prefix>/fitPS_stageSTAGE_changes.zip [stage-runner-options]
+    <downloads-prefix>/run_stageSTAGE.sh --install-files --changes-zip <downloads-prefix>/stageSTAGE_changes.zip [stage-runner-options]
 
 Platform defaults:
   Windows Git Bash/MSYS/MINGW/Cygwin: /c/Users/james/Downloads
@@ -58,7 +58,7 @@ case "$(uname -s)" in
 esac
 
 runner_path="$downloads_prefix/run_stage${stage_id}.sh"
-changes_zip_path="$downloads_prefix/fitPS_stage${stage_id}_changes.zip"
+changes_zip_path="$downloads_prefix/stage${stage_id}_changes.zip"
 
 if [[ ! -f "$runner_path" ]]; then
   echo "Could not find stage runner:"

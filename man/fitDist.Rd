@@ -31,14 +31,14 @@ methods.}
   \code{method == "mle"}, then the user can provide an optional argument
   \code{start} which is the starting value for the numerical optimisation. If
   this is not provided, then \code{start = 1} by default. If you specify your
-  own starting value, it would be sensible to keep it above 0.5.
+  own starting value, it must be greater than 1.
 
   If \code{method == "bayes"}, then there are five optional parameters (which
   depsite the documentation are actually case insenstive):
 \describe{
  \item{\code{shape0}}{ -- The initial value of the shape parameter, set to 2 by default}
- \item{\code{a}}{ -- The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2.}
- \item{\code{b}}{ -- The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2.}
+ \item{\code{a}}{ -- The lower bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is -2.}
+ \item{\code{b}}{ -- The upper bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is +2.}
  \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000.}
  \item{\code{nBurnIn}}{ -- The number of samples to discard from the chain. Must be greater than zero. **NOTE**: the sampler runs for \code{nIter + nBurnIn} iterations,
  so you do not need to factor this number into your number of samples, \code{nIter}.}
@@ -86,14 +86,11 @@ that is, hopefully a sample from the posterior density of the shape parameter. I
   object contains this information. It is also displayed along with a number
   of fitted probabilities by the \code{\link{print.psFit}} method. The fitted
   object can also be plotted using the plot method \code{\link{plot.psFit}},
-  and to create a probability function with \code{\link{probfun}}. **NOTE**
-  The value of the shape parameter that is printed (if you print the fitted
-  object) is different from that value that is stored in \code{shape}. The
-  stored value is for the \pkg{VGAM} parameterisation of the Zeta
-  distribution which uses \eqn{s^\prime = s - 1}{s' = s - 1}. Therefore the
-  printed value is \eqn{s = s^\prime + 1}{s = s' + 1}. If you intend to use
-  the fitted value with \code{\link[VGAM]{dzeta}}, then you should use the
-  stored value \eqn{s^\prime}{s'}.
+  and to create a probability function with \code{\link{probfun}}. The
+  \code{shape} value stored in the fitted object is the standard zeta
+  parameter \eqn{\alpha}{alpha}, with \code{shape > 1}. \pkg{VGAM} uses a
+  shifted parameter internally, equal to \code{shape - 1}; fitPS performs
+  that conversion only when calling VGAM-backed zeta functions.
 
   This function implements both maximum likelihood estimation (MLE) and
   Bayesian estimation. Both modes of estimation require addition information
@@ -101,9 +98,10 @@ that is, hopefully a sample from the posterior density of the shape parameter. I
   documentation for the \code{...} argument closely because it explains what
   you can change and what the default values are.
 
-  Currently the Bayesian estimation is done assuming a Uniform[a, b] prior
-  for the logarithm of the shape parameter. That is we assume \eqn{\log(s^\prime)
-  \sim U[a,b]}{log(s') ~ U[a,b]}. This may change to be more flexible in the
+  Currently the Bayesian estimation is done using the prior returned by
+  \code{\link{makePrior}}. By default this is a Uniform[a, b] prior on
+  \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}, so the prior support is
+  always above \code{shape = 1}. This may change to be more flexible in the
   future. Similarly, the estimation is done using a simple
   Metropolis-Hastings sampler. It might be more efficient to sample through
   adaptive rejection sampling, but it is unclear whether it is worth the

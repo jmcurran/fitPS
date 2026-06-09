@@ -35,8 +35,8 @@ details.}
   despite the documentation are actually case insensitive):
 \describe{
   \item{\code{theta0}}{ -- The initial value of the mixing parameter and the shape parameter, set to \code{c(0.5, 2), by default} }
-  \item{\code{a}}{ -- The lower bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is -2. }
-  \item{\code{b}}{ -- The upper bound of the limit for the uniform distribution for the shape parameter prior which is U[a,b] .The default is +2. }
+  \item{\code{a}}{ -- The lower bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is -2. }
+  \item{\code{b}}{ -- The upper bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is +2. }
   \item{\code{shape1}}{ -- The first shape parameter for the beta prior on the mixing distribution which is Beta(shape1, shape2) .The default is 1. }
   \item{\code{shape2}}{ -- The second shape parameter for the beta prior on the mixing distribution which is Beta(shape1, shape2) .The default is 1. }
   \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000. }
@@ -91,14 +91,11 @@ member of the \code{psFit} object contains this information. It is also
 displayed along with a number of fitted probabilities by the
 \code{\link{print.psFit}} method. The fitted object can also be plotted using
 the plot method \code{\link{plot.psFit}}, and to create a probability
-function with \code{\link{probfun}}. **NOTE** The value of the shape
-parameter that is printed (if you print the fitted object) is different from
-that value that is stored in \code{shape}. The stored value is for the
-\pkg{VGAM} parameterisation of the zeta distribution which uses
-\eqn{s^\prime = s - 1}{s' = s - 1}. Therefore the printed value is \eqn{s =
-s^\prime + 1}{s = s' + 1}. If you intend to use the fitted value with
-\code{\link[VGAM]{dzeta}}, then you should use the stored value
-\eqn{s^\prime}{s'}.
+function with \code{\link{probfun}}. The \code{shape} value stored in
+the fitted object is the standard zeta parameter \eqn{\alpha}{alpha}, with
+\code{shape > 1}. \pkg{VGAM} uses a shifted parameter internally, equal to
+\code{shape - 1}; fitPS performs that conversion only when calling
+VGAM-backed zeta functions.
 
 This function implements both maximum likelihood estimation (MLE) and
 Bayesian estimation. Both modes of estimation require addition information
@@ -107,9 +104,10 @@ documentation for the \code{...} argument closely because it explains what
 you can change and what the default values are.
 
 Currently the Bayesian estimation is done assuming a Beta(shape1, shape2)
-distribution for the prior of the mixing proportion and Uniform[a, b] prior
-  for the logarithm of the shape parameter. That is we assume \eqn{\log(s^\prime)
-  \sim U[a,b]}{log(s') ~ U[a,b]}. This may change to be more flexible in the
+distribution for the prior of the mixing proportion and the prior returned
+by \code{\link{makePrior}} for the zeta shape parameter. By default this is
+a Uniform[a, b] prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}, so
+the prior support is always above \code{shape = 1}. This may change to be more flexible in the
 future. Similarly, the estimation is done using a simple Metropolis-Hastings
 sampler. It might be more efficient to sample through adaptive rejection
 sampling, but it is unclear whether it is worth the effort.

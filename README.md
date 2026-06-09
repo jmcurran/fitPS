@@ -84,6 +84,14 @@ CSV files with the same two-column layout can also be read:
 pData = readData("survey.csv")
 ```
 
+
+## Zeta shape parameterisation
+
+fitPS uses `shape` for the standard zeta parameter alpha, with `shape > 1`.
+VGAM uses a shifted parameter internally, equal to `shape - 1`; fitPS converts
+to that shifted value only at VGAM-backed zeta function boundaries. Users should
+supply, inspect, compare, and report `shape` on the standard alpha scale.
+
 ## Fitting a zeta model
 
 ```r

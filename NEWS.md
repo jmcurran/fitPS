@@ -6,6 +6,13 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.4.015
+
+- Updated documentation so `shape` consistently refers to the standard zeta parameter alpha with `shape > 1`.
+- Removed obsolete VGAM-shifted wording from `fitDist()` and `fitZIDist()` help text.
+- Documented that the default Bayesian prior is placed on `log(shape - 1)`, giving support only on valid standard-shape values.
+- Added README guidance for users who compare fitPS results with VGAM zeta functions.
+- Validated by the strict fitPS stage workflow.
 ## fitPS 1.0.4.014
 
 - Refactored zeta and zero-inflated zeta workflows so fitPS `shape` means the standard zeta parameter alpha with `shape > 1`.

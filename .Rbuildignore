@@ -1,4 +1,3 @@
-^[.].*_built_package_path$
 ^.*[.]Rproj$
 ^\.Rproj\.user$
 [.]bbl$
@@ -17,3 +16,5 @@
 ^vignettes/.*[.]log$
 ^vignettes/.*[.]R$
 ^.*\.Rproj$
+.*_built_package_path
+.fitps_built_pkg_path

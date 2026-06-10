@@ -51,14 +51,15 @@
 #' documentation for the \code{...} argument closely because it explains what
 #' you can change and what the default values are.
 #'
-#' Currently the Bayesian estimation is done assuming a Beta(shape1, shape2)
-#' distribution for the prior of the mixing proportion and the prior returned
-#' by \code{\link{makePrior}} for the zeta shape parameter. By default this is
-#' a Uniform[a, b] prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}, so
-#' the prior support always has \code{shape > 1}. This may become more
-#' flexible in the future. Similarly, the estimation is done using a simple Metropolis-Hastings
-#' sampler. It might be more efficient to sample through adaptive rejection
-#' sampling, but it is unclear whether it is worth the effort.
+#' Bayesian zero-inflated zeta estimation is selected with
+#' \code{method = "bayes"}. The posterior approximation is selected with
+#' \code{bayesOptions$posteriorMethod}. The default, \code{"numerical"}, uses
+#' deterministic two-dimensional grid integration over \code{pi} and
+#' \code{shape}. The legacy Metropolis-Hastings sampler remains available with
+#' \code{bayesOptions = list(posteriorMethod = "mcmc")}. The prior for the
+#' mixing proportion is Beta(shape1, shape2), and the shape prior is supplied
+#' by \code{bayesOptions$prior} or \code{prior}. If no shape prior is supplied,
+#' \code{makePrior()} is used.
 
 #'
 #' @seealso \code{\link{plot.psFit}}, \code{\link{print.psFit}},
@@ -228,6 +229,17 @@ fitZIDist = function(x, nterms = 10,
       normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
     }
 
+    if (options$posteriorMethod == "numerical") {
+      result = fitZIDistBayesNumerical(
+        x = x,
+        nterms = nterms,
+        prior = options$prior,
+        ...
+      )
+      result$bayesOptions = options
+      return(result)
+    }
+
     if (options$posteriorMethod == "mcmc") {
       result = fitZIDistBayes(x = x, nterms = nterms, ...)
       result$posteriorMethod = "mcmc"
@@ -238,7 +250,7 @@ fitZIDist = function(x, nterms = 10,
     stop(
       "posteriorMethod = ",
       sQuote(options$posteriorMethod),
-      " is not implemented for fitZIDist() yet; use posteriorMethod = \"mcmc\" until the Stage 4 numerical posterior is added"
+      " is not implemented for fitZIDist() yet"
     )
   }
 }

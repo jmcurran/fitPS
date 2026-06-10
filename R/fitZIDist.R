@@ -73,11 +73,12 @@
 #'   \code{\link{readData}}.
 #' @param nterms the number of terms to compute the probability distribution
 #'   for.
-#' @param method either \code{"mle"} or \code{"bayes"}. Allows the user to choose
-#'   maximum likelihood estimation or Bayesian estimation. NOTE: each of these
-#'   modes of estimation has a different set of optional parameters and
-#'   defaults. See the description of the \code{\ldots} parameter below for
-#'   details.
+#' @param method primary fitting method. Use \code{"mle"} for maximum
+#'   likelihood estimation or \code{"bayes"} for Bayesian estimation. Legacy
+#'   Bayesian aliases \code{"integrate"}, \code{"numerical"},
+#'   \code{"mcmc"}, \code{"laplace"}, and \code{"importance"} are accepted
+#'   with a deprecation warning and translated to \code{method = "bayes"}
+#'   with the corresponding \code{bayesOptions$posteriorMethod}.
 #' @param prior optional prior object used by Bayesian posterior approximation
 #'   methods where applicable. This is retained for consistency with
 #'   \code{fitDist()}; new code should usually pass priors through
@@ -120,7 +121,7 @@
 #' fit = fitZIDist(roux)
 #' fit
 fitZIDist = function(x, nterms = 10,
-                     method = c("mle", "bayes"),
+                     method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
                      prior,
                      bayesOptions = NULL,
                      ...){
@@ -143,7 +144,10 @@ fitZIDist = function(x, nterms = 10,
     x$data$n
   }
 
-  method = match.arg(method)
+  methodInfo = normaliseBayesMethod(method, bayesOptions = bayesOptions)
+  method = methodInfo$method
+  bayesOptions = methodInfo$bayesOptions
+
   if(method == "mle"){
 
     dotargs = list(...)
@@ -243,6 +247,17 @@ fitZIDist = function(x, nterms = 10,
     if (options$posteriorMethod == "mcmc") {
       result = fitZIDistBayes(x = x, nterms = nterms, ...)
       result$posteriorMethod = "mcmc"
+      result$bayesOptions = options
+      return(result)
+    }
+
+    if (options$posteriorMethod == "laplace") {
+      result = fitZIDistBayesLaplace(
+        x = x,
+        nterms = nterms,
+        prior = options$prior,
+        ...
+      )
       result$bayesOptions = options
       return(result)
     }

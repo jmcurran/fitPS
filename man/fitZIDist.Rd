@@ -9,7 +9,7 @@
 fitZIDist(
   x,
   nterms = 10,
-  method = c("mle", "bayes"),
+  method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
   prior,
   bayesOptions = NULL,
   ...
@@ -18,7 +18,7 @@ fitZIDist(
 fitZIdist(
   x,
   nterms = 10,
-  method = c("mle", "bayes"),
+  method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
   prior,
   bayesOptions = NULL,
   ...
@@ -27,7 +27,7 @@ fitZIdist(
 fitzidist(
   x,
   nterms = 10,
-  method = c("mle", "bayes"),
+  method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
   prior,
   bayesOptions = NULL,
   ...
@@ -40,11 +40,12 @@ fitzidist(
 \item{nterms}{the number of terms to compute the probability distribution
 for.}
 
-\item{method}{either \code{"mle"} or \code{"bayes"}. Allows the user to choose
-maximum likelihood estimation or Bayesian estimation. NOTE: each of these
-modes of estimation has a different set of optional parameters and
-defaults. See the description of the \code{\ldots} parameter below for
-details.}
+\item{method}{primary fitting method. Use \code{"mle"} for maximum
+likelihood estimation or \code{"bayes"} for Bayesian estimation. Legacy
+Bayesian aliases \code{"integrate"}, \code{"numerical"},
+\code{"mcmc"}, \code{"laplace"}, and \code{"importance"} are accepted
+with a deprecation warning and translated to \code{method = "bayes"}
+with the corresponding \code{bayesOptions$posteriorMethod}.}
 
 \item{prior}{optional prior object used by Bayesian posterior approximation
 methods where applicable. This is retained for consistency with

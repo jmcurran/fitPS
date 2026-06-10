@@ -72,12 +72,12 @@
 #'   \code{\link{readData}}.
 #' @param nterms the number of terms to compute the probability distribution
 #'   for.
-#' @param method either \code{"mle"}, \code{"bayes"} or \code{"integrate"}.
-#'   Maximum likelihood estimation (\code{"mle"}) or Bayesian estimation using
-#'   MCMC (\code{"bayes"}) or numerical integration (\code{"integrate"}).
-#'   NOTE: each of these modes of estimation has a different set of optional
-#'   parameters and defaults. See the description of the \code{\ldots} parameter
-#'   below for details.
+#' @param method primary fitting method. Use \code{"mle"} for maximum
+#'   likelihood estimation or \code{"bayes"} for Bayesian estimation. Legacy
+#'   Bayesian aliases \code{"integrate"}, \code{"numerical"}, and
+#'   \code{"mcmc"} are accepted with a deprecation warning and translated to
+#'   \code{method = "bayes"} with the corresponding
+#'   \code{bayesOptions$posteriorMethod}.
 #' @param prior optional prior object used by the Bayesian methods. This is
 #'   retained for backward compatibility. New code should usually pass priors
 #'   through \code{bayesOptions}. If omitted, \code{makePrior()} is used.
@@ -120,10 +120,14 @@
 #' fit2 = fitDist(p, method = "bayes")
 #' fit2
 #'
-#' fit3 = fitDist(p, method = "integrate")
+#' fit3 = fitDist(
+#'   p,
+#'   method = "bayes",
+#'   bayesOptions = list(posteriorMethod = "numerical")
+#' )
 #' fit3
 fitDist = function(x, nterms = 10,
-                   method = c("mle", "bayes", "integrate"),
+                   method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
                    prior,
                    bayesOptions = NULL,
                    ...){
@@ -146,7 +150,10 @@ fitDist = function(x, nterms = 10,
               x$data$n
             }
 
-  method = match.arg(method)
+  methodInfo = normaliseBayesMethod(method, bayesOptions = bayesOptions)
+  method = methodInfo$method
+  bayesOptions = methodInfo$bayesOptions
+
   if(method == "mle"){
 
     dotargs = list(...)
@@ -240,21 +247,6 @@ fitDist = function(x, nterms = 10,
 
     result$method = "bayes"
     result$posteriorMethod = options$posteriorMethod
-    result$bayesOptions = options
-    return(result)
-  }else if (method == "integrate") {
-    warning(
-      "method = \"integrate\" is retained as a legacy alias; use method = \"bayes\" with bayesOptions$posteriorMethod = \"numerical\"",
-      call. = FALSE
-    )
-    options = if (missing(prior)) {
-      normaliseBayesOptions(bayesOptions = bayesOptions)
-    } else {
-      normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
-    }
-    result = fitDistBayesIntegrate(x = x, prior = options$prior, nterms = nterms, ...)
-    result$method = "bayes"
-    result$posteriorMethod = "numerical"
     result$bayesOptions = options
     return(result)
   } else {

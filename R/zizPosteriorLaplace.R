@@ -144,3 +144,45 @@ makeZizPosteriorLaplace = function(x,
     posteriorMethod = "laplace"
   )
 }
+
+fitZIDistBayesLaplace = function(x,
+                                 nterms = 10,
+                                 prior = makePrior(),
+                                 shape1 = 1,
+                                 shape2 = 1,
+                                 start = c(pi = 0.5, shape = 2),
+                                 ...) {
+  nvals = 1:nterms
+  approximation = makeZizPosteriorLaplace(
+    x = x,
+    prior = prior,
+    shape1 = shape1,
+    shape2 = shape2,
+    start = start
+  )
+
+  par = approximation$mode
+  fitted = (1 - par[["pi"]]) * dzetaStandard(nvals, shape = par[["shape"]])
+  fitted[nvals == 1] = fitted[nvals == 1] + par[["pi"]]
+  names(fitted) = if (x$type == "P") {
+    paste0("P", nvals - 1)
+  } else {
+    paste0("S", nvals)
+  }
+
+  result = list(
+    psData = x,
+    fit = list(par = par),
+    pi = unname(par[["pi"]]),
+    shape = unname(par[["shape"]]),
+    var.cov = approximation$varCov,
+    fitted = fitted,
+    laplace = approximation,
+    model = "ziz",
+    method = "bayes",
+    posteriorMethod = "laplace"
+  )
+
+  class(result) = "psFit"
+  result
+}

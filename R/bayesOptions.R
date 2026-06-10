@@ -130,3 +130,49 @@ zizWorkingLogJacobian = function(working) {
 
   unname(log(theta["pi"]) + log1p(-theta["pi"]) + working[2])
 }
+
+normaliseBayesMethod = function(method, bayesOptions = NULL) {
+  method = match.arg(
+    method,
+    c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance")
+  )
+
+  if (method %in% c("mle", "bayes")) {
+    return(list(method = method, bayesOptions = bayesOptions))
+  }
+
+  posteriorMethod = if (method == "integrate") {
+    "numerical"
+  } else {
+    method
+  }
+
+  if (is.null(bayesOptions)) {
+    bayesOptions = list()
+  }
+
+  if (!is.list(bayesOptions)) {
+    stop("bayesOptions must be a list")
+  }
+
+  if (!is.null(bayesOptions$posteriorMethod) && bayesOptions$posteriorMethod != posteriorMethod) {
+    stop(
+      "Legacy method = ",
+      sQuote(method),
+      " conflicts with bayesOptions$posteriorMethod = ",
+      sQuote(bayesOptions$posteriorMethod)
+    )
+  }
+
+  bayesOptions$posteriorMethod = posteriorMethod
+
+  warning(
+    "method = ",
+    sQuote(method),
+    ' is deprecated; use method = "bayes" with bayesOptions$posteriorMethod = ',
+    sQuote(posteriorMethod),
+    call. = FALSE
+  )
+
+  list(method = "bayes", bayesOptions = bayesOptions)
+}

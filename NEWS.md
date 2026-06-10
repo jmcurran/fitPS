@@ -13,6 +13,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.6.013
+
+- Rationalise the Bayesian fitting API around method = "bayes" and bayesOptions$posteriorMethod.
+- Add deprecated legacy aliases for numerical integration, MCMC, Laplace, and importance posterior methods.
+- Preserve compatibility by translating legacy Bayesian method values into canonical bayesOptions.
+- Add tests for Bayesian method alias translation and default option handling.
+- Validated by the Stage 4.6.1.1 full package runner.
+
 ## fitPS 1.0.6.011
 
 - Added an internal importance-sampling helper for zero-inflated zeta Bayesian posteriors using the Laplace approximation as a proposal.

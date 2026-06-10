@@ -10,3 +10,4 @@ inst/doc
 *.tar.gz
 .fitps_built_pkg_path
 .fitps_built_pkgpath
+.*_built_package_path

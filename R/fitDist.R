@@ -72,15 +72,20 @@
 #'   \code{\link{readData}}.
 #' @param nterms the number of terms to compute the probability distribution
 #'   for.
-#' @param method either \code{"mle"}, \code{"bayes"} or \code{"integrate"}.
-#'   Maximum likelihood estimation (\code{"mle"}) or Bayesian estimation using
-#'   MCMC (\code{"bayes"}) or numerical integration (\code{"integrate"}).
-#'   NOTE: each of these modes of estimation has a different set of optional
-#'   parameters and defaults. See the description of the \code{\ldots} parameter
-#'   below for details.
-#' @param prior optional prior object used by the Bayesian and numerical
-#'   integration methods. If omitted, \code{makePrior()} is used for those
-#'   methods.
+#' @param method primary fitting method. Use \code{"mle"} for maximum
+#'   likelihood estimation or \code{"bayes"} for Bayesian estimation. Legacy
+#'   Bayesian aliases \code{"integrate"}, \code{"numerical"}, and
+#'   \code{"mcmc"} are accepted with a deprecation warning and translated to
+#'   \code{method = "bayes"} with the corresponding
+#'   \code{bayesOptions$posteriorMethod}.
+#' @param prior optional prior object used by the Bayesian methods. This is
+#'   retained for backward compatibility. New code should usually pass priors
+#'   through \code{bayesOptions}. If omitted, \code{makePrior()} is used.
+#' @param bayesOptions optional list controlling Bayesian fitting. The
+#'   \code{posteriorMethod} element selects \code{"numerical"},
+#'   \code{"mcmc"}, \code{"laplace"}, or \code{"importance"}. The
+#'   default is \code{"numerical"}. The \code{prior} element may contain
+#'   a prior object returned by \code{makePrior()}.
 #' @param ... other arguments that control the estimation methods. If
 #'   \code{method == "mle"}, then the user can provide an optional argument
 #'   \code{start} which is the starting value for the numerical optimisation. If
@@ -115,11 +120,16 @@
 #' fit2 = fitDist(p, method = "bayes")
 #' fit2
 #'
-#' fit3 = fitDist(p, method = "integrate")
+#' fit3 = fitDist(
+#'   p,
+#'   method = "bayes",
+#'   bayesOptions = list(posteriorMethod = "numerical")
+#' )
 #' fit3
 fitDist = function(x, nterms = 10,
-                   method = c("mle", "bayes", "integrate"),
+                   method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
                    prior,
+                   bayesOptions = NULL,
                    ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
@@ -140,7 +150,10 @@ fitDist = function(x, nterms = 10,
               x$data$n
             }
 
-  method = match.arg(method)
+  methodInfo = normaliseBayesMethod(method, bayesOptions = bayesOptions)
+  method = methodInfo$method
+  bayesOptions = methodInfo$bayesOptions
+
   if(method == "mle"){
 
     dotargs = list(...)
@@ -203,14 +216,40 @@ fitDist = function(x, nterms = 10,
     class(result) = "psFit"
 
     return(result)
-  }else if (method=="bayes"){ ## method == "bayes"
-    if (missing(prior)) prior = makePrior()
-    return(fitDistBayes(x = x, prior = prior, nterms = nterms, ...))
-  }else if (method=="integrate"){
-    if (missing(prior)) prior = makePrior()
-    return(fitDistBayesIntegrate(x = x, prior = prior, nterms = nterms, ...))
-  }
-  else{
+  }else if (method == "bayes") {
+    options = if (missing(prior)) {
+      normaliseBayesOptions(bayesOptions = bayesOptions)
+    } else {
+      normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
+    }
+
+    if (options$posteriorMethod == "numerical") {
+      result = fitDistBayesIntegrate(
+        x = x,
+        prior = options$prior,
+        nterms = nterms,
+        ...
+      )
+    } else if (options$posteriorMethod == "mcmc") {
+      result = fitDistBayes(
+        x = x,
+        prior = options$prior,
+        nterms = nterms,
+        ...
+      )
+    } else {
+      stop(
+        "posteriorMethod = ",
+        sQuote(options$posteriorMethod),
+        " is not implemented for fitDist() yet"
+      )
+    }
+
+    result$method = "bayes"
+    result$posteriorMethod = options$posteriorMethod
+    result$bayesOptions = options
+    return(result)
+  } else {
     stop("Unknown method:", method)
   }
 }

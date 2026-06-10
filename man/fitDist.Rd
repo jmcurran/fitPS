@@ -5,9 +5,23 @@
 \alias{fitdist}
 \title{Fit a Zeta Distribution to Forensic Data}
 \usage{
-fitDist(x, nterms = 10, method = c("mle", "bayes", "integrate"), prior, ...)
+fitDist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 
-fitdist(x, nterms = 10, method = c("mle", "bayes", "integrate"), prior, ...)
+fitdist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from
@@ -16,16 +30,22 @@ fitdist(x, nterms = 10, method = c("mle", "bayes", "integrate"), prior, ...)
 \item{nterms}{the number of terms to compute the probability distribution
 for.}
 
-\item{method}{either \code{"mle"}, \code{"bayes"} or \code{"integrate"}.
-Maximum likelihood estimation (\code{"mle"}) or Bayesian estimation using
-MCMC (\code{"bayes"}) or numerical integration (\code{"integrate"}).
-NOTE: each of these modes of estimation has a different set of optional
-parameters and defaults. See the description of the \code{\ldots} parameter
-below for details.}
+\item{method}{primary fitting method. Use \code{"mle"} for maximum
+likelihood estimation or \code{"bayes"} for Bayesian estimation. Legacy
+Bayesian aliases \code{"integrate"}, \code{"numerical"}, and
+\code{"mcmc"} are accepted with a deprecation warning and translated to
+\code{method = "bayes"} with the corresponding
+\code{bayesOptions$posteriorMethod}.}
 
-\item{prior}{optional prior object used by the Bayesian and numerical
-integration methods. If omitted, \code{makePrior()} is used for those
-methods.}
+\item{prior}{optional prior object used by the Bayesian methods. This is
+retained for backward compatibility. New code should usually pass priors
+through \code{bayesOptions}. If omitted, \code{makePrior()} is used.}
+
+\item{bayesOptions}{optional list controlling Bayesian fitting. The
+\code{posteriorMethod} element selects \code{"numerical"},
+\code{"mcmc"}, \code{"laplace"}, or \code{"importance"}. The
+default is \code{"numerical"}. The \code{prior} element may contain
+a prior object returned by \code{makePrior()}.}
 
 \item{...}{other arguments that control the estimation methods. If
   \code{method == "mle"}, then the user can provide an optional argument
@@ -118,7 +138,11 @@ fit
 fit2 = fitDist(p, method = "bayes")
 fit2
 
-fit3 = fitDist(p, method = "integrate")
+fit3 = fitDist(
+  p,
+  method = "bayes",
+  bayesOptions = list(posteriorMethod = "numerical")
+)
 fit3
 }
 \references{

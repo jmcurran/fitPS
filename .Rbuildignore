@@ -17,3 +17,5 @@
 ^vignettes/.*[.]log$
 ^vignettes/.*[.]R$
 ^.*\.Rproj$
+^[.].*_built_package_path$
+^[.]fitps_built_pkg_path$

@@ -171,12 +171,14 @@ getSamplePosteriorPlotData = function(object, parameter, level, samples){
 }
 
 getDensityPosteriorPlotData = function(object, parameter, level, nGrid){
-  if(parameter != "shape" || is.null(object$pdf) || !is.function(object$pdf)){
+  densityFunction = getPosteriorDensityFunction(object, parameter)
+
+  if(is.null(densityFunction)){
     stop("No posterior samples or stored density function are available for this parameter.", call. = FALSE)
   }
 
   grid = getPosteriorGrid(object, parameter, nGrid)
-  densityValues = pmax(as.numeric(object$pdf(grid)), 0)
+  densityValues = pmax(as.numeric(densityFunction(grid)), 0)
   densityValues[!is.finite(densityValues)] = 0
 
   if(sum(densityValues) <= 0){
@@ -199,6 +201,22 @@ getDensityPosteriorPlotData = function(object, parameter, level, nGrid){
     estimate = getPosteriorEstimate(object, parameter),
     interval = interval
   )
+}
+
+
+getPosteriorDensityFunction = function(object, parameter){
+  if(!is.null(object$marginalPdf) && is.list(object$marginalPdf)){
+    densityFunction = object$marginalPdf[[parameter]]
+    if(is.function(densityFunction)){
+      return(densityFunction)
+    }
+  }
+
+  if(parameter == "shape" && !is.null(object$pdf) && is.function(object$pdf)){
+    return(object$pdf)
+  }
+
+  NULL
 }
 
 getPosteriorGrid = function(object, parameter, nGrid){

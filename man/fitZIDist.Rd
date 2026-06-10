@@ -6,11 +6,32 @@
 \alias{fitzidist}
 \title{Fit a Zero-Inflated Zeta Distribution to Forensic Data}
 \usage{
-fitZIDist(x, nterms = 10, method = c("mle", "bayes"), ...)
+fitZIDist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 
-fitZIdist(x, nterms = 10, method = c("mle", "bayes"), ...)
+fitZIdist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 
-fitzidist(x, nterms = 10, method = c("mle", "bayes"), ...)
+fitzidist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{an object of type \code{psData}, usually obtained from
@@ -19,11 +40,23 @@ fitzidist(x, nterms = 10, method = c("mle", "bayes"), ...)
 \item{nterms}{the number of terms to compute the probability distribution
 for.}
 
-\item{method}{either \code{"mle"} or \code{"bayes"}. Allows the user to choose
-maximum likelihood estimation or Bayesian estimation. NOTE: each of these
-modes of estimation has a different set of optional parameters and
-defaults. See the description of the \code{\ldots} parameter below for
-details.}
+\item{method}{primary fitting method. Use \code{"mle"} for maximum
+likelihood estimation or \code{"bayes"} for Bayesian estimation. Legacy
+Bayesian aliases \code{"integrate"}, \code{"numerical"},
+\code{"mcmc"}, \code{"laplace"}, and \code{"importance"} are accepted
+with a deprecation warning and translated to \code{method = "bayes"}
+with the corresponding \code{bayesOptions$posteriorMethod}.}
+
+\item{prior}{optional prior object used by Bayesian posterior approximation
+methods where applicable. This is retained for consistency with
+\code{fitDist()}; new code should usually pass priors through
+\code{bayesOptions}.}
+
+\item{bayesOptions}{optional list controlling Bayesian fitting. The
+\code{posteriorMethod} element selects \code{"numerical"},
+\code{"mcmc"}, \code{"laplace"}, or \code{"importance"}. The
+default is \code{"numerical"}. The \code{prior} element may contain
+a prior object returned by \code{makePrior()}.}
 
 \item{...}{other arguments that control the estimation methods. If
   \code{method == "mle"}, then the user can provide an optional argument
@@ -102,14 +135,15 @@ such as starting values and parameters for priors. Please read the
 documentation for the \code{...} argument closely because it explains what
 you can change and what the default values are.
 
-Currently the Bayesian estimation is done assuming a Beta(shape1, shape2)
-distribution for the prior of the mixing proportion and the prior returned
-by \code{\link{makePrior}} for the zeta shape parameter. By default this is
-a Uniform[a, b] prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}, so
-the prior support always has \code{shape > 1}. This may become more
-flexible in the future. Similarly, the estimation is done using a simple Metropolis-Hastings
-sampler. It might be more efficient to sample through adaptive rejection
-sampling, but it is unclear whether it is worth the effort.
+Bayesian zero-inflated zeta estimation is selected with
+\code{method = "bayes"}. The posterior approximation is selected with
+\code{bayesOptions$posteriorMethod}. The default, \code{"numerical"}, uses
+deterministic two-dimensional grid integration over \code{pi} and
+\code{shape}. The legacy Metropolis-Hastings sampler remains available with
+\code{bayesOptions = list(posteriorMethod = "mcmc")}. The prior for the
+mixing proportion is Beta(shape1, shape2), and the shape prior is supplied
+by \code{bayesOptions$prior} or \code{prior}. If no shape prior is supplied,
+\code{makePrior()} is used.
 }
 \examples{
 data(Psurveys)

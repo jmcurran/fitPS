@@ -51,14 +51,15 @@
 #' documentation for the \code{...} argument closely because it explains what
 #' you can change and what the default values are.
 #'
-#' Currently the Bayesian estimation is done assuming a Beta(shape1, shape2)
-#' distribution for the prior of the mixing proportion and the prior returned
-#' by \code{\link{makePrior}} for the zeta shape parameter. By default this is
-#' a Uniform[a, b] prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}, so
-#' the prior support always has \code{shape > 1}. This may become more
-#' flexible in the future. Similarly, the estimation is done using a simple Metropolis-Hastings
-#' sampler. It might be more efficient to sample through adaptive rejection
-#' sampling, but it is unclear whether it is worth the effort.
+#' Bayesian zero-inflated zeta estimation is selected with
+#' \code{method = "bayes"}. The posterior approximation is selected with
+#' \code{bayesOptions$posteriorMethod}. The default, \code{"numerical"}, uses
+#' deterministic two-dimensional grid integration over \code{pi} and
+#' \code{shape}. The legacy Metropolis-Hastings sampler remains available with
+#' \code{bayesOptions = list(posteriorMethod = "mcmc")}. The prior for the
+#' mixing proportion is Beta(shape1, shape2), and the shape prior is supplied
+#' by \code{bayesOptions$prior} or \code{prior}. If no shape prior is supplied,
+#' \code{makePrior()} is used.
 
 #'
 #' @seealso \code{\link{plot.psFit}}, \code{\link{print.psFit}},
@@ -72,11 +73,21 @@
 #'   \code{\link{readData}}.
 #' @param nterms the number of terms to compute the probability distribution
 #'   for.
-#' @param method either \code{"mle"} or \code{"bayes"}. Allows the user to choose
-#'   maximum likelihood estimation or Bayesian estimation. NOTE: each of these
-#'   modes of estimation has a different set of optional parameters and
-#'   defaults. See the description of the \code{\ldots} parameter below for
-#'   details.
+#' @param method primary fitting method. Use \code{"mle"} for maximum
+#'   likelihood estimation or \code{"bayes"} for Bayesian estimation. Legacy
+#'   Bayesian aliases \code{"integrate"}, \code{"numerical"},
+#'   \code{"mcmc"}, \code{"laplace"}, and \code{"importance"} are accepted
+#'   with a deprecation warning and translated to \code{method = "bayes"}
+#'   with the corresponding \code{bayesOptions$posteriorMethod}.
+#' @param prior optional prior object used by Bayesian posterior approximation
+#'   methods where applicable. This is retained for consistency with
+#'   \code{fitDist()}; new code should usually pass priors through
+#'   \code{bayesOptions}.
+#' @param bayesOptions optional list controlling Bayesian fitting. The
+#'   \code{posteriorMethod} element selects \code{"numerical"},
+#'   \code{"mcmc"}, \code{"laplace"}, or \code{"importance"}. The
+#'   default is \code{"numerical"}. The \code{prior} element may contain
+#'   a prior object returned by \code{makePrior()}.
 #' @param ... other arguments that control the estimation methods. If
 #'   \code{method == "mle"}, then the user can provide an optional argument
 #'   \code{start} which is the starting value for the numerical optimisation. If
@@ -110,7 +121,9 @@
 #' fit = fitZIDist(roux)
 #' fit
 fitZIDist = function(x, nterms = 10,
-                     method = c("mle", "bayes"),
+                     method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
+                     prior,
+                     bayesOptions = NULL,
                      ...){
   nvals = 1:nterms
   if(!is(x, "psData")){
@@ -131,7 +144,10 @@ fitZIDist = function(x, nterms = 10,
     x$data$n
   }
 
-  method = match.arg(method)
+  methodInfo = normaliseBayesMethod(method, bayesOptions = bayesOptions)
+  method = methodInfo$method
+  bayesOptions = methodInfo$bayesOptions
+
   if(method == "mle"){
 
     dotargs = list(...)
@@ -211,7 +227,57 @@ fitZIDist = function(x, nterms = 10,
 
     return(result)
   }else{ ## method == "bayes"
-    return(fitZIDistBayes(x = x, nterms = nterms, ... = ...))
+    options = if (missing(prior)) {
+      normaliseBayesOptions(bayesOptions = bayesOptions)
+    } else {
+      normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
+    }
+
+    if (options$posteriorMethod == "numerical") {
+      result = fitZIDistBayesNumerical(
+        x = x,
+        nterms = nterms,
+        prior = options$prior,
+        ...
+      )
+      result$bayesOptions = options
+      return(result)
+    }
+
+    if (options$posteriorMethod == "mcmc") {
+      result = fitZIDistBayes(x = x, nterms = nterms, ...)
+      result$posteriorMethod = "mcmc"
+      result$bayesOptions = options
+      return(result)
+    }
+
+    if (options$posteriorMethod == "laplace") {
+      result = fitZIDistBayesLaplace(
+        x = x,
+        nterms = nterms,
+        prior = options$prior,
+        ...
+      )
+      result$bayesOptions = options
+      return(result)
+    }
+
+    if (options$posteriorMethod == "importance") {
+      result = fitZIDistBayesImportance(
+        x = x,
+        nterms = nterms,
+        prior = options$prior,
+        ...
+      )
+      result$bayesOptions = options
+      return(result)
+    }
+
+    stop(
+      "posteriorMethod = ",
+      sQuote(options$posteriorMethod),
+      " is not implemented for fitZIDist() yet"
+    )
   }
 }
 

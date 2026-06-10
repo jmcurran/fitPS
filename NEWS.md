@@ -13,6 +13,43 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.6.013
+
+- Rationalise the Bayesian fitting API around method = "bayes" and bayesOptions$posteriorMethod.
+- Add deprecated legacy aliases for numerical integration, MCMC, Laplace, and importance posterior methods.
+- Preserve compatibility by translating legacy Bayesian method values into canonical bayesOptions.
+- Add tests for Bayesian method alias translation and default option handling.
+- Validated by the Stage 4.6.1.1 full package runner.
+
+## fitPS 1.0.6.011
+
+- Added an internal importance-sampling helper for zero-inflated zeta Bayesian posteriors using the Laplace approximation as a proposal.
+- Returned weighted samples, posterior means, covariance estimates, and diagnostics including effective sample size and maximum normalized weight.
+- Added deterministic offline tests for weighted samples, seeded reproducibility, and fitZIDist dispatch through bayesOptions$posteriorMethod = "importance".
+- Added ignore/build-ignore coverage for generated built-package path files so package checks do not inspect runner artifacts.
+- Ran the full package validation workflow for this package-impacting stage.
+
+## fitPS 1.0.6.010
+
+- Repaired the Stage 4.4 numerical posterior grid file by restoring the missing bracket in the returned pi value.
+- Kept the Stage 4.4 Laplace approximation work unchanged while making the installed R code parsable for roxygen documentation.
+- Preserved ignore/build-ignore coverage for generated built-package path files so package checks do not inspect runner artifacts.
+- Ran the full package validation workflow for this package-impacting repair stage.
+
+## fitPS 1.0.6.006
+
+- Added Bayesian options plumbing so method = "bayes" can select posterior engines through bayesOptions$posteriorMethod.
+- Stripped inherited names from scalar transform inputs and outputs before constructing working-scale vectors.
+- Routed fitDist() numerical integration through method = "bayes" with posteriorMethod = "numerical" while retaining method = "integrate" as a legacy alias.
+- Kept zero-inflated zeta MCMC available through posteriorMethod = "mcmc" until the numerical Stage 4 posterior is implemented.
+- Kept deterministic offline test coverage unchanged while repairing the helper implementation.
+
+## fitPS 1.0.6.001
+
+- Added the Stage 4.1 design audit for deterministic and semi-deterministic Bayesian posterior approximations for zero-inflated zeta fits.
+- Recorded the recommended path for transformed posterior helpers, grid quadrature, Laplace diagnostics, importance sampling diagnostics, and plotting integration.
+- Preserved existing Bayesian MCMC behavior and user-facing defaults; this lightweight documentation stage did not run package validation.
+
 ## fitPS 1.0.5.008
 
 - Stabilised the generated stage runner so controlled paths are staged one at a time.

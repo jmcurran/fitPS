@@ -10,12 +10,12 @@
 #' @return No return value, called for side effects
 #' @export
 print.psData = function(x, ...){
-  kbl = knitr::kable(x$data, format = "simple",
-                     label = NA,
-                     caption = ifelse(x$type == "P",
-                                "Number of Groups",
-                                "Group Size")
-                    )
+  kbl = kable(x$data, format = "simple",
+              label = NA,
+              caption = ifelse(x$type == "P",
+              "Number of Groups",
+              "Group Size")
+             )
 
   kbl[1] = gsub("^Table[:] +(.*$)", "\\1", kbl[1])
 

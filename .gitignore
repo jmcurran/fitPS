@@ -5,7 +5,9 @@
 .DS_Store
 inst/doc
 *conflicted*
+
 *.zip
 *.tar.gz
-.*_built_package_path
 .fitps_built_pkg_path
+.fitps_built_pkgpath
+.*_built_package_path

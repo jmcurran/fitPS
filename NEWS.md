@@ -13,6 +13,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.6.011
+
+- Added an internal importance-sampling helper for zero-inflated zeta Bayesian posteriors using the Laplace approximation as a proposal.
+- Returned weighted samples, posterior means, covariance estimates, and diagnostics including effective sample size and maximum normalized weight.
+- Added deterministic offline tests for weighted samples, seeded reproducibility, and fitZIDist dispatch through bayesOptions$posteriorMethod = "importance".
+- Added ignore/build-ignore coverage for generated built-package path files so package checks do not inspect runner artifacts.
+- Ran the full package validation workflow for this package-impacting stage.
+
 ## fitPS 1.0.6.010
 
 - Repaired the Stage 4.4 numerical posterior grid file by restoring the missing bracket in the returned pi value.

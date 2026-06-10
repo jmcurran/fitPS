@@ -247,6 +247,17 @@ fitZIDist = function(x, nterms = 10,
       return(result)
     }
 
+    if (options$posteriorMethod == "importance") {
+      result = fitZIDistBayesImportance(
+        x = x,
+        nterms = nterms,
+        prior = options$prior,
+        ...
+      )
+      result$bayesOptions = options
+      return(result)
+    }
+
     stop(
       "posteriorMethod = ",
       sQuote(options$posteriorMethod),

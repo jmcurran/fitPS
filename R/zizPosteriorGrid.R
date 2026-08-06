@@ -159,6 +159,7 @@ fitZIDistBayesNumerical = function(x,
                                    shape2 = 1,
                                    nPiGrid = 101,
                                    nShapeGrid = 101,
+                                   level = 0.95,
                                    ...) {
   nvals = 1:nterms
   posteriorGrid = makeZizPosteriorGrid(
@@ -172,6 +173,12 @@ fitZIDistBayesNumerical = function(x,
 
   par = posteriorGrid$mean
   marginalPdf = makeZizMarginalPdf(posteriorGrid)
+  posteriorProbs = summariseZizGridProbabilities(
+    posteriorGrid = posteriorGrid,
+    type = x$type,
+    nterms = nterms,
+    level = level
+  )
 
   fitted = (1 - par[["pi"]]) * dzetaStandard(nvals, shape = par[["shape"]])
   fitted[nvals == 1] = fitted[nvals == 1] + par[["pi"]]
@@ -189,11 +196,20 @@ fitZIDistBayesNumerical = function(x,
     var.cov = posteriorGrid$varCov,
     fitted = fitted,
     posteriorGrid = posteriorGrid,
+    posteriorProbs = posteriorProbs,
     marginalPdf = marginalPdf,
     pdf = marginalPdf$shape,
     model = "ziz",
     method = "bayes",
     posteriorMethod = "numerical"
+  )
+
+  result = attachZizPosterior(
+    result = result,
+    probabilities = posteriorProbs,
+    representation = posteriorGrid,
+    diagnostics = NULL,
+    level = level
   )
 
   class(result) = "psFit"

@@ -192,6 +192,7 @@ fitZIDistBayesImportance = function(x,
                                     proposalScale = 2,
                                     seed = NULL,
                                     start = c(pi = 0.5, shape = 2),
+                                    level = 0.95,
                                     ...) {
   nvals = 1:nterms
   approximation = makeZizPosteriorImportance(
@@ -206,6 +207,15 @@ fitZIDistBayesImportance = function(x,
   )
 
   par = approximation$mean
+  posteriorProbs = summariseZizSampleProbabilities(
+    pi = approximation$samples$pi,
+    shape = approximation$samples$shape,
+    type = x$type,
+    nterms = nterms,
+    weights = approximation$samples$weight,
+    level = level,
+    posteriorMethod = "importance"
+  )
   fitted = (1 - par[["pi"]]) * dzetaStandard(nvals, shape = par[["shape"]])
   fitted[nvals == 1] = fitted[nvals == 1] + par[["pi"]]
   names(fitted) = if (x$type == "P") {
@@ -222,11 +232,20 @@ fitZIDistBayesImportance = function(x,
     var.cov = approximation$varCov,
     fitted = fitted,
     weightedSamples = approximation$samples,
+    posteriorProbs = posteriorProbs,
     importance = approximation,
     posteriorDiagnostics = approximation$diagnostics,
     model = "ziz",
     method = "bayes",
     posteriorMethod = "importance"
+  )
+
+  result = attachZizPosterior(
+    result = result,
+    probabilities = posteriorProbs,
+    representation = approximation,
+    diagnostics = approximation$diagnostics,
+    level = level
   )
 
   class(result) = "psFit"

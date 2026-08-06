@@ -151,6 +151,9 @@ fitZIDistBayesLaplace = function(x,
                                  shape1 = 1,
                                  shape2 = 1,
                                  start = c(pi = 0.5, shape = 2),
+                                 nPosteriorDraws = 5000,
+                                 seed = NULL,
+                                 level = 0.95,
                                  ...) {
   nvals = 1:nterms
   approximation = makeZizPosteriorLaplace(
@@ -159,6 +162,33 @@ fitZIDistBayesLaplace = function(x,
     shape1 = shape1,
     shape2 = shape2,
     start = start
+  )
+
+  nPosteriorDraws = as.integer(nPosteriorDraws)
+  if (!is.finite(nPosteriorDraws) || nPosteriorDraws < 100L) {
+    stop("nPosteriorDraws must be at least 100")
+  }
+
+  if (!is.null(seed)) {
+    if (!is.numeric(seed) || length(seed) != 1L || !is.finite(seed)) {
+      stop("seed must be NULL or a finite numeric value")
+    }
+    set.seed(as.integer(seed))
+  }
+
+  workingDraws = makeZizProposalDraws(
+    mean = approximation$modeWorking,
+    covariance = approximation$covarianceWorking,
+    n = nPosteriorDraws
+  )
+  thetaDraws = t(apply(workingDraws, 1L, zizWorkingToTheta))
+  posteriorProbs = summariseZizSampleProbabilities(
+    pi = thetaDraws[, "pi"],
+    shape = thetaDraws[, "shape"],
+    type = x$type,
+    nterms = nterms,
+    level = level,
+    posteriorMethod = "laplace"
   )
 
   par = approximation$mode
@@ -178,9 +208,18 @@ fitZIDistBayesLaplace = function(x,
     var.cov = approximation$varCov,
     fitted = fitted,
     laplace = approximation,
+    posteriorProbs = posteriorProbs,
     model = "ziz",
     method = "bayes",
     posteriorMethod = "laplace"
+  )
+
+  result = attachZizPosterior(
+    result = result,
+    probabilities = posteriorProbs,
+    representation = approximation,
+    diagnostics = NULL,
+    level = level
   )
 
   class(result) = "psFit"

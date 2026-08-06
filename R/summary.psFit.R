@@ -14,6 +14,11 @@
 #' @return No return value, called for side effects
 #' @export
 summary.psFit = function(object, ...){
+  if (identical(object$method, "bayes") &&
+      inherits(object$posterior, "psPosterior")) {
+    return(summary(object$posterior, ...))
+  }
+
   if(object$model == "zeta"){
     cmat = matrix(c(object$shape, sqrt(object$var.shape)), nrow = 1)
     colnames(cmat) = c("Estimate", "Std.Err")

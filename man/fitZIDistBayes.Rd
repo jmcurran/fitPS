@@ -15,6 +15,7 @@ fitZIDistBayes(
   nBurnIn = 1000,
   silent = TRUE,
   seed = NULL,
+  level = 0.95,
   ...
 )
 }
@@ -38,6 +39,8 @@ fitZIDistBayes(
 \item{silent}{Logical; suppress the progress bar when `TRUE`.}
 
 \item{seed}{Optional integer seed.}
+
+\item{level}{Equal-tailed credible interval level for posterior probabilities.}
 
 \item{...}{Retained for backward compatibility.}
 }

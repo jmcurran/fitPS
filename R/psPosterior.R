@@ -1,0 +1,145 @@
+#' Construct a fitPS posterior object
+#'
+#' @param method Posterior approximation method.
+#' @param parameters Data frame of posterior parameter summaries.
+#' @param probabilities Data frame of posterior probability summaries.
+#' @param representation Engine-specific posterior representation.
+#' @param level Credible interval level used for probability summaries.
+#' @param diagnostics Optional posterior diagnostics.
+#'
+#' @return An object of class `psPosterior`.
+#'
+#' @keywords internal
+newPsPosterior = function(method,
+                           parameters,
+                           probabilities,
+                           representation,
+                           level = 0.95,
+                           diagnostics = NULL) {
+  if (!is.character(method) || length(method) != 1L || !nzchar(method)) {
+    stop("method must be one non-empty character value")
+  }
+
+  if (!is.data.frame(parameters) ||
+      !all(c("parameter", "estimate", "sd") %in% names(parameters))) {
+    stop("parameters must contain parameter, estimate, and sd columns")
+  }
+
+  if (!is.data.frame(probabilities) ||
+      !all(c("term", "estimate", "sd", "lower", "upper", "level") %in%
+        names(probabilities))) {
+    stop("probabilities must contain posterior probability summaries")
+  }
+
+  result = list(
+    method = method,
+    parameters = parameters,
+    probabilities = probabilities,
+    representation = representation,
+    level = level,
+    diagnostics = diagnostics
+  )
+  class(result) = "psPosterior"
+  result
+}
+
+makeZizParameterSummary = function(par, varCov) {
+  par = unname(par)
+  names(par) = c("pi", "shape")
+  standardErrors = sqrt(pmax(0, diag(varCov)))
+
+  data.frame(
+    parameter = names(par),
+    estimate = unname(par),
+    sd = unname(standardErrors),
+    stringsAsFactors = FALSE
+  )
+}
+
+attachZizPosterior = function(result,
+                               probabilities,
+                               representation,
+                               diagnostics = NULL,
+                               level = 0.95) {
+  posterior = newPsPosterior(
+    method = result$posteriorMethod,
+    parameters = makeZizParameterSummary(
+      par = c(pi = result$pi, shape = result$shape),
+      varCov = result$var.cov
+    ),
+    probabilities = probabilities,
+    representation = representation,
+    level = level,
+    diagnostics = diagnostics
+  )
+
+  result$posterior = posterior
+  result$posteriorProbs = posterior$probabilities
+  result
+}
+
+#' Print a fitPS posterior object
+#'
+#' @param x An object of class `psPosterior`.
+#' @param ... Additional arguments passed to `print.data.frame()`.
+#'
+#' @return The posterior object, invisibly.
+#' @export
+print.psPosterior = function(x, ...) {
+  cat("fitPS posterior approximation\n")
+  cat("Method:", x$method, "\n\n")
+  cat("Parameter summaries:\n")
+  print(x$parameters, row.names = FALSE, ...)
+  cat("\nPosterior probability summaries:\n")
+  print(x$probabilities, row.names = FALSE, ...)
+  invisible(x)
+}
+
+#' Summarise a fitPS posterior object
+#'
+#' @param object An object of class `psPosterior`.
+#' @param ... Additional arguments retained for S3 compatibility.
+#'
+#' @return An object of class `summary.psPosterior`.
+#' @export
+summary.psPosterior = function(object, ...) {
+  result = list(
+    method = object$method,
+    parameters = object$parameters,
+    probabilities = object$probabilities,
+    level = object$level,
+    diagnostics = object$diagnostics
+  )
+  class(result) = "summary.psPosterior"
+  result
+}
+
+#' @export
+print.summary.psPosterior = function(x, ...) {
+  cat("Summary of fitPS posterior approximation\n")
+  cat("Method:", x$method, "\n\n")
+  cat("Parameter summaries:\n")
+  print(x$parameters, row.names = FALSE, ...)
+  cat("\nPosterior probability summaries:\n")
+  print(x$probabilities, row.names = FALSE, ...)
+
+  if (!is.null(x$diagnostics)) {
+    cat("\nDiagnostics:\n")
+    print(x$diagnostics)
+  }
+
+  invisible(x)
+}
+
+#' Extract posterior mean probabilities
+#'
+#' @param object An object of class `psPosterior`.
+#' @param ... Additional arguments retained for S3 compatibility.
+#'
+#' @return A named numeric vector of posterior mean probabilities.
+#' @export
+fitted.psPosterior = function(object, ...) {
+  estimates = object$probabilities$estimate
+  names(estimates) = object$probabilities$term
+  estimates
+}

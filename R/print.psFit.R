@@ -10,6 +10,11 @@ print.psFit = function(x, ...){
 
   isBayes = x$method == "bayes"
 
+  if (isBayes && inherits(x$posterior, "psPosterior")) {
+    print(x$posterior, ...)
+    return(invisible(x))
+  }
+
   if(x$model == "ziz"){
     cat(paste("The estimated mixing parameter, pi, is", signif(x$pi, 4), "\n"))
   }

@@ -30,6 +30,7 @@
 #' \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms} of the fitted distribution.}
 #' \item{\code{model}}{ -- set to \code{"ziz"} for this model,}
 #' \item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"},}
+#' \item{\code{posterior}}{ -- for Bayesian fits, an object of class \code{psPosterior} containing posterior parameter summaries, posterior probability summaries, and the engine-specific posterior representation,}
 #' \item{\code{chain}}{ -- if \code{method == "bayes"}, then this element will contain the Markov Chain from the sampler,
 #' that is, hopefully a sample from the posterior density of the mixing parameter and the shape parameter.
 #' If \code{method == "mle"}, then this element does not exist.}

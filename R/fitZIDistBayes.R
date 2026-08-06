@@ -10,6 +10,7 @@
 #' @param nBurnIn Number of burn-in iterations.
 #' @param silent Logical; suppress the progress bar when `TRUE`.
 #' @param seed Optional integer seed.
+#' @param level Equal-tailed credible interval level for posterior probabilities.
 #' @param ... Retained for backward compatibility.
 #'
 #' @return An object of class `psFit`.
@@ -28,6 +29,7 @@ fitZIDistBayes = function(x,
                           nBurnIn = 1e3,
                           silent = TRUE,
                           seed = NULL,
+                          level = 0.95,
                           ...) {
   if (!is(x, "psData")) {
     stop("x must be an object of class psData")
@@ -175,6 +177,14 @@ fitZIDistBayes = function(x,
 
   chain = as.data.frame(chain)
   par = c(pi = mean(chain$pi), shape = mean(chain$shape))
+  posteriorProbs = summariseZizSampleProbabilities(
+    pi = chain$pi,
+    shape = chain$shape,
+    type = x$type,
+    nterms = nterms,
+    level = level,
+    posteriorMethod = "mcmc"
+  )
   nvals = seq_len(nterms)
   fitted = (1 - par[["pi"]]) * dzetaStandard(nvals, shape = par[["shape"]])
   fitted[nvals == 1L] = fitted[nvals == 1L] + par[["pi"]]
@@ -198,9 +208,18 @@ fitZIDistBayes = function(x,
     var.cov = cov(chain),
     fitted = fitted,
     chain = chain,
+    posteriorProbs = posteriorProbs,
     model = "ziz",
     method = "bayes",
     posteriorMethod = "mcmc"
+  )
+
+  result = attachZizPosterior(
+    result = result,
+    probabilities = posteriorProbs,
+    representation = chain,
+    diagnostics = result$fit$acceptance,
+    level = level
   )
 
   class(result) = "psFit"

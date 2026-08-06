@@ -16,6 +16,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.006
+
+- Added the psPosterior S3 class as the coherent posterior component of Bayesian psFit objects.
+- Stored parameter summaries, posterior probability summaries, engine-specific representations, interval level, and diagnostics under fit$posterior.
+- Preserved chain, posteriorGrid, weightedSamples, laplace, importance, and posteriorProbs fields for backward compatibility.
+- Added print, summary, and fitted methods for psPosterior objects and delegated Bayesian psFit summaries to the posterior object.
+- Corrected the Stage 5.3 tests by comparing probability estimates without incidental names and by using valid compact S-survey data.
+- Validated through roxygen, strict offline tests, and strict package check.
 ## fitPS 1.0.7.004
 
 - Repaired the existing parallel import documentation in bootCI so every @importFrom tag occupies one physical line.

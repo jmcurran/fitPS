@@ -14,6 +14,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.003
+
+- Added one shared internal transformation from zero-inflated zeta parameters to requested P or S probabilities.
+- Used the package standard zeta shape parameterisation and supported vectorised posterior parameter values.
+- Added deterministic tests for P and S formulas, names, validation, scalar recycling, and probability-mass truncation.
+- Removed and ignored generated Rplots.pdf test artifacts.
+- Corrected stage-runner source-package path capture so build console output cannot be mistaken for a filename.
+- Validated through roxygen, strict offline tests, and strict package check.
 ## fitPS 1.0.7.002
 
 - Repaired the zero-inflated zeta Metropolis-Hastings sampler so each component update evaluates only the current state and its proposed component.

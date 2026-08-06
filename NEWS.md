@@ -18,6 +18,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.008
+
+- Added plot.psPosterior() for posterior mean P or S probabilities with equal-tailed credible intervals.
+- Supported plotting all stored terms, leading terms, or explicitly selected P and S indices through posteriorProbs().
+- Kept plot.psFit() and plotPosterior() behaviour unchanged for backward compatibility.
+- Added deterministic offline plotting tests for P and S posterior objects and interval suppression.
+- Validated through roxygen, strict offline tests, and strict package check.
 ## fitPS 1.0.7.007
 
 - Exported posteriorProbs() for Bayesian psFit and psPosterior objects.

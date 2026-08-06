@@ -15,6 +15,13 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.004
+
+- Repaired the existing parallel import documentation in bootCI so every @importFrom tag occupies one physical line.
+- Removed the roxygen warning reported during Stage 5.2 documentation regeneration without changing package behaviour.
+- Scanned the remaining R sources and found no other wrapped @importFrom continuation lines.
+- Validated through roxygen, strict offline tests, and strict package check.
 ## fitPS 1.0.7.003
 
 - Added one shared internal transformation from zero-inflated zeta parameters to requested P or S probabilities.

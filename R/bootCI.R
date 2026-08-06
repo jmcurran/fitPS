@@ -84,8 +84,9 @@
 #'@importFrom iterators iter
 #'@importFrom ks contourLevels kcde kde Hscv
 #'@importFrom pbapply pblapply pbsapply pboptions
-#'@importFrom parallel detectCores makeCluster parApply parLapply parSapply
-#'  stopCluster
+#'@importFrom parallel detectCores makeCluster
+#'@importFrom parallel parApply parLapply parSapply
+#'@importFrom parallel stopCluster
 #'@importFrom stats approxfun
 #'@export
 bootCI = function(x, ...){

@@ -4,15 +4,19 @@
 \alias{fitted.psFit}
 \title{S3 fitted method for an object of class \code{psFit}}
 \usage{
-\method{fitted}{psFit}(object, n = NULL, ...)
+\method{fitted}{psFit}(object, n = NULL, type = c("plugIn", "posteriorMean"), ...)
 }
 \arguments{
 \item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}
 or \code{\link{fitZIDist}}.}
 
 \item{n}{This parameter is \code{NULL} by default. If it is not \code{NULL}
- then it must be either the number of fitted terms to be return, or, a vector
+then it must be either the number of fitted terms to be returned, or a vector
 containing the desired fitted values.}
+
+\item{type}{The fitted-value definition. `"plugIn"` preserves the existing
+behaviour and evaluates probabilities at fitted parameter values.
+`"posteriorMean"` returns posterior mean probabilities for Bayesian fits.}
 
 \item{...}{other arguments passed to \code{fitted}---not used.}
 }

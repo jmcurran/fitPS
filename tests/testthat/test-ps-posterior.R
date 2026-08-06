@@ -98,3 +98,78 @@ test_that("all posterior engines attach their native representation", {
     importanceFit$posteriorDiagnostics
   )
 })
+
+test_that("posteriorProbs dispatches for psFit and psPosterior objects", {
+  pData = makePSData(
+    n = c(0, 1, 2),
+    count = c(8, 3, 1),
+    type = "P"
+  )
+
+  fit = fitZIDist(
+    pData,
+    nterms = 4,
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical"),
+    nPiGrid = 21,
+    nShapeGrid = 21
+  )
+
+  expect_equal(posteriorProbs(fit), fit$posterior$probabilities)
+  expect_equal(posteriorProbs(fit$posterior), fit$posterior$probabilities)
+  expect_equal(
+    posteriorProbs(fit, n = 2)$term,
+    c("P0", "P1")
+  )
+  expect_equal(
+    posteriorProbs(fit, n = c(0, 2))$term,
+    c("P0", "P2")
+  )
+})
+
+test_that("fitted distinguishes plug-in and posterior mean probabilities", {
+  pData = makePSData(
+    n = c(0, 1, 2),
+    count = c(8, 3, 1),
+    type = "P"
+  )
+
+  fit = fitZIDist(
+    pData,
+    nterms = 3,
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical"),
+    nPiGrid = 21,
+    nShapeGrid = 21
+  )
+
+  expect_equal(fitted(fit), fit$fitted)
+  expect_equal(fitted(fit, type = "plugIn"), fit$fitted)
+  expect_equal(
+    unname(fitted(fit, type = "posteriorMean")),
+    fit$posterior$probabilities$estimate
+  )
+  expect_identical(
+    names(fitted(fit, type = "posteriorMean")),
+    fit$posterior$probabilities$term
+  )
+})
+
+test_that("posteriorProbs rejects non-Bayesian fits", {
+  pData = makePSData(
+    n = c(0, 1, 2),
+    count = c(8, 3, 1),
+    type = "P"
+  )
+
+  fit = fitZIDist(pData, nterms = 3)
+
+  expect_error(
+    posteriorProbs(fit),
+    "only available for Bayesian"
+  )
+  expect_error(
+    fitted(fit, type = "posteriorMean"),
+    "require a Bayesian"
+  )
+})

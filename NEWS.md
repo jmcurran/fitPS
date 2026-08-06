@@ -17,6 +17,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.007
+
+- Exported posteriorProbs() for Bayesian psFit and psPosterior objects.
+- Added consistent selection of leading or explicitly indexed P and S posterior probability summaries.
+- Extended fitted.psFit() with type = "posteriorMean" while preserving plug-in probabilities as the default.
+- Kept posterior probability access unavailable for frequentist fits with clear errors.
+- Added deterministic offline tests for S3 dispatch, subset selection, fitted-value semantics, and compatibility.
+- Validated through roxygen, strict offline tests, and strict package check.
 ## fitPS 1.0.7.006
 
 - Added the psPosterior S3 class as the coherent posterior component of Bayesian psFit objects.

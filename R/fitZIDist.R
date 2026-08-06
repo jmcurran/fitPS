@@ -227,10 +227,37 @@ fitZIDist = function(x, nterms = 10,
 
     return(result)
   }else{ ## method == "bayes"
-    options = if (missing(prior)) {
-      normaliseBayesOptions(bayesOptions = bayesOptions)
+    dotargs = list(...)
+    hasLegacyShapeBounds = any(c("a", "b") %in% names(dotargs))
+    hasExplicitPrior = !missing(prior) ||
+      (!is.null(bayesOptions) && !is.null(bayesOptions$prior))
+
+    if (identical(bayesOptions$posteriorMethod, "mcmc") &&
+        hasLegacyShapeBounds && hasExplicitPrior) {
+      stop("Specify the MCMC shape prior with prior or with legacy a/b bounds, not both")
+    }
+
+    if (identical(bayesOptions$posteriorMethod, "mcmc") &&
+        hasLegacyShapeBounds && !hasExplicitPrior) {
+      a = if ("a" %in% names(dotargs)) dotargs$a else -2
+      b = if ("b" %in% names(dotargs)) dotargs$b else 2
+
+      if (!is.numeric(a) || length(a) != 1L || !is.finite(a) ||
+          !is.numeric(b) || length(b) != 1L || !is.finite(b) || b <= a) {
+        stop("Legacy MCMC bounds must be finite numbers with b greater than a")
+      }
+
+      options = normaliseBayesOptions(
+        bayesOptions = bayesOptions,
+        prior = makePrior(
+          family = "loguniform",
+          range = 1 + exp(c(a, b))
+        )
+      )
+    } else if (missing(prior)) {
+      options = normaliseBayesOptions(bayesOptions = bayesOptions)
     } else {
-      normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
+      options = normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
     }
 
     if (options$posteriorMethod == "numerical") {
@@ -245,8 +272,12 @@ fitZIDist = function(x, nterms = 10,
     }
 
     if (options$posteriorMethod == "mcmc") {
-      result = fitZIDistBayes(x = x, nterms = nterms, ...)
-      result$posteriorMethod = "mcmc"
+      result = fitZIDistBayes(
+        x = x,
+        nterms = nterms,
+        prior = options$prior,
+        ...
+      )
       result$bayesOptions = options
       return(result)
     }

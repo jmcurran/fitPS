@@ -13,6 +13,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.002
+
+- Repaired the zero-inflated zeta Metropolis-Hastings sampler so each component update evaluates only the current state and its proposed component.
+- Implemented the beta-prior and independence-proposal cancellation explicitly for pi updates and used the selected psPrior for shape updates.
+- Preserved legacy a/b shape-prior bounds when no explicit prior is supplied and added seeded reproducibility support.
+- Added non-uniform Beta(2, 5) tests comparing MCMC posterior means and variances with deterministic numerical integration.
+- Updated the stage runner delivery to use a single outer bundle with an exact sibling change-set and optional ChatGPT bundle creation.
+- Validated through roxygen, strict offline tests, and strict package check.
 ## fitPS 1.0.6.013
 
 - Rationalise the Bayesian fitting API around method = "bayes" and bayesOptions$posteriorMethod.

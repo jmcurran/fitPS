@@ -8,6 +8,8 @@
 #' @param type The fitted-value definition. `"plugIn"` preserves the existing
 #' behaviour and evaluates probabilities at fitted parameter values.
 #' `"posteriorMean"` returns posterior mean probabilities for Bayesian fits.
+#' `"bootstrapMean"` returns bootstrap mean probabilities when a bootstrap
+#' distribution has been attached to the fit.
 #' @param ... other arguments passed to \code{fitted}---not used.
 #'
 #' @return a named vector of fitted probabilities
@@ -15,7 +17,7 @@
 #' @export
 fitted.psFit = function(object,
                          n = NULL,
-                         type = c("plugIn", "posteriorMean"),
+                         type = c("plugIn", "posteriorMean", "bootstrapMean"),
                          ...) {
   type = match.arg(type)
 
@@ -26,6 +28,20 @@ fitted.psFit = function(object,
     }
 
     probabilities = posteriorProbs(object, n = n)
+    estimates = probabilities$estimate
+    names(estimates) = probabilities$term
+    return(estimates)
+  }
+
+  if (identical(type, "bootstrapMean")) {
+    if (!inherits(object$bootstrap, "psBootstrap")) {
+      stop(
+        "bootstrapMean fitted values require a psFit object with an attached ",
+        "bootstrap; run bootstrapFit() first"
+      )
+    }
+
+    probabilities = bootstrapProbs(object, n = n)
     estimates = probabilities$estimate
     names(estimates) = probabilities$term
     return(estimates)

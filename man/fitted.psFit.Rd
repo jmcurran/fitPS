@@ -4,7 +4,12 @@
 \alias{fitted.psFit}
 \title{S3 fitted method for an object of class \code{psFit}}
 \usage{
-\method{fitted}{psFit}(object, n = NULL, type = c("plugIn", "posteriorMean"), ...)
+\method{fitted}{psFit}(
+  object,
+  n = NULL,
+  type = c("plugIn", "posteriorMean", "bootstrapMean"),
+  ...
+)
 }
 \arguments{
 \item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}
@@ -16,7 +21,9 @@ containing the desired fitted values.}
 
 \item{type}{The fitted-value definition. `"plugIn"` preserves the existing
 behaviour and evaluates probabilities at fitted parameter values.
-`"posteriorMean"` returns posterior mean probabilities for Bayesian fits.}
+`"posteriorMean"` returns posterior mean probabilities for Bayesian fits.
+`"bootstrapMean"` returns bootstrap mean probabilities when a bootstrap
+distribution has been attached to the fit.}
 
 \item{...}{other arguments passed to \code{fitted}---not used.}
 }

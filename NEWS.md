@@ -20,6 +20,16 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.012
+
+- Added bootstrapFit() as the public entry point for attaching a psBootstrap distribution to an MLE fit.
+- Added bootstrapProbs() methods for psFit and psBootstrap objects with the same P/S term selection rules as posteriorProbs().
+- Added fitted(..., type = "bootstrapMean") while preserving plug-in fitted probabilities as the default.
+- Added plot.psBootstrap() for bootstrap mean probabilities and percentile confidence intervals.
+- Kept Bayesian posteriorMean fitted values and all existing frequentist defaults unchanged.
+- Added deterministic offline API, indexing, fitted-value, plotting, and validation tests.
+- Validated through roxygen, strict offline tests, and strict package check.
 ## fitPS 1.0.7.011
 
 - Added an internal psBootstrap S3 object for frequentist bootstrap parameter and P/S probability distributions.

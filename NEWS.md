@@ -19,6 +19,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.7.009
+
+- Added the Stage 5.7 planning audit for bootstrap distributions of fitted P and S probabilities.
+- Recommended a psBootstrap S3 object that parallels psPosterior while preserving the distinct frequentist interpretation.
+- Documented reuse of retained bootstrap parameter replicates, zizProbabilities(), percentile probability intervals, failure diagnostics, and seeded serial reproducibility.
+- Preserved bootCI() return values and ordinary plug-in fitted probabilities as compatibility constraints for the implementation stages.
+- Planned Stages 5.8-5.11 for bootstrap objects, public bootstrap probability APIs, harmonised prediction, and final documentation.
+
 ## fitPS 1.0.7.008
 
 - Added plot.psPosterior() for posterior mean P or S probabilities with equal-tailed credible intervals.

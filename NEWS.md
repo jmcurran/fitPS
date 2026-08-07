@@ -19,6 +19,16 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.011
+
+- Added an internal psBootstrap S3 object for frequentist bootstrap parameter and P/S probability distributions.
+- Added a reusable nonparametric bootstrap replicate engine with seeded reproducibility and failed-fit diagnostics.
+- Added bootstrap mean, standard deviation, and percentile confidence intervals for parameter and probability replicates.
+- Reused the existing zero-inflated probability transformation and added the matching standard-zeta P/S transformation.
+- Kept bootCI() return structures backward compatible while routing its replicate generation through the shared engine.
+- Added deterministic offline tests for zeta and zero-inflated bootstrap summaries, reproducibility, failures, and legacy bootFit() shapes.
+- Validated through roxygen, strict offline tests, and strict package check.
 ## fitPS 1.0.7.009
 
 - Added the Stage 5.7 planning audit for bootstrap distributions of fitted P and S probabilities.

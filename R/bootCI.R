@@ -226,130 +226,29 @@ bootFit = function(x, B = 2000, model = c("zeta", "ziz"),
                    silent = FALSE,
                    parallel = TRUE,
                    progressBar = FALSE,
-                   pbopts = list(type = "txt")){
-  yvals = rep(x$data$n, x$data$rn)
-  n = length(yvals)
-
-  to.psData = function(y, type){
-    tbl = table(y)
-    counts = as.vector(tbl)
-
-    r = list(data = data.frame(n =  as.numeric(names(tbl)),
-                               rn =  counts))
-    r$type = type
-    class(r) = "psData"
-
-    return(r)
-  }
-
-  environment(to.psData) = baseenv()
-
-  boot.y = matrix(sample(yvals, n * B, replace = TRUE), nrow = B)
-
+                   pbopts = list(type = "txt"),
+                   seed = NULL) {
   model = match.arg(model)
+  bootstrapResult = bootstrapParameterReplicates(
+    x = x,
+    B = B,
+    model = model,
+    seed = seed,
+    silent = silent,
+    parallel = parallel,
+    progressBar = progressBar,
+    pbopts = pbopts
+  )
 
-  ## just evaluate the progress bar options once instead of calling it everywhere
-  if(progressBar){
-    opb = do.call(get("pboptions", asNamespace("pbapply")), pbopts)
-    on.exit(pbapply::pboptions(opb))
+  successfulReplicates = bootstrapResult$replicates[
+    bootstrapResult$successful,
+    ,
+    drop = FALSE
+  ]
+
+  if (model == "zeta") {
+    return(successfulReplicates$shape)
   }
 
-  if(parallel){
-    ncores = parallel::detectCores()
-    cl = parallel::makeCluster(ncores, setup_strategy = "sequential")
-    doParallel::registerDoParallel(cl)
-
-    if(!silent){
-      cat("Creating bootstrapped data sets\n")
-    }
-
-    boot.y = if(progressBar){
-      pbapply::pbapply(X = boot.y, MARGIN = 1, FUN = to.psData, type = x$type, cl = cl)
-    }else{
-      ##parallel::parApply(cl = cl, X = boot.y, MARGIN = 1, FUN = to.psData, type = x$type)
-      foreach(row = iterators::iter(boot.y, by = "row")) %dopar% {to.psData(row, type = x$type)}
-    }
-
-    if(!silent){
-      cat("Estimating parameters for each bootstrapped data set\n")
-    }
-
-    if(model == "zeta"){
-      results = if(progressBar){
-        pbapply::pbsapply(X = boot.y, FUN = function(y){
-          fitDist(y)$shape
-        }, cl = cl)
-      }else{
-        # parallel::parSapply(cl = cl, X = boot.y, FUN = function(y){
-        #   fitDist(y)$shape
-        # })
-        foreach(x = boot.y, .combine = 'c') %dopar% {
-          r = fitDist(x)
-          r$shape
-        }
-      }
-    }else{
-      results = if(progressBar){
-        pbapply::pblapply(X = boot.y, fun  = function(y){
-          fit = fitZIDist(y)
-          return(c(fit$pi, fit$shape))
-        }, cl = cl)
-      }else{
-        # parallel::parLapply(cl = cl, X = boot.y, fun  = function(y){
-        #   fit = fitZIDist(y)
-        #   return(c(fit$pi, fit$shape))
-        # })
-        foreach(x = boot.y) %dopar% {
-          fit = fitZIDist(x)
-          c(fit$pi, fit$shape)
-        }
-      }
-      results = as.data.frame(do.call("rbind", results))
-      names(results) = c("pi", "shape")
-    }
-    parallel::stopCluster(cl)
-  }else{
-    if(!silent){
-      cat("Creating bootstrapped data sets\n")
-    }
-
-    boot.y = if(progressBar){
-      pbapply::pbapply(boot.y, 1, to.psData, type = x$type)
-    }else{
-      apply(boot.y, 1, to.psData, type = x$type)
-    }
-
-    if(!silent){
-      cat("Estimating parameters for each bootstrapped data set\n")
-    }
-
-    if(model == "zeta"){
-      results = if(progressBar){
-        pbapply::pbsapply(boot.y, function(y){
-          fitDist(y)$shape
-        })
-      }else{
-        sapply(boot.y, function(y){
-          fitDist(y)$shape
-        })
-      }
-    }else{
-      results = if(progressBar){
-        pbapply::pblapply(boot.y, function(y){
-          fit = fitZIDist(y)
-          return(c(fit$pi, fit$shape))
-        })
-      }else{
-        lapply(boot.y, function(y){
-          fit = fitZIDist(y)
-          return(c(fit$pi, fit$shape))
-        })
-      }
-      results = as.data.frame(do.call("rbind", results))
-      names(results) = c("pi", "shape")
-    }
-  }
-
-  return(results)
+  successfulReplicates
 }
-

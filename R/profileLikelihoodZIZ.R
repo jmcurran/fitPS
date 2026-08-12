@@ -1,3 +1,13 @@
+#' Construct a profile-likelihood surface and interval information for a zero-inflated zeta fit.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param level Probability level for intervals or summaries.
+#' @param grid.Pi Grid of zero-inflation probabilities used for profiling.
+#' @param grid.Shape Grid of zeta shape values used for profiling.
+#' @param silent Logical; suppress progress output when `TRUE`.
+#' @return An internal profile-likelihood result.
+#' @keywords internal
+#' @noRd
 profileLikelihoodZIZ  = function(x, level = 0.95,
                  grid.Pi = seq(0 + .Machine$double.eps, 1 - .Machine$double.eps, length = 100),
                  grid.Shape = seq(1 + sqrt(.Machine$double.eps), x$shape + 4 * sqrt(diag(x$var.cov))[2], by = 0.01),

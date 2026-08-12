@@ -1,3 +1,12 @@
+#' Normalise Bayesian fitting options and resolve the posterior method and prior.
+#'
+#' @param bayesOptions A list of Bayesian fitting options, or `NULL`.
+#' @param prior A prior object created by `makePrior()`.
+#' @param allowedPosteriorMethods Character vector of posterior methods allowed in the current context.
+#' @param defaultPosteriorMethod Default posterior method used when none is supplied.
+#' @return A list containing the normalised `posteriorMethod` and validated `prior`.
+#' @keywords internal
+#' @noRd
 normaliseBayesOptions = function(bayesOptions = NULL,
                                  prior,
                                  allowedPosteriorMethods = c("numerical", "mcmc", "laplace", "importance"),
@@ -49,6 +58,12 @@ normaliseBayesOptions = function(bayesOptions = NULL,
   )
 }
 
+#' Validate the internal structure of a Bayesian prior object.
+#'
+#' @param prior A prior object created by `makePrior()`.
+#' @return `TRUE` invisibly when validation succeeds; otherwise an error is raised.
+#' @keywords internal
+#' @noRd
 validateBayesPrior = function(prior) {
   if (!is.list(prior)) {
     stop("Bayesian prior must be a list-like psPrior object")
@@ -67,6 +82,12 @@ validateBayesPrior = function(prior) {
   invisible(TRUE)
 }
 
+#' Transform a zero-inflation probability to the unconstrained logit scale.
+#'
+#' @param pi Zero-inflation probability on the natural scale.
+#' @return Numeric values on the logit scale.
+#' @keywords internal
+#' @noRd
 logitPi = function(pi) {
   pi = unname(pi)
 
@@ -74,9 +95,17 @@ logitPi = function(pi) {
     stop("pi must be numeric and strictly between 0 and 1")
   }
 
+  # The logit removes the bounded (0, 1) constraint so optimisation and
+  # Gaussian approximations can operate on an unconstrained coordinate.
   unname(log(pi / (1 - pi)))
 }
 
+#' Transform a logit-scale zero-inflation parameter back to probability scale.
+#'
+#' @param eta Zero-inflation parameter on the logit working scale.
+#' @return Numeric probabilities strictly between zero and one.
+#' @keywords internal
+#' @noRd
 invLogitPi = function(eta) {
   eta = unname(eta)
 
@@ -87,13 +116,27 @@ invLogitPi = function(eta) {
   unname(1 / (1 + exp(-eta)))
 }
 
+#' Transform a zeta shape parameter greater than one to an unconstrained working scale.
+#'
+#' @param shape Zeta shape parameter on the fitPS scale.
+#' @return Numeric working-scale values.
+#' @keywords internal
+#' @noRd
 shapeToTau = function(shape) {
   shape = unname(shape)
 
   validateZetaShape(shape, "shape")
+  # Subtracting one before logging maps the required shape > 1 support to
+  # the full real line while keeping the inverse transformation simple.
   unname(log(shape - 1))
 }
 
+#' Transform an unconstrained working parameter to the zeta shape scale.
+#'
+#' @param tau Zeta shape parameter on the unconstrained log(shape - 1) working scale.
+#' @return Numeric zeta shape values greater than one.
+#' @keywords internal
+#' @noRd
 tauToShape = function(tau) {
   tau = unname(tau)
 
@@ -104,6 +147,12 @@ tauToShape = function(tau) {
   unname(1 + exp(tau))
 }
 
+#' Transform natural zero-inflated zeta parameters to unconstrained working coordinates.
+#'
+#' @param theta Numeric vector containing natural ZIZ parameters `(pi, shape)`.
+#' @return Named numeric vector `(eta, tau)`.
+#' @keywords internal
+#' @noRd
 zizThetaToWorking = function(theta) {
   theta = unname(theta)
 
@@ -114,6 +163,12 @@ zizThetaToWorking = function(theta) {
   c(eta = logitPi(theta[1]), tau = shapeToTau(theta[2]))
 }
 
+#' Transform zero-inflated zeta working coordinates to natural parameters.
+#'
+#' @param working Numeric vector or matrix of working parameters `(eta, tau)`.
+#' @return Named numeric vector `(pi, shape)`.
+#' @keywords internal
+#' @noRd
 zizWorkingToTheta = function(working) {
   working = unname(working)
 
@@ -124,13 +179,29 @@ zizWorkingToTheta = function(working) {
   c(pi = invLogitPi(working[1]), shape = tauToShape(working[2]))
 }
 
+#' Compute the log absolute Jacobian for the zero-inflated zeta working transformation.
+#'
+#' @param working Numeric vector or matrix of working parameters `(eta, tau)`.
+#' @return Numeric log absolute Jacobian determinant.
+#' @keywords internal
+#' @noRd
 zizWorkingLogJacobian = function(working) {
   working = unname(working)
   theta = zizWorkingToTheta(working)
 
+  # For pi = logistic(eta), d pi / d eta = pi (1 - pi); for
+  # shape = 1 + exp(tau), d shape / d tau = exp(tau). The log-Jacobian
+  # is therefore log(pi) + log(1 - pi) + tau.
   unname(log(theta["pi"]) + log1p(-theta["pi"]) + working[2])
 }
 
+#' Normalise current and legacy Bayesian method selections.
+#'
+#' @param method Character string identifying a fitting or posterior method.
+#' @param bayesOptions A list of Bayesian fitting options, or `NULL`.
+#' @return A list containing normalised method and Bayesian options.
+#' @keywords internal
+#' @noRd
 normaliseBayesMethod = function(method, bayesOptions = NULL) {
   method = match.arg(
     method,

@@ -85,6 +85,12 @@ makePrior = function(family = c("loguniform", "uniform", "custom"),
   prior
 }
 
+#' Validate a two-element prior range for the zeta shape parameter.
+#'
+#' @param range Two-element numeric lower and upper range.
+#' @return `NULL` invisibly when validation succeeds; otherwise an error is raised.
+#' @keywords internal
+#' @noRd
 validatePriorRange = function(range) {
   if (!is.numeric(range) || length(range) != 2L || any(!is.finite(range))) {
     stop("range must be a numeric vector of length two")
@@ -99,6 +105,13 @@ validatePriorRange = function(range) {
   }
 }
 
+#' Test whether values lie strictly inside a numeric range.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param range Two-element numeric lower and upper range.
+#' @return A logical vector.
+#' @keywords internal
+#' @noRd
 inRange = function(x, range) {
   (x > range[1]) & (x < range[2])
 }

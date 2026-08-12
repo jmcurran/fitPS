@@ -1,3 +1,10 @@
+#' Compute the Jensen-Shannon divergence between two discrete probability vectors.
+#'
+#' @param p First discrete probability vector.
+#' @param q Second discrete probability vector.
+#' @return A non-negative Jensen-Shannon divergence.
+#' @keywords internal
+#' @noRd
 jsd = function(p, q){
   ## Jensen-Shannon Divergence
   ## Not exported because I don't want to encourage misuse.

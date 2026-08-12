@@ -222,6 +222,19 @@ bootCI.psFit = function(x, ...){
   return(bootCI.default(x = x$psData, model = x$model, ...))
 }
 
+#' Generate bootstrap parameter replicates for a P/S data set.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param B Number of bootstrap replicates.
+#' @param model Model identifier, typically `"zeta"` or `"ziz"`.
+#' @param silent Logical; suppress progress output when `TRUE`.
+#' @param parallel Logical; use parallel computation when supported.
+#' @param progressBar Logical; display progress information when supported.
+#' @param pbopts Progress-bar options passed to `pbapply` helpers.
+#' @param seed Optional random-number seed.
+#' @return A bootstrap replicate object used by higher-level bootstrap summaries.
+#' @keywords internal
+#' @noRd
 bootFit = function(x, B = 2000, model = c("zeta", "ziz"),
                    silent = FALSE,
                    parallel = TRUE,

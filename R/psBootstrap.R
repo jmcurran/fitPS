@@ -60,6 +60,12 @@ newPsBootstrap = function(method,
   result
 }
 
+#' Validate a bootstrap confidence level.
+#'
+#' @param level Probability level for intervals or summaries.
+#' @return The validated level, invisibly.
+#' @keywords internal
+#' @noRd
 validateBootstrapLevel = function(level) {
   if (!is.numeric(level) || length(level) != 1L || !is.finite(level) ||
       level <= 0 || level >= 1) {
@@ -68,6 +74,13 @@ validateBootstrapLevel = function(level) {
   invisible(level)
 }
 
+#' Compute equal-tail bootstrap quantiles at a requested confidence level.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param level Probability level for intervals or summaries.
+#' @return Numeric lower and upper quantiles.
+#' @keywords internal
+#' @noRd
 bootstrapQuantiles = function(x, level) {
   alpha = (1 - level) / 2
   unname(quantile(
@@ -78,6 +91,13 @@ bootstrapQuantiles = function(x, level) {
   ))
 }
 
+#' Summarise bootstrap parameter replicates with estimates, uncertainty, and intervals.
+#'
+#' @param replicates Bootstrap parameter replicate matrix or data frame.
+#' @param level Probability level for intervals or summaries.
+#' @return A data frame of bootstrap parameter summaries.
+#' @keywords internal
+#' @noRd
 summariseBootstrapParameters = function(replicates, level) {
   validateBootstrapLevel(level)
 
@@ -100,6 +120,14 @@ summariseBootstrapParameters = function(replicates, level) {
   do.call(rbind, summaries)
 }
 
+#' Summarise bootstrap fitted-probability replicates.
+#'
+#' @param probabilities Bootstrap or posterior fitted-probability values.
+#' @param level Probability level for intervals or summaries.
+#' @param method Character string identifying a fitting or posterior method.
+#' @return A data frame of bootstrap probability summaries.
+#' @keywords internal
+#' @noRd
 summariseBootstrapProbabilities = function(probabilities,
                                             level,
                                             method = "nonparametric") {
@@ -125,6 +153,13 @@ summariseBootstrapProbabilities = function(probabilities,
   do.call(rbind, summaries)
 }
 
+#' Fit the requested model to one bootstrap resample.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param model Model identifier, typically `"zeta"` or `"ziz"`.
+#' @return A fitted zeta or ZIZ model.
+#' @keywords internal
+#' @noRd
 fitBootstrapSample = function(x, model) {
   tryCatch(
     {
@@ -145,6 +180,19 @@ fitBootstrapSample = function(x, model) {
   )
 }
 
+#' Generate model-parameter bootstrap replicates with optional parallel execution.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param B Number of bootstrap replicates.
+#' @param model Model identifier, typically `"zeta"` or `"ziz"`.
+#' @param seed Optional random-number seed.
+#' @param silent Logical; suppress progress output when `TRUE`.
+#' @param parallel Logical; use parallel computation when supported.
+#' @param progressBar Logical; display progress information when supported.
+#' @param pbopts Progress-bar options passed to `pbapply` helpers.
+#' @return A collection of bootstrap parameter replicates.
+#' @keywords internal
+#' @noRd
 bootstrapParameterReplicates = function(x,
                                          B = 2000,
                                          model = c("zeta", "ziz"),
@@ -293,6 +341,19 @@ bootstrapParameterReplicates = function(x,
   )
 }
 
+#' Construct a bootstrap summary for an existing fitted P/S model.
+#'
+#' @param object Posterior or fitted object.
+#' @param B Number of bootstrap replicates.
+#' @param level Probability level for intervals or summaries.
+#' @param seed Optional random-number seed.
+#' @param silent Logical; suppress progress output when `TRUE`.
+#' @param parallel Logical; use parallel computation when supported.
+#' @param progressBar Logical; display progress information when supported.
+#' @param pbopts Progress-bar options passed to `pbapply` helpers.
+#' @return A `psBootstrap` object.
+#' @keywords internal
+#' @noRd
 bootstrapPsFit = function(object,
                            B = 2000,
                            level = 0.95,
@@ -433,6 +494,8 @@ summary.psBootstrap = function(object, nterms = NULL, ...) {
   result
 }
 
+#' @describeIn summary.psBootstrap Print a summarized fitPS bootstrap object.
+#' @param x An object of class `summary.psBootstrap`.
 #' @export
 print.summary.psBootstrap = function(x, ...) {
   cat("Summary of fitPS bootstrap distribution\n")

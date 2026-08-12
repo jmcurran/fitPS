@@ -2,9 +2,12 @@
 % Please edit documentation in R/psPosterior.R
 \name{summary.psPosterior}
 \alias{summary.psPosterior}
+\alias{print.summary.psPosterior}
 \title{Summarise a fitPS posterior object}
 \usage{
 \method{summary}{psPosterior}(object, nterms = NULL, inflationEpsilon = 0.01, ...)
+
+\method{print}{summary.psPosterior}(x, ...)
 }
 \arguments{
 \item{object}{An object of class `psPosterior`.}
@@ -17,6 +20,8 @@ For zero-inflated posteriors, the summary reports
 `Pr(pi < inflationEpsilon | data)`. The default is 0.01.}
 
 \item{...}{Additional arguments retained for S3 compatibility.}
+
+\item{x}{An object of class `summary.psPosterior`.}
 }
 \value{
 An object of class `summary.psPosterior`.
@@ -24,3 +29,8 @@ An object of class `summary.psPosterior`.
 \description{
 Summarise a fitPS posterior object
 }
+\section{Methods (by generic)}{
+\itemize{
+\item \code{print(summary.psPosterior)}: Print a summarized fitPS posterior object.
+
+}}

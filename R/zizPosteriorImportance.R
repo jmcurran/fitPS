@@ -1,3 +1,11 @@
+#' Draw from the Gaussian importance proposal in ZIZ working coordinates.
+#'
+#' @param mean Finite length-two proposal mean for `(eta, tau)`.
+#' @param covariance Positive-definite 2 by 2 proposal covariance matrix.
+#' @param n Number of proposal draws.
+#' @return A numeric matrix with columns `eta` and `tau`.
+#' @keywords internal
+#' @noRd
 #' @importFrom stats rnorm
 makeZizProposalDraws = function(mean, covariance, n) {
   mean = unname(mean)
@@ -32,6 +40,14 @@ makeZizProposalDraws = function(mean, covariance, n) {
   draws
 }
 
+#' Evaluate the bivariate normal importance-proposal log density in working coordinates.
+#'
+#' @param working Numeric vector or matrix of working parameters `(eta, tau)`.
+#' @param mean Mean vector used by the Gaussian proposal or weighted covariance calculation.
+#' @param covariance Covariance matrix used by the Gaussian proposal.
+#' @return Numeric log proposal densities.
+#' @keywords internal
+#' @noRd
 zizProposalLogDensity = function(working, mean, covariance) {
   working = matrix(working, ncol = 2L)
   mean = unname(mean)
@@ -45,11 +61,33 @@ zizProposalLogDensity = function(working, mean, covariance) {
   -log(2 * pi) - 0.5 * logDeterminant - 0.5 * quadratic
 }
 
+#' Compute a probability-weighted covariance matrix.
+#'
+#' @param values Matrix of values whose weighted covariance is required.
+#' @param weights Non-negative normalised or normalisable weights.
+#' @param mean Mean vector used by the Gaussian proposal or weighted covariance calculation.
+#' @return A weighted covariance matrix.
+#' @keywords internal
+#' @noRd
 weightedCovariance = function(values, weights, mean) {
   centered = sweep(values, 2L, mean, `-`)
   t(centered) %*% (centered * weights)
 }
 
+#' Construct an importance-sampling approximation to the ZIZ posterior.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param prior A prior object created by `makePrior()`.
+#' @param shape1 First beta-prior shape parameter for the zero-inflation probability.
+#' @param shape2 Second beta-prior shape parameter for the zero-inflation probability.
+#' @param nSamples Number of importance or posterior samples.
+#' @param proposalScale Positive multiplier applied to the Laplace covariance for the importance proposal.
+#' @param seed Optional random-number seed.
+#' @param start Starting values for optimisation or fitting.
+#' @param laplace Optional precomputed Laplace approximation used to construct the proposal.
+#' @return A list describing weighted samples, posterior moments, proposal, and diagnostics.
+#' @keywords internal
+#' @noRd
 makeZizPosteriorImportance = function(x,
                                       prior,
                                       shape1 = 1,
@@ -103,6 +141,8 @@ makeZizPosteriorImportance = function(x,
 
   proposalMean = unname(laplace$modeWorking)
   names(proposalMean) = c("eta", "tau")
+  # Inflate the local Laplace covariance so the proposal has heavier practical
+  # coverage of posterior tails; importance weights correct for the mismatch.
   proposalCovariance = laplace$covarianceWorking * proposalScale
   dimnames(proposalCovariance) = list(c("eta", "tau"), c("eta", "tau"))
 
@@ -130,6 +170,9 @@ makeZizPosteriorImportance = function(x,
     covariance = proposalCovariance
   )
 
+  # Importance weights are posterior/proposal ratios. Work on the log scale
+  # first, then subtract the maximum finite log weight before exponentiating
+  # to avoid numerical overflow and underflow.
   logWeights = logPosterior - logProposal
   finiteWeights = is.finite(logWeights)
   if (!any(finiteWeights)) {
@@ -145,6 +188,8 @@ makeZizPosteriorImportance = function(x,
     stop("importance sampling weights could not be normalized")
   }
 
+  # Normalised weights sum to one and can therefore be used directly for
+  # posterior moments, probability summaries, and effective sample size.
   weights = scaledWeights / weightSum
   thetaSamples = t(apply(workingSamples, 1L, zizWorkingToTheta))
   colnames(thetaSamples) = c("pi", "shape")
@@ -183,6 +228,22 @@ makeZizPosteriorImportance = function(x,
   )
 }
 
+#' Fit the zero-inflated zeta model using importance sampling.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param prior A prior object created by `makePrior()`.
+#' @param shape1 First beta-prior shape parameter for the zero-inflation probability.
+#' @param shape2 Second beta-prior shape parameter for the zero-inflation probability.
+#' @param nSamples Number of importance or posterior samples.
+#' @param proposalScale Positive multiplier applied to the Laplace covariance for the importance proposal.
+#' @param seed Optional random-number seed.
+#' @param start Starting values for optimisation or fitting.
+#' @param level Probability level for intervals or summaries.
+#' @param ... Additional arguments passed to the underlying fitting or helper routine.
+#' @return A Bayesian ZIZ `psFit` object.
+#' @keywords internal
+#' @noRd
 fitZIDistBayesImportance = function(x,
                                     nterms = 10,
                                     prior = makePrior(),

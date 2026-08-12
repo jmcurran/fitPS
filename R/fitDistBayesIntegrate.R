@@ -1,3 +1,12 @@
+#' Fit the plain zeta model using one-dimensional numerical posterior integration.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param prior A prior object created by `makePrior()`.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param ... Additional arguments passed to the underlying fitting or helper routine.
+#' @return A Bayesian `psFit` object.
+#' @keywords internal
+#' @noRd
 fitDistBayesIntegrate = function(x, prior = makePrior(), nterms, ...){
 
   nvals = 1:nterms
@@ -46,8 +55,8 @@ fitDistBayesIntegrate = function(x, prior = makePrior(), nterms, ...){
     - (logLik(shape) + prior$logd(shape))
   }
 
-  # find the maximum of log likelihood times prior to determine a scaling factor
-  # we scale with respect to the posterior mode
+  # Shift the log posterior by its mode before exponentiating. This preserves
+  # posterior ratios while reducing underflow during one-dimensional integration.
   opt = optim(
     par = mean(c(a, b)),
     fn = negLogLikTimesPrior,

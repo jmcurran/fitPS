@@ -1,3 +1,14 @@
+#' Evaluate the ZIZ log posterior in unconstrained working coordinates.
+#'
+#' @param working Numeric vector or matrix of working parameters `(eta, tau)`.
+#' @param obsData Positive-integer observation support used by the ZIZ likelihood.
+#' @param counts Observation frequencies corresponding to `obsData`.
+#' @param prior A prior object created by `makePrior()`.
+#' @param shape1 First beta-prior shape parameter for the zero-inflation probability.
+#' @param shape2 Second beta-prior shape parameter for the zero-inflation probability.
+#' @return A numeric log posterior value on the working scale, or `-Inf` outside the valid region.
+#' @keywords internal
+#' @noRd
 zizWorkingLogPosterior = function(working,
                                   obsData,
                                   counts,
@@ -14,6 +25,9 @@ zizWorkingLogPosterior = function(working,
   pi = unname(theta[["pi"]])
   shape = unname(theta[["shape"]])
 
+  # The target density is expressed in working coordinates, so the natural-
+  # scale posterior must include the transformation Jacobian. Omitting this
+  # term would approximate a different posterior after reparameterisation.
   logValue = zizLogLikelihood(obsData, counts, pi, shape) +
     dbeta(pi, shape1, shape2, log = TRUE) +
     prior$logd(shape) +
@@ -26,6 +40,16 @@ zizWorkingLogPosterior = function(working,
   unname(logValue)
 }
 
+#' Construct a Laplace approximation to the ZIZ posterior.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param prior A prior object created by `makePrior()`.
+#' @param shape1 First beta-prior shape parameter for the zero-inflation probability.
+#' @param shape2 Second beta-prior shape parameter for the zero-inflation probability.
+#' @param start Starting values for optimisation or fitting.
+#' @return A list describing the posterior mode, Hessian, and covariance approximations.
+#' @keywords internal
+#' @noRd
 makeZizPosteriorLaplace = function(x,
                                    prior,
                                    shape1 = 1,
@@ -97,6 +121,8 @@ makeZizPosteriorLaplace = function(x,
     stop("Laplace posterior Hessian is not finite")
   }
 
+  # At the posterior mode, the inverse Hessian of the negative log posterior
+  # gives the local Gaussian covariance used by the Laplace approximation.
   covarianceWorking = tryCatch(
     solve(hessian),
     error = function(e) {
@@ -126,6 +152,8 @@ makeZizPosteriorLaplace = function(x,
     byrow = TRUE,
     dimnames = list(c("pi", "shape"), c("eta", "tau"))
   )
+  # Transform the local working-scale covariance back to (pi, shape) using
+  # the first-order delta method.
   covarianceTheta = jacobianTheta %*% covarianceWorking %*% t(jacobianTheta)
 
   dimnames(covarianceWorking) = list(c("eta", "tau"), c("eta", "tau"))
@@ -145,6 +173,21 @@ makeZizPosteriorLaplace = function(x,
   )
 }
 
+#' Fit the zero-inflated zeta model using a Laplace posterior approximation.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param prior A prior object created by `makePrior()`.
+#' @param shape1 First beta-prior shape parameter for the zero-inflation probability.
+#' @param shape2 Second beta-prior shape parameter for the zero-inflation probability.
+#' @param start Starting values for optimisation or fitting.
+#' @param nPosteriorDraws Number of draws generated from the Laplace approximation for posterior summaries.
+#' @param seed Optional random-number seed.
+#' @param level Probability level for intervals or summaries.
+#' @param ... Additional arguments passed to the underlying fitting or helper routine.
+#' @return A Bayesian ZIZ `psFit` object.
+#' @keywords internal
+#' @noRd
 fitZIDistBayesLaplace = function(x,
                                  nterms = 10,
                                  prior = makePrior(),

@@ -1,3 +1,12 @@
+#' Fit the plain zeta model with the MCMC Bayesian implementation.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param prior A prior object created by `makePrior()`.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param ... Additional arguments passed to the underlying fitting or helper routine.
+#' @return A Bayesian `psFit` object.
+#' @keywords internal
+#' @noRd
 fitDistBayes = function(x, prior = makePrior(), nterms, ...){
 
   nvals = 1:nterms

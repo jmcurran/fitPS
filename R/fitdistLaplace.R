@@ -1,3 +1,11 @@
+#' Compute the legacy Laplace approximation for a plain zeta fit.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param ... Additional arguments passed to the underlying fitting or helper routine.
+#' @return An internal Laplace-fit result.
+#' @keywords internal
+#' @noRd
 fitdistLaplace = function(x, nterms = 10, ...){
   ## This is just proof of concept at the moment so
   ## the prior and its parameters are fixed to U[-2,2]

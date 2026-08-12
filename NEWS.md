@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.003
+
+- Completed the Stage 6.2 internal roxygen2 documentation baseline and Bayesian rationale comments.
+- Repaired shared summary help topics by documenting the x arguments contributed by print.summary.psBootstrap() and print.summary.psPosterior().
+- Preserved executable R statements while carrying forward the complete Stage 6.2 documentation change set after its pre-commit check failure.
+- Added the Stage 6.2.1 repair note explaining the roxygen @describeIn argument-documentation issue.
+- Validated with the full fitPS stage workflow because package R source files changed.
+
 ## fitPS 1.0.8.001
 
 - Began Stage 6 as the fitPS Bayesian architecture, documentation, and consolidation series.

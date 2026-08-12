@@ -1,3 +1,9 @@
+#' Convert P/S data to the positive-integer support used by the ZIZ likelihood.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @return A numeric vector on the positive-integer ZIZ support.
+#' @keywords internal
+#' @noRd
 zizObservationData = function(x) {
   if (!is(x, "psData")) {
     stop("x must be an object of class psData")
@@ -18,6 +24,15 @@ zizObservationData = function(x) {
   }
 }
 
+#' Evaluate the zero-inflated zeta log likelihood for aggregated observations.
+#'
+#' @param obsData Positive-integer observation support used by the ZIZ likelihood.
+#' @param counts Observation frequencies corresponding to `obsData`.
+#' @param pi Zero-inflation probability on the natural scale.
+#' @param shape Zeta shape parameter on the fitPS scale.
+#' @return A numeric log-likelihood value, or `-Inf` outside the parameter space.
+#' @keywords internal
+#' @noRd
 zizLogLikelihood = function(obsData, counts, pi, shape) {
   pi = unname(pi)
   shape = unname(shape)
@@ -40,6 +55,17 @@ zizLogLikelihood = function(obsData, counts, pi, shape) {
   sum(counts * log(probabilities))
 }
 
+#' Construct and normalise a two-dimensional numerical posterior grid for ZIZ parameters.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param prior A prior object created by `makePrior()`.
+#' @param shape1 First beta-prior shape parameter for the zero-inflation probability.
+#' @param shape2 Second beta-prior shape parameter for the zero-inflation probability.
+#' @param nPiGrid Number of grid points for the zero-inflation probability.
+#' @param nShapeGrid Number of grid points for the zeta shape parameter.
+#' @return A list describing the normalised joint grid, marginals, moments, and grid spacings.
+#' @keywords internal
+#' @noRd
 makeZizPosteriorGrid = function(x,
                                 prior,
                                 shape1 = 1,
@@ -69,6 +95,8 @@ makeZizPosteriorGrid = function(x,
 
   obsData = zizObservationData(x)
   counts = x$data$rn
+  # Keep the numerical grid just inside the open support of pi. The clipping
+  # avoids log-density failures at exactly 0 or 1 without changing the model.
   piEps = sqrt(.Machine$double.eps)
   piGrid = seq(piEps, 1 - piEps, length.out = nPiGrid)
   shapeGrid = seq(prior$range[1], prior$range[2], length.out = nShapeGrid)
@@ -88,10 +116,16 @@ makeZizPosteriorGrid = function(x,
     stop("The zero-inflated zeta posterior grid has no finite posterior values")
   }
 
+  # Subtract the maximum log posterior before exponentiating. This standard
+  # log-sum-exp rescaling preserves relative weights while avoiding overflow
+  # and severe underflow during numerical integration.
   logScale = max(finiteValues)
   scaledWeights = exp(logPosterior - logScale)
   scaledWeights[!is.finite(scaledWeights)] = 0
 
+  # The grid is rectangular and equally spaced, so each cell has integration
+  # weight dPi * dShape. Marginal densities below retain the complementary
+  # spacing factor so subsequent one-dimensional sums approximate integrals.
   dPi = diff(range(piGrid)) / (length(piGrid) - 1L)
   dShape = diff(range(shapeGrid)) / (length(shapeGrid) - 1L)
   scaledIntegral = sum(scaledWeights) * dPi * dShape
@@ -133,6 +167,12 @@ makeZizPosteriorGrid = function(x,
   )
 }
 
+#' Construct interpolating functions for the marginal densities from a ZIZ posterior grid.
+#'
+#' @param posteriorGrid Numerical posterior-grid representation.
+#' @return A list of interpolation functions for marginal posterior densities.
+#' @keywords internal
+#' @noRd
 makeZizMarginalPdf = function(posteriorGrid) {
   list(
     pi = approxfun(
@@ -152,6 +192,20 @@ makeZizMarginalPdf = function(posteriorGrid) {
   )
 }
 
+#' Fit the zero-inflated zeta model using numerical posterior integration.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param prior A prior object created by `makePrior()`.
+#' @param shape1 First beta-prior shape parameter for the zero-inflation probability.
+#' @param shape2 Second beta-prior shape parameter for the zero-inflation probability.
+#' @param nPiGrid Number of grid points for the zero-inflation probability.
+#' @param nShapeGrid Number of grid points for the zeta shape parameter.
+#' @param level Probability level for intervals or summaries.
+#' @param ... Additional arguments passed to the underlying fitting or helper routine.
+#' @return A Bayesian ZIZ `psFit` object.
+#' @keywords internal
+#' @noRd
 fitZIDistBayesNumerical = function(x,
                                    nterms = 10,
                                    prior = makePrior(),

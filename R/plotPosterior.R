@@ -93,6 +93,15 @@ plotPosterior = function(object,
   return(invisible(makePosteriorPlotReturn(posterior)))
 }
 
+#' Validate posterior plotting inputs before representation-specific extraction.
+#'
+#' @param object Posterior or fitted object.
+#' @param parameter Name of the posterior parameter to process.
+#' @param level Probability level for intervals or summaries.
+#' @param nGrid Number of points used for a plotting or integration grid.
+#' @return `TRUE` invisibly when inputs are valid; otherwise an error is raised.
+#' @keywords internal
+#' @noRd
 validatePosteriorPlotInput = function(object, parameter, level, nGrid){
   if(!methods::is(object, "psFit")){
     stop("object must be an object of class psFit.", call. = FALSE)
@@ -123,6 +132,15 @@ validatePosteriorPlotInput = function(object, parameter, level, nGrid){
   }
 }
 
+#' Build the common plotting data structure for a posterior parameter.
+#'
+#' @param object Posterior or fitted object.
+#' @param parameter Name of the posterior parameter to process.
+#' @param level Probability level for intervals or summaries.
+#' @param nGrid Number of points used for a plotting or integration grid.
+#' @return A list containing posterior plotting coordinates and summaries.
+#' @keywords internal
+#' @noRd
 getPosteriorPlotData = function(object, parameter, level, nGrid){
   samples = getPosteriorSamples(object, parameter)
 
@@ -133,6 +151,13 @@ getPosteriorPlotData = function(object, parameter, level, nGrid){
   getDensityPosteriorPlotData(object, parameter, level, nGrid)
 }
 
+#' Extract posterior samples for a requested parameter when samples are available.
+#'
+#' @param object Posterior or fitted object.
+#' @param parameter Name of the posterior parameter to process.
+#' @return A numeric vector of posterior samples or `NULL` when unavailable.
+#' @keywords internal
+#' @noRd
 getPosteriorSamples = function(object, parameter){
   if(is.null(object$chain)){
     return(NULL)
@@ -157,6 +182,15 @@ getPosteriorSamples = function(object, parameter){
   samples
 }
 
+#' Construct plotting summaries from posterior samples.
+#'
+#' @param object Posterior or fitted object.
+#' @param parameter Name of the posterior parameter to process.
+#' @param level Probability level for intervals or summaries.
+#' @param samples Posterior sample values.
+#' @return A list of density, estimate, and interval information for plotting.
+#' @keywords internal
+#' @noRd
 getSamplePosteriorPlotData = function(object, parameter, level, samples){
   densityEstimate = density(samples)
   alpha = (1 - level) / 2
@@ -170,6 +204,15 @@ getSamplePosteriorPlotData = function(object, parameter, level, samples){
   )
 }
 
+#' Construct plotting summaries from a posterior density representation.
+#'
+#' @param object Posterior or fitted object.
+#' @param parameter Name of the posterior parameter to process.
+#' @param level Probability level for intervals or summaries.
+#' @param nGrid Number of points used for a plotting or integration grid.
+#' @return A list of density, estimate, and interval information for plotting.
+#' @keywords internal
+#' @noRd
 getDensityPosteriorPlotData = function(object, parameter, level, nGrid){
   densityFunction = getPosteriorDensityFunction(object, parameter)
 
@@ -204,6 +247,13 @@ getDensityPosteriorPlotData = function(object, parameter, level, nGrid){
 }
 
 
+#' Extract or construct a marginal posterior density function.
+#'
+#' @param object Posterior or fitted object.
+#' @param parameter Name of the posterior parameter to process.
+#' @return A function evaluating a marginal posterior density.
+#' @keywords internal
+#' @noRd
 getPosteriorDensityFunction = function(object, parameter){
   if(!is.null(object$marginalPdf) && is.list(object$marginalPdf)){
     densityFunction = object$marginalPdf[[parameter]]
@@ -219,6 +269,14 @@ getPosteriorDensityFunction = function(object, parameter){
   NULL
 }
 
+#' Construct a plotting grid over the useful support of a posterior parameter.
+#'
+#' @param object Posterior or fitted object.
+#' @param parameter Name of the posterior parameter to process.
+#' @param nGrid Number of points used for a plotting or integration grid.
+#' @return A numeric plotting grid.
+#' @keywords internal
+#' @noRd
 getPosteriorGrid = function(object, parameter, nGrid){
   estimate = getPosteriorEstimate(object, parameter)
   spread = getPosteriorSpread(object, parameter)
@@ -249,6 +307,13 @@ getPosteriorGrid = function(object, parameter, nGrid){
   seq(lower, upper, length.out = as.integer(nGrid))
 }
 
+#' Extract the representative posterior estimate for a parameter.
+#'
+#' @param object Posterior or fitted object.
+#' @param parameter Name of the posterior parameter to process.
+#' @return A numeric posterior estimate.
+#' @keywords internal
+#' @noRd
 getPosteriorEstimate = function(object, parameter){
   if(!is.null(object[[parameter]]) && is.numeric(object[[parameter]]) && length(object[[parameter]]) == 1){
     return(object[[parameter]])
@@ -268,6 +333,13 @@ getPosteriorEstimate = function(object, parameter){
   NA_real_
 }
 
+#' Estimate posterior spread for choosing a useful plotting range.
+#'
+#' @param object Posterior or fitted object.
+#' @param parameter Name of the posterior parameter to process.
+#' @return A positive numeric spread estimate.
+#' @keywords internal
+#' @noRd
 getPosteriorSpread = function(object, parameter){
   if(parameter == "shape" && !is.null(object$var.shape)){
     return(sqrt(as.numeric(object$var.shape)))
@@ -280,6 +352,13 @@ getPosteriorSpread = function(object, parameter){
   NA_real_
 }
 
+#' Construct interpolated density and cumulative-distribution functions from a posterior grid.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param y Observed values used by the legacy likelihood helper.
+#' @return A list containing interpolated density and CDF functions.
+#' @keywords internal
+#' @noRd
 makePosteriorGridFunctions = function(x, y){
   densityFun = approxfun(x, y, yleft = 0, yright = 0, rule = 1)
   xRange = range(x)
@@ -307,6 +386,14 @@ makePosteriorGridFunctions = function(x, y){
   )
 }
 
+#' Invert a grid-based posterior cumulative distribution numerically.
+#'
+#' @param cdfFun Cumulative-distribution function used for numerical inversion.
+#' @param xRange Two-element range over which to invert the CDF.
+#' @param probs Probabilities at which quantiles are required.
+#' @return Numeric posterior quantiles.
+#' @keywords internal
+#' @noRd
 posteriorGridQuantile = function(cdfFun, xRange, probs){
   vapply(
     probs,
@@ -330,10 +417,23 @@ posteriorGridQuantile = function(cdfFun, xRange, probs){
   )
 }
 
+#' Interpolate the posterior density height at a supplied parameter value.
+#'
+#' @param posterior Posterior density or posterior object.
+#' @param x An input object or numeric vector required by the helper.
+#' @return A numeric interpolated density height.
+#' @keywords internal
+#' @noRd
 approxPosteriorHeight = function(posterior, x){
   approx(posterior$x, posterior$density, xout = x, rule = 2)$y
 }
 
+#' Create the invisible structured return value from posterior plotting.
+#'
+#' @param posterior Posterior density or posterior object.
+#' @return A structured list returned invisibly by the plotting method.
+#' @keywords internal
+#' @noRd
 makePosteriorPlotReturn = function(posterior){
   result = data.frame(
     x = posterior$x,

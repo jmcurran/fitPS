@@ -126,6 +126,13 @@ weightedZizQuantile = function(values, weights, probabilities) {
   )
 }
 
+#' Return the support indices used to label fitted P or S probabilities.
+#'
+#' @param type P- or S-survey type.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @return Integer support indices for naming P/S probability terms.
+#' @keywords internal
+#' @noRd
 zizProbabilityIndices = function(type, nterms) {
   type = match.arg(type, c("P", "S"))
   nterms = as.integer(nterms)
@@ -141,6 +148,15 @@ zizProbabilityIndices = function(type, nterms) {
   }
 }
 
+#' Summarise fitted P/S probabilities over a numerical ZIZ posterior grid.
+#'
+#' @param posteriorGrid Numerical posterior-grid representation.
+#' @param type P- or S-survey type.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param level Probability level for intervals or summaries.
+#' @return A data frame of posterior fitted-probability summaries.
+#' @keywords internal
+#' @noRd
 summariseZizGridProbabilities = function(posteriorGrid,
                                           type,
                                           nterms,
@@ -165,6 +181,18 @@ summariseZizGridProbabilities = function(posteriorGrid,
   )
 }
 
+#' Summarise fitted P/S probabilities over sampled ZIZ posterior representations.
+#'
+#' @param pi Zero-inflation probability on the natural scale.
+#' @param shape Zeta shape parameter on the fitPS scale.
+#' @param type P- or S-survey type.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param weights Non-negative normalised or normalisable weights.
+#' @param level Probability level for intervals or summaries.
+#' @param posteriorMethod Character label identifying the posterior approximation method.
+#' @return A data frame of posterior fitted-probability summaries.
+#' @keywords internal
+#' @noRd
 summariseZizSampleProbabilities = function(pi,
                                             shape,
                                             type,

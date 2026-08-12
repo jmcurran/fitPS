@@ -2,9 +2,12 @@
 % Please edit documentation in R/psBootstrap.R
 \name{summary.psBootstrap}
 \alias{summary.psBootstrap}
+\alias{print.summary.psBootstrap}
 \title{Summarise a fitPS bootstrap object}
 \usage{
 \method{summary}{psBootstrap}(object, nterms = NULL, ...)
+
+\method{print}{summary.psBootstrap}(x, ...)
 }
 \arguments{
 \item{object}{An object of class `psBootstrap`.}
@@ -13,6 +16,8 @@
 If `NULL`, all stored summaries are included.}
 
 \item{...}{Additional arguments retained for S3 compatibility.}
+
+\item{x}{An object of class `summary.psBootstrap`.}
 }
 \value{
 An object of class `summary.psBootstrap`.
@@ -20,3 +25,8 @@ An object of class `summary.psBootstrap`.
 \description{
 Summarise a fitPS bootstrap object
 }
+\section{Methods (by generic)}{
+\itemize{
+\item \code{print(summary.psBootstrap)}: Print a summarized fitPS bootstrap object.
+
+}}

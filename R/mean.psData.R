@@ -6,6 +6,7 @@
 var = function(x, ...){
   UseMethod("var")
 }
+#' @describeIn var Default variance method for non-psData objects.
 #' @export
 var.default = function(x, ...){
   stats::var(x, ...)

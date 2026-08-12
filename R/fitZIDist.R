@@ -326,6 +326,13 @@ fitZIdist = fitZIDist
 #' @export
 fitzidist = fitZIDist
 
+#' Evaluate the legacy zero-inflated zeta log likelihood used by profile-likelihood fitting.
+#'
+#' @param y Observed values used by the legacy likelihood helper.
+#' @param theta Numeric vector containing natural ZIZ parameters `(pi, shape)`.
+#' @return A numeric log-likelihood value.
+#' @keywords internal
+#' @noRd
 zi.loglik = function(y, theta){
   p = theta[1]
   shape = theta[2]
@@ -335,6 +342,16 @@ zi.loglik = function(y, theta){
 }
 
 
+#' Fit the zero-inflated zeta model by profile likelihood.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param start Starting values for optimisation or fitting.
+#' @param lambda Penalty or tuning value used by the legacy profile-likelihood fit.
+#' @param ... Additional arguments passed to the underlying fitting or helper routine.
+#' @return A zero-inflated zeta `psFit` object.
+#' @keywords internal
+#' @noRd
 fitZIDistPL = function(x, nterms = 10,
                        start = c(0.5, 2),
                        lambda = 0.1,

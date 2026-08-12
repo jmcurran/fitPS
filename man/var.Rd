@@ -2,9 +2,12 @@
 % Please edit documentation in R/mean.psData.R
 \name{var}
 \alias{var}
+\alias{var.default}
 \title{Variance generic}
 \usage{
 var(x, ...)
+
+\method{var}{default}(x, ...)
 }
 \arguments{
 \item{x}{an object for which we want to compute the sample variance.}
@@ -14,3 +17,8 @@ var(x, ...)
 \description{
 Variance generic
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{var(default)}: Default variance method for non-psData objects.
+
+}}

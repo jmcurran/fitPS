@@ -1,3 +1,11 @@
+#' Fit zeta and zero-inflated zeta models for internal comparison.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param start Starting values for optimisation or fitting.
+#' @param ... Additional arguments passed to the underlying fitting or helper routine.
+#' @return An internal comparison object containing fitted candidate models.
+#' @keywords internal
+#' @noRd
 fitCompare = function(x, start = list(zeta = 1, ziz = c(0.5, 1)), ...){
   fit.zeta = fitDist(x, start = start$zeta, ...)
   fit.ziz = fitZIdist(x, start = start$ziz, ...)

@@ -25,6 +25,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.001
+
+- Began Stage 6 as the fitPS Bayesian architecture, documentation, and consolidation series.
+- Added the Stage 6.1 audit defining orthogonal S3 model and posterior-engine abstractions for plain zeta, zero-inflated zeta, and future distributions.
+- Recorded consolidation targets for shared observation handling, probability naming, prior validation, posterior summaries, and Bayesian psFit construction.
+- Reserved the 1.0.8.xxx version series for Stage 6, with every runner attempt consuming a new build number.
+- Renumbered the proposed Bayesian-bootstrap context as future Stage 7.1 work so it remains separate from the architecture refactor.
+- Stage 6.1.1 repairs the Stage 6.1 delivery workflow and installs the same planning documentation; no R package validation is claimed for this planning stage.
+
 ## fitPS 1.0.7.018
 
 - Added posteriorInflation() for Pr(pi < epsilon | data) under Bayesian zero-inflated zeta fits.

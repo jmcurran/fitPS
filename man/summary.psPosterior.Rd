@@ -4,10 +4,13 @@
 \alias{summary.psPosterior}
 \title{Summarise a fitPS posterior object}
 \usage{
-\method{summary}{psPosterior}(object, ...)
+\method{summary}{psPosterior}(object, nterms = NULL, ...)
 }
 \arguments{
 \item{object}{An object of class `psPosterior`.}
+
+\item{nterms}{Optional number of leading probability summaries to include.
+If `NULL`, all stored summaries are included.}
 
 \item{...}{Additional arguments retained for S3 compatibility.}
 }

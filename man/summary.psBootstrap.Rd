@@ -4,10 +4,13 @@
 \alias{summary.psBootstrap}
 \title{Summarise a fitPS bootstrap object}
 \usage{
-\method{summary}{psBootstrap}(object, ...)
+\method{summary}{psBootstrap}(object, nterms = NULL, ...)
 }
 \arguments{
 \item{object}{An object of class `psBootstrap`.}
+
+\item{nterms}{Optional number of leading probability summaries to include.
+If `NULL`, all stored summaries are included.}
 
 \item{...}{Additional arguments retained for S3 compatibility.}
 }

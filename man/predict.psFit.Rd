@@ -7,7 +7,8 @@
 \method{predict}{psFit}(
   object,
   newdata,
-  interval = c("none", "prof", "wald"),
+  type = c("plugIn", "posteriorMean", "bootstrapMean"),
+  interval = c("none", "prof", "wald", "credible", "percentile"),
   level = 0.95,
   ...
 )
@@ -19,26 +20,28 @@ or \code{\link{fitZIDist}}.}
 \item{newdata}{an optional vector of integers at which to calculate
 \eqn{\Pr(X = x)}{Pr(X = x)}.}
 
-\item{interval}{either \code{"none"}, \code{"prof"}, or \code{"wald"} and can
-be abbreviated. If \code{"prof"} or \code{"wald"} AND the zeta model has
-been used, then an interval, based on the bounds of a 100 * \code{level}
-confidence interval for the shape parameter, is given for each predicted
-probability. The interval is provided based on either a profile likelihood
-or a Wald confidence interval for shape, and therefore cannot really
-be regarded as a confidence interval for the probabilities. The intervals
-might be more sensibly regarded as a measure of how sensitive the
-probabilities are to the choice of shape parameter. NOTE: this parameter is
-ignored if the Zero-inflated (ZIZ) model has been used.}
+\item{type}{The probability definition. \code{"plugIn"} evaluates the
+probability model at fitted parameter values. \code{"posteriorMean"}
+returns posterior mean probabilities for Bayesian fits.
+\code{"bootstrapMean"} returns bootstrap mean probabilities when a
+bootstrap distribution has been attached to the fit.}
 
-\item{level}{the level of a confidence interval. Ignored if \code{interval ==
-"none"}.}
+\item{interval}{Interval type. Existing \code{"prof"} and \code{"wald"}
+intervals are retained for plug-in zeta predictions. \code{"credible"}
+returns stored equal-tailed credible intervals for posterior mean
+predictions. \code{"percentile"} returns stored percentile bootstrap
+confidence intervals for bootstrap mean predictions.}
 
-\item{...}{other arguments passed to \code{predict}---not used}
+\item{level}{the interval level. For posterior and bootstrap predictions,
+the requested level must match the level stored in the corresponding
+uncertainty object. If omitted, the stored level is used.}
+
+\item{...}{other arguments passed to \code{predict}---not used.}
 }
 \value{
-either a named vector of fitted probabilities, or a \code{data.frame}
-  with columns \code{predicted}, \code{lower}, and \code{upper} and the row
-  names set to show what terms are being calculated
+either a named vector of probabilities, or a \code{data.frame}
+  with columns \code{predicted}, \code{lower}, and \code{upper} and row
+  names showing the requested P or S terms.
 }
 \description{
 S3 predict method for an object of class \code{psFit}

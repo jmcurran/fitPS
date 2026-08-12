@@ -373,17 +373,30 @@ bootstrapPsFit = function(object,
 #' Print a fitPS bootstrap object
 #'
 #' @param x An object of class `psBootstrap`.
+#' @param nterms Optional number of leading probability summaries to print.
+#'   By default, at most the first 10 are shown.
 #' @param ... Additional arguments passed to `print.data.frame()`.
 #'
 #' @return The bootstrap object, invisibly.
 #' @export
-print.psBootstrap = function(x, ...) {
+print.psBootstrap = function(x, nterms = NULL, ...) {
+  if (is.null(nterms)) {
+    nterms = min(10L, nrow(x$probabilities))
+  }
+  probabilities = bootstrapProbs(x, n = nterms)
+
   cat("fitPS bootstrap distribution\n")
   cat("Method:", x$method, "\n\n")
   cat("Parameter summaries:\n")
   print(x$parameters, row.names = FALSE, ...)
   cat("\nBootstrap probability summaries:\n")
-  print(x$probabilities, row.names = FALSE, ...)
+  print(probabilities, row.names = FALSE, ...)
+  if (nrow(probabilities) < nrow(x$probabilities)) {
+    cat(
+      "\nShowing", nrow(probabilities), "of", nrow(x$probabilities),
+      "stored probability summaries.\n"
+    )
+  }
 
   if (!is.null(x$diagnostics)) {
     cat("\nDiagnostics:\n")
@@ -396,15 +409,23 @@ print.psBootstrap = function(x, ...) {
 #' Summarise a fitPS bootstrap object
 #'
 #' @param object An object of class `psBootstrap`.
+#' @param nterms Optional number of leading probability summaries to include.
+#'   If `NULL`, all stored summaries are included.
 #' @param ... Additional arguments retained for S3 compatibility.
 #'
 #' @return An object of class `summary.psBootstrap`.
 #' @export
-summary.psBootstrap = function(object, ...) {
+summary.psBootstrap = function(object, nterms = NULL, ...) {
+  probabilities = if (is.null(nterms)) {
+    object$probabilities
+  } else {
+    bootstrapProbs(object, n = nterms)
+  }
+
   result = list(
     method = object$method,
     parameters = object$parameters,
-    probabilities = object$probabilities,
+    probabilities = probabilities,
     level = object$level,
     diagnostics = object$diagnostics
   )
@@ -428,3 +449,4 @@ print.summary.psBootstrap = function(x, ...) {
 
   invisible(x)
 }
+

@@ -4,22 +4,27 @@
 \alias{summary.psFit}
 \title{S3 summary method for an object of class \code{psFit}}
 \usage{
-\method{summary}{psFit}(object, ...)
+\method{summary}{psFit}(object, nterms = NULL, ...)
 }
 \arguments{
-\item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}
-or \code{\link{fitZIDist}}}
+\item{object}{an object of class \code{psFit}, usually from
+\code{\link{fitDist}} or \code{\link{fitZIDist}}.}
 
-\item{...}{other arguments passed to \code{summary}}
+\item{nterms}{Optional number of leading posterior or bootstrap probability
+summaries to include when an uncertainty object is attached.}
+
+\item{...}{other arguments passed to delegated summary methods.}
 }
 \value{
-No return value, called for side effects
+For Bayesian fits, a \code{summary.psPosterior} object. For
+  maximum-likelihood fits, invisibly returns the coefficient matrix.
 }
 \description{
 S3 summary method for an object of class \code{psFit}
 }
 \details{
-Experimental because I am unsure if it is useful. If \code{object} is a zero-inflated zeta fitted object,
-then the function carries out a likelihood ratio test for the value of pi. Currently not implemented for the logarithmic
-distribution because we are currently not interested in the logarithmic distribution.
+Bayesian fits delegate to the attached \code{psPosterior} object. For
+maximum-likelihood fits, the existing parameter summary and zero-inflation
+likelihood-ratio test are preserved. If a \code{psBootstrap} object is
+attached, its parameter and probability summaries are printed afterwards.
 }

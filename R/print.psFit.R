@@ -1,68 +1,65 @@
 #' S3 print method for an object of class \code{psFit}
 #'
 #' @param x an object of class \code{psFit}, usually from \code{\link{fitDist}}
-#' or #' \code{\link{fitZIDist}}.
-#' @param ... other arguments passed to \code{print}.
+#'   or \code{\link{fitZIDist}}.
+#' @param nterms Number of probability terms to print. If \code{NULL}, print
+#'   the terms already stored in the fitted object, capped at 10 for posterior
+#'   and bootstrap summaries.
+#' @param ... other arguments passed to delegated print methods.
 #'
 #' @return No return value, called for side effects.
 #' @export
-print.psFit = function(x, ...){
-
-  isBayes = x$method == "bayes"
+print.psFit = function(x, nterms = NULL, ...) {
+  isBayes = identical(x$method, "bayes")
 
   if (isBayes && inherits(x$posterior, "psPosterior")) {
-    print(x$posterior, ...)
+    print(x$posterior, nterms = nterms, ...)
     return(invisible(x))
   }
 
-  if(x$model == "ziz"){
-    cat(paste("The estimated mixing parameter, pi, is", signif(x$pi, 4), "\n"))
+  if (x$model == "ziz") {
+    cat("The estimated mixing parameter, pi, is", signif(x$pi, 4), "\n")
   }
 
-  if(x$model %in% c("zeta", "ziz")){
-    if(isBayes){
-      cat(paste("The estimated posterior mean of shape parameter is", round(x$shape, 4), "\n"))
-    }else{
-      cat(paste("The estimated shape parameter is", round(x$shape, 4), "\n"))
+  if (x$model %in% c("zeta", "ziz")) {
+    cat("The estimated shape parameter is", round(x$shape, 4), "\n")
+  }
+
+  if (x$model == "log") {
+    cat("The estimated model parameter pi is", signif(x$pi, 4), "\n")
+  }
+
+  if (x$model == "zeta") {
+    cat(
+      "The standard error of shape parameter is",
+      round(sqrt(x$var.shape), 4),
+      "\n"
+    )
+  }
+
+  if (x$model %in% c("zeta", "ziz")) {
+    if (is.null(nterms)) {
+      nterms = length(x$fitted)
     }
-  }
-
-  if(x$model == "log"){
-    cat(paste("The estimated model parameter pi is", signif(x$pi, 4), "\n"))
-  }
-
-  if(x$model == "zeta"){
-    if(isBayes){
-      cat(paste("The estimated posterior standard error of shape parameter is", round(sqrt(x$var.shape), 4), "\n"))
-    }else{
-      cat(paste("The standard error of shape parameter is", round(sqrt(x$var.shape), 4), "\n"))
+    if (!is.numeric(nterms) || length(nterms) != 1L || !is.finite(nterms) ||
+        nterms < 1 || nterms != floor(nterms)) {
+      stop("nterms must be one positive integer")
     }
+
+    fittedValues = fitted(x, n = as.integer(nterms), type = "plugIn")
+    cat("The first", nterms, "fitted values are:\n")
+    print(fittedValues)
   }
 
-  if(x$model %in% c("zeta", "ziz")){
-    args = list(...)
-    if("nterms" %in% names(args)){
-      nterms = as.integer(args$nterms[1])
-
-      if(nterms < 1){
-        stop("nterms must be >= 1")
-      }else if(nterms > 10){
-        nvals = 1:nterms
-        fitted = dzetaStandard(nvals, shape = x$shape)
-        names(fitted) = if(x$type == 'P'){
-          paste0("P", nvals - 1)
-        }else{
-          paste0("S", nvals)
-        }
-        cat(paste("The first ", nterms, "fitted values are:\n"))
-        print(fitted)
-      }else{
-        cat(paste("The first ", nterms, "fitted values are:\n"))
-        print(x$fitted[1:nterms])
-      }
-    }else{
-      cat(paste("The first ", length(x$fitted), "fitted values are:\n"))
-      print(x$fitted)
+  if (inherits(x$bootstrap, "psBootstrap")) {
+    diagnostics = x$bootstrap$diagnostics
+    cat("\nBootstrap uncertainty is attached")
+    if (!is.null(diagnostics$B)) {
+      cat(" (", diagnostics$B, " replicates)", sep = "")
     }
+    cat(".\n")
+    cat("Use bootstrapProbs(), summary(), or plot(x$bootstrap) for details.\n")
   }
+
+  invisible(x)
 }

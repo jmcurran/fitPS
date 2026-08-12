@@ -4,10 +4,13 @@
 \alias{print.psPosterior}
 \title{Print a fitPS posterior object}
 \usage{
-\method{print}{psPosterior}(x, ...)
+\method{print}{psPosterior}(x, nterms = NULL, ...)
 }
 \arguments{
 \item{x}{An object of class `psPosterior`.}
+
+\item{nterms}{Optional number of leading probability summaries to print.
+By default, at most the first 10 are shown.}
 
 \item{...}{Additional arguments passed to `print.data.frame()`.}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/probfun.R
 \name{probfun}
 \alias{probfun}
-\title{Probability Functions}
+\title{Plug-in probability functions}
 \usage{
 probfun(psFitobj)
 }
@@ -11,11 +11,18 @@ probfun(psFitobj)
 and \code{\link{fitZIDist}}.}
 }
 \value{
-a function that can be used to calculate any P or S term.
+a function that can be used to calculate any plug-in P or S term.
 }
 \description{
-Creates a probability function that allows the computation of any P or S
-term.
+Creates a probability function that evaluates P or S terms at the fitted
+parameter values stored in a \code{psFit} object.
+}
+\details{
+This is deliberately a plug-in probability function. For Bayesian fits,
+use \code{\link{posteriorProbs}} for posterior mean probabilities. For
+maximum-likelihood fits with an attached bootstrap distribution, use
+\code{\link{bootstrapProbs}} for bootstrap mean probabilities and percentile
+confidence intervals.
 }
 \examples{
 p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))

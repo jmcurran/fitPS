@@ -1,43 +1,57 @@
 #' S3 summary method for an object of class \code{psFit}
 #'
-#' @param object an object of class \code{psFit}, usually from \code{\link{fitDist}}
-#' or \code{\link{fitZIDist}}
-#' @param ... other arguments passed to \code{summary}
+#' @param object an object of class \code{psFit}, usually from
+#'   \code{\link{fitDist}} or \code{\link{fitZIDist}}.
+#' @param nterms Optional number of leading posterior or bootstrap probability
+#'   summaries to include when an uncertainty object is attached.
+#' @param ... other arguments passed to delegated summary methods.
 #'
 #' @details
-#' Experimental because I am unsure if it is useful. If \code{object} is a zero-inflated zeta fitted object,
-#' then the function carries out a likelihood ratio test for the value of pi. Currently not implemented for the logarithmic
-#' distribution because we are currently not interested in the logarithmic distribution.
-#'
+#' Bayesian fits delegate to the attached \code{psPosterior} object. For
+#' maximum-likelihood fits, the existing parameter summary and zero-inflation
+#' likelihood-ratio test are preserved. If a \code{psBootstrap} object is
+#' attached, its parameter and probability summaries are printed afterwards.
 #'
 #' @importFrom stats pchisq printCoefmat
-#' @return No return value, called for side effects
+#' @return For Bayesian fits, a \code{summary.psPosterior} object. For
+#'   maximum-likelihood fits, invisibly returns the coefficient matrix.
 #' @export
-summary.psFit = function(object, ...){
+summary.psFit = function(object, nterms = NULL, ...) {
   if (identical(object$method, "bayes") &&
       inherits(object$posterior, "psPosterior")) {
-    return(summary(object$posterior, ...))
+    return(summary(object$posterior, nterms = nterms, ...))
   }
 
-  if(object$model == "zeta"){
+  if (object$model == "zeta") {
     cmat = matrix(c(object$shape, sqrt(object$var.shape)), nrow = 1)
     colnames(cmat) = c("Estimate", "Std.Err")
     rownames(cmat) = "shape"
-  }else if(object$model == "ziz"){
+  } else if (object$model == "ziz") {
+    llH0 = -fitDist(object$psData)$fit$value
+    llMle = -object$fit$value
+    lrtStat = 2 * (llMle - llH0)
 
-    ll.H0 = -fitDist(object$psData)$fit$value
-    ll.mle = -object$fit$value
-    lrt.Stat = 2 * (ll.mle - ll.H0)
-
-    cmat = rbind(c(object$shape, sqrt(object$var.cov[2,2]), NA, NA),
-                 c(object$pi, sqrt(object$var.cov[1,1]), lrt.Stat, pchisq(lrt.Stat, 1, lower.tail = FALSE)))
-    colnames(cmat) <- c("Estimate", "Std.Err", "X^2 value", "Pr(>X^2)")
+    cmat = rbind(
+      c(object$shape, sqrt(object$var.cov[2, 2]), NA, NA),
+      c(
+        object$pi,
+        sqrt(object$var.cov[1, 1]),
+        lrtStat,
+        pchisq(lrtStat, 1, lower.tail = FALSE)
+      )
+    )
+    colnames(cmat) = c("Estimate", "Std.Err", "X^2 value", "Pr(>X^2)")
     rownames(cmat) = c("shape", "pi")
-  }else{
-
+  } else {
+    stop("summary is not currently implemented for this fitted model")
   }
 
   printCoefmat(cmat)
 
+  if (inherits(object$bootstrap, "psBootstrap")) {
+    cat("\n")
+    print(summary(object$bootstrap, nterms = nterms, ...))
+  }
 
+  invisible(cmat)
 }

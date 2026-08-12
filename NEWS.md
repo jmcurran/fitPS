@@ -21,6 +21,17 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.014
+
+- Harmonised predict.psFit() across plug-in, posterior-mean, and bootstrap-mean probability definitions while preserving plug-in predictions as the default.
+- Added equal-tailed credible prediction intervals for stored posterior summaries and percentile confidence intervals for stored bootstrap summaries.
+- Required posterior and bootstrap interval levels to match the level stored in the corresponding uncertainty object, avoiding unsupported implicit recomputation.
+- Updated print.psFit() to route fitted probabilities through fitted(), fixing the legacy long-output path that could ignore zero inflation.
+- Added concise posterior and bootstrap printing with optional nterms selection and bootstrap-aware psFit summaries.
+- Clarified that probfun() evaluates plug-in probabilities and directs users to posteriorProbs() or bootstrapProbs() for uncertainty-distribution means.
+- Added deterministic offline regression tests for prediction semantics, intervals, term selection, printing, and summary presentation.
+- Validated through roxygen, strict offline tests, and strict package check.
 ## fitPS 1.0.7.012
 
 - Added bootstrapFit() as the public entry point for attaching a psBootstrap distribution to an MLE fit.

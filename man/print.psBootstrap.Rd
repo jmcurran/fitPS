@@ -4,10 +4,13 @@
 \alias{print.psBootstrap}
 \title{Print a fitPS bootstrap object}
 \usage{
-\method{print}{psBootstrap}(x, ...)
+\method{print}{psBootstrap}(x, nterms = NULL, ...)
 }
 \arguments{
 \item{x}{An object of class `psBootstrap`.}
+
+\item{nterms}{Optional number of leading probability summaries to print.
+By default, at most the first 10 are shown.}
 
 \item{...}{Additional arguments passed to `print.data.frame()`.}
 }

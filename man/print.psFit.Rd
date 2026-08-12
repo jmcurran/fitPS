@@ -4,13 +4,17 @@
 \alias{print.psFit}
 \title{S3 print method for an object of class \code{psFit}}
 \usage{
-\method{print}{psFit}(x, ...)
+\method{print}{psFit}(x, nterms = NULL, ...)
 }
 \arguments{
 \item{x}{an object of class \code{psFit}, usually from \code{\link{fitDist}}
-or #' \code{\link{fitZIDist}}.}
+or \code{\link{fitZIDist}}.}
 
-\item{...}{other arguments passed to \code{print}.}
+\item{nterms}{Number of probability terms to print. If \code{NULL}, print
+the terms already stored in the fitted object, capped at 10 for posterior
+and bootstrap summaries.}
+
+\item{...}{other arguments passed to delegated print methods.}
 }
 \value{
 No return value, called for side effects.

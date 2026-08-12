@@ -81,32 +81,53 @@ attachZizPosterior = function(result,
 #' Print a fitPS posterior object
 #'
 #' @param x An object of class `psPosterior`.
+#' @param nterms Optional number of leading probability summaries to print.
+#'   By default, at most the first 10 are shown.
 #' @param ... Additional arguments passed to `print.data.frame()`.
 #'
 #' @return The posterior object, invisibly.
 #' @export
-print.psPosterior = function(x, ...) {
+print.psPosterior = function(x, nterms = NULL, ...) {
+  if (is.null(nterms)) {
+    nterms = min(10L, nrow(x$probabilities))
+  }
+  probabilities = posteriorProbs(x, n = nterms)
+
   cat("fitPS posterior approximation\n")
   cat("Method:", x$method, "\n\n")
   cat("Parameter summaries:\n")
   print(x$parameters, row.names = FALSE, ...)
   cat("\nPosterior probability summaries:\n")
-  print(x$probabilities, row.names = FALSE, ...)
+  print(probabilities, row.names = FALSE, ...)
+  if (nrow(probabilities) < nrow(x$probabilities)) {
+    cat(
+      "\nShowing", nrow(probabilities), "of", nrow(x$probabilities),
+      "stored probability summaries.\n"
+    )
+  }
   invisible(x)
 }
 
 #' Summarise a fitPS posterior object
 #'
 #' @param object An object of class `psPosterior`.
+#' @param nterms Optional number of leading probability summaries to include.
+#'   If `NULL`, all stored summaries are included.
 #' @param ... Additional arguments retained for S3 compatibility.
 #'
 #' @return An object of class `summary.psPosterior`.
 #' @export
-summary.psPosterior = function(object, ...) {
+summary.psPosterior = function(object, nterms = NULL, ...) {
+  probabilities = if (is.null(nterms)) {
+    object$probabilities
+  } else {
+    posteriorProbs(object, n = nterms)
+  }
+
   result = list(
     method = object$method,
     parameters = object$parameters,
-    probabilities = object$probabilities,
+    probabilities = probabilities,
     level = object$level,
     diagnostics = object$diagnostics
   )

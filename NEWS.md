@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.004
+
+- Added internal S3 psModel descriptors for plain zeta and zero-inflated zeta models.
+- Added posterior-engine descriptors and common fit, summary, diagnostics, point-estimate, and representation protocols without migrating existing fitting paths yet.
+- Declared the supported model/engine matrix explicitly so unsupported combinations fail clearly rather than being inferred from method switches.
+- Consolidated duplicated P/S probability-index validation, latent-support conversion, term naming, and observation mapping shared by zeta and ZIZ code.
+- Added deterministic offline protocol tests; validated with the full fitPS stage workflow because package R source and tests changed.
+
 ## fitPS 1.0.8.003
 
 - Completed the Stage 6.2 internal roxygen2 documentation baseline and Bayesian rationale comments.

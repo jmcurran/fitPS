@@ -36,25 +36,9 @@ zizProbabilities = function(pi, shape, n, type) {
   pi = rep(pi, length.out = parameterCount)
   shape = rep(shape, length.out = parameterCount)
 
-  if (!is.numeric(n) || length(n) == 0L || any(!is.finite(n)) ||
-      any(n != floor(n))) {
-    stop("n must contain finite integer values")
-  }
-  n = as.integer(n)
-
-  type = match.arg(type, c("P", "S"))
-  if (type == "P" && any(n < 0L)) {
-    stop("P probability indices must be non-negative")
-  }
-  if (type == "S" && any(n < 1L)) {
-    stop("S probability indices must be positive")
-  }
-
-  latentValues = if (type == "P") {
-    n + 1L
-  } else {
-    n
-  }
+  type = normaliseSurveyType(type)
+  n = normaliseProbabilityIndices(n, type)
+  latentValues = latentPsValues(n, type)
   inflatedIndex = if (type == "P") 0L else 1L
 
   probabilities = vapply(
@@ -76,6 +60,6 @@ zizProbabilities = function(pi, shape, n, type) {
     probabilities = matrix(probabilities, nrow = 1L)
   }
 
-  colnames(probabilities) = paste0(type, n)
+  colnames(probabilities) = psProbabilityTermNames(n, type)
   probabilities
 }

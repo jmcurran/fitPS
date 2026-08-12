@@ -5,23 +5,7 @@
 #' @keywords internal
 #' @noRd
 zizObservationData = function(x) {
-  if (!is(x, "psData")) {
-    stop("x must be an object of class psData")
-  }
-
-  if (length(x$data$n) < 2) {
-    if (x$type == "S") {
-      stop("There has to be at least one value higher than 1")
-    } else {
-      stop("There has to be at least one value higher than 0")
-    }
-  }
-
-  if (x$type == "P") {
-    x$data$n + 1
-  } else {
-    x$data$n
-  }
+  psObservationData(x)
 }
 
 #' Evaluate the zero-inflated zeta log likelihood for aggregated observations.

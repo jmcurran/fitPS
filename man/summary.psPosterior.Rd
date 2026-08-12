@@ -4,13 +4,17 @@
 \alias{summary.psPosterior}
 \title{Summarise a fitPS posterior object}
 \usage{
-\method{summary}{psPosterior}(object, nterms = NULL, ...)
+\method{summary}{psPosterior}(object, nterms = NULL, inflationEpsilon = 0.01, ...)
 }
 \arguments{
 \item{object}{An object of class `psPosterior`.}
 
 \item{nterms}{Optional number of leading probability summaries to include.
 If `NULL`, all stored summaries are included.}
+
+\item{inflationEpsilon}{Practical threshold for the inflation parameter.
+For zero-inflated posteriors, the summary reports
+`Pr(pi < inflationEpsilon | data)`. The default is 0.01.}
 
 \item{...}{Additional arguments retained for S3 compatibility.}
 }

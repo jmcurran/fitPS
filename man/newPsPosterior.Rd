@@ -10,7 +10,8 @@ newPsPosterior(
   probabilities,
   representation,
   level = 0.95,
-  diagnostics = NULL
+  diagnostics = NULL,
+  model = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ newPsPosterior(
 \item{level}{Credible interval level used for probability summaries.}
 
 \item{diagnostics}{Optional posterior diagnostics.}
+
+\item{model}{Model identifier associated with the posterior.}
 }
 \value{
 An object of class `psPosterior`.

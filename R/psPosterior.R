@@ -6,6 +6,7 @@
 #' @param representation Engine-specific posterior representation.
 #' @param level Credible interval level used for probability summaries.
 #' @param diagnostics Optional posterior diagnostics.
+#' @param model Model identifier associated with the posterior.
 #'
 #' @return An object of class `psPosterior`.
 #'
@@ -15,7 +16,8 @@ newPsPosterior = function(method,
                            probabilities,
                            representation,
                            level = 0.95,
-                           diagnostics = NULL) {
+                           diagnostics = NULL,
+                           model = NULL) {
   if (!is.character(method) || length(method) != 1L || !nzchar(method)) {
     stop("method must be one non-empty character value")
   }
@@ -37,7 +39,8 @@ newPsPosterior = function(method,
     probabilities = probabilities,
     representation = representation,
     level = level,
-    diagnostics = diagnostics
+    diagnostics = diagnostics,
+    model = model
   )
   class(result) = "psPosterior"
   result
@@ -70,7 +73,8 @@ attachZizPosterior = function(result,
     probabilities = probabilities,
     representation = representation,
     level = level,
-    diagnostics = diagnostics
+    diagnostics = diagnostics,
+    model = "ziz"
   )
 
   result$posterior = posterior
@@ -113,11 +117,17 @@ print.psPosterior = function(x, nterms = NULL, ...) {
 #' @param object An object of class `psPosterior`.
 #' @param nterms Optional number of leading probability summaries to include.
 #'   If `NULL`, all stored summaries are included.
+#' @param inflationEpsilon Practical threshold for the inflation parameter.
+#'   For zero-inflated posteriors, the summary reports
+#'   `Pr(pi < inflationEpsilon | data)`. The default is 0.01.
 #' @param ... Additional arguments retained for S3 compatibility.
 #'
 #' @return An object of class `summary.psPosterior`.
 #' @export
-summary.psPosterior = function(object, nterms = NULL, ...) {
+summary.psPosterior = function(object,
+                                nterms = NULL,
+                                inflationEpsilon = 0.01,
+                                ...) {
   probabilities = if (is.null(nterms)) {
     object$probabilities
   } else {
@@ -129,7 +139,12 @@ summary.psPosterior = function(object, nterms = NULL, ...) {
     parameters = object$parameters,
     probabilities = probabilities,
     level = object$level,
-    diagnostics = object$diagnostics
+    diagnostics = object$diagnostics,
+    inflation = if (identical(object$model, "ziz")) {
+      posteriorInflation(object, epsilon = inflationEpsilon)
+    } else {
+      NULL
+    }
   )
   class(result) = "summary.psPosterior"
   result
@@ -143,6 +158,15 @@ print.summary.psPosterior = function(x, ...) {
   print(x$parameters, row.names = FALSE, ...)
   cat("\nPosterior probability summaries:\n")
   print(x$probabilities, row.names = FALSE, ...)
+
+  if (!is.null(x$inflation)) {
+    cat("\nInflation diagnostic:\n")
+    cat(
+      "Pr(pi < ", format(x$inflation$epsilon), " | data) = ",
+      format(x$inflation$probBelow, digits = 4), "\n",
+      sep = ""
+    )
+  }
 
   if (!is.null(x$diagnostics)) {
     cat("\nDiagnostics:\n")

@@ -186,7 +186,9 @@ test_that("posterior and bootstrap summaries can be limited for presentation", {
   )
 
   expect_output(print(posterior), "Showing 10 of 12")
-  expect_equal(nrow(summary(posterior, nterms = 3)$probabilities), 3)
+  posteriorSummary = summary(posterior, nterms = 3)
+  expect_equal(nrow(posteriorSummary$probabilities), 3)
+  expect_null(posteriorSummary$inflation)
 
   bootstrapSummary = probabilitySummary
   bootstrapSummary$posteriorMethod = NULL

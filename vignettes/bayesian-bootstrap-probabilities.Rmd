@@ -100,7 +100,22 @@ The inflation parameter `pi` is itself scientifically useful. It measures the ex
 plotPosterior(bayesFit, parameter = "pi")
 ```
 
-If the posterior for `pi` is concentrated near zero, with little support for appreciable inflation, that is evidence that the additional zero/one-inflation component may not be needed in practice. Conversely, posterior mass away from zero supports a substantive inflation component. This should be treated as a diagnostic rather than a formal posterior probability that the simpler model is true: under the continuous beta prior used here, the posterior probability of exactly `pi = 0` is zero. A formal Bayesian probability for the no-inflation model would require an explicit point mass at zero, a spike-and-slab construction, or comparison of the ordinary and inflated models.
+For practical model assessment, it is more useful to ask whether the inflation is *negligibly small* than whether `pi` is exactly zero. Let `epsilon` be an application-specific threshold below which the effect of inflation would make little practical difference. We can then calculate
+
+\[
+\Pr(\pi < \epsilon \mid x).
+\]
+
+For the present application, `epsilon = 0.01` is a useful illustrative choice: an inflation probability of one percent or less would often have only a small effect on the fitted P probabilities. The threshold is not universal, however, and should be chosen according to the practical consequences in the application.
+
+```{r pi-practical-probability}
+posteriorInflation(bayesFit, epsilon = 0.01)
+summary(bayesFit, inflationEpsilon = 0.01)
+```
+
+A large value of `Pr(pi < 0.01 | data)` indicates that the posterior places substantial probability on inflation values that are practically negligible, so the additional zero-inflation component may add little in practice. A small value indicates that most posterior mass is on materially larger inflation values. This provides a graded assessment of the practical importance of inflation rather than forcing a binary model-selection decision.
+
+This diagnostic also avoids a technical limitation of asking for the posterior probability of exactly `pi = 0`. Under the continuous beta prior used here, that point has posterior probability zero. A formal posterior probability for the exact no-inflation model would require a point mass at zero or explicit model comparison, whereas `Pr(pi < epsilon | data)` is available directly under the current model and answers the practically relevant question.
 
 ### Other posterior engines
 

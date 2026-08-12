@@ -23,7 +23,7 @@ test_that("Bayesian zero-inflated fits contain psPosterior objects", {
     fit$posterior,
     c(
       "method", "parameters", "probabilities", "representation",
-      "level", "diagnostics"
+      "level", "diagnostics", "model"
     )
   )
 })

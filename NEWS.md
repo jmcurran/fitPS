@@ -24,6 +24,17 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.018
+
+- Added posteriorInflation() for Pr(pi < epsilon | data) under Bayesian zero-inflated zeta fits.
+- Implemented the practical-inflation probability consistently for numerical, MCMC, importance, and Laplace posterior engines.
+- Added inflationEpsilon to summary.psPosterior(), defaulting to 0.01, and report the resulting practical-negligibility probability.
+- Replaced the vignette inflation discussion with an epsilon-based interpretation using the Roux footwear example and epsilon = 0.01.
+- Documented that epsilon is application-specific and that the diagnostic differs from assigning posterior mass to the exact no-inflation model.
+- Added deterministic engine-specific tests and a Roux numerical-posterior regression test.
+  - Repaired summary compatibility for posterior objects without a model tag, corrected Roux grid-option placement, and updated psPosterior structure expectations.
+- Validated through the full fitPS documentation, test, check, vignette, build, and installation workflow.
 ## fitPS 1.0.7.016
 
 - Corrected the Roux vignette description to identify the response as the number of different glass sources found on each surveyed pair of shoes.

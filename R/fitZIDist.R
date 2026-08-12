@@ -1,7 +1,7 @@
 #' Fit a Zero-Inflated Zeta Distribution to Forensic Data
 #'
 #' This function uses maximum likelihood estimation (MLE) or Bayesian estimation
-#' (MCMC) to estimate the mixing parameter and the shape parameter of a
+#' to estimate the mixing parameter and the shape parameter of a
 #' zero-inflated zeta distribution from a set of observed counts for either the
 #' number of groups/sources of forensically interesting material (mostly glass
 #' or paint) recovered from clothing, or the number of fragments/particles in
@@ -60,11 +60,16 @@
 #' \code{bayesOptions = list(posteriorMethod = "mcmc")}. The prior for the
 #' mixing proportion is Beta(shape1, shape2), and the shape prior is supplied
 #' by \code{bayesOptions$prior} or \code{prior}. If no shape prior is supplied,
-#' \code{makePrior()} is used.
+#' \code{makePrior()} is used. Bayesian fits store a \code{psPosterior}
+#' object in \code{fit$posterior}; use \code{posteriorProbs()} for posterior
+#' means and credible intervals of the derived P or S probabilities. The four
+#' posterior engines are \code{"numerical"}, \code{"mcmc"},
+#' \code{"laplace"}, and \code{"importance"}.
 
 #'
 #' @seealso \code{\link{plot.psFit}}, \code{\link{print.psFit}},
-#'   \code{\link{probfun}}.
+#'   \code{\link{probfun}}, \code{\link{posteriorProbs}},
+#'   \code{\link{bootstrapProbs}}.
 #'
 #' @references Evett, I. W. and Buckleton, J. S., "The interpretation of glass
 #'   evidence. A practical approach", Journal of the Forensic Science Society

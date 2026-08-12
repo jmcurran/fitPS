@@ -27,3 +27,26 @@ A data frame containing posterior probability summaries.
 Extract posterior summaries for fitted P or S probabilities from a Bayesian
 fitPS model or from its associated posterior object.
 }
+\details{
+The `estimate` column is the posterior mean of each derived P or S
+probability. It is generally different from evaluating the probability at
+posterior mean parameter values. Numerical fits integrate over the weighted
+joint posterior grid; MCMC fits transform retained draws; importance fits
+retain importance weights; and Laplace fits transform seeded draws from the
+unconstrained Gaussian approximation. The reported bounds are equal-tailed
+credible intervals at the level stored in the `psPosterior` object.
+}
+\examples{
+data(Psurveys)
+roux = Psurveys$roux
+if (interactive()) {
+  fit = fitZIDist(
+    roux,
+    nterms = 6,
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical")
+  )
+  posteriorProbs(fit, n = 6)
+}
+
+}

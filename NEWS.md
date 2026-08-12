@@ -22,6 +22,17 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.015
+
+- Added a dedicated Bayesian and bootstrap probability vignette using the real Roux et al. footwear survey supplied with fitPS.
+- Documented plug-in, bootstrap-mean, and posterior-mean P probabilities and their distinct frequentist and Bayesian interpretations.
+- Documented the numerical, MCMC, Laplace, and importance posterior engines, including priors, importance weighting, and Laplace simulation for derived probabilities.
+- Added Roux-based README examples for posteriorProbs(), bootstrapProbs(), fitted(), plotting, and bootstrapFit().
+- Expanded Bayesian probability help and fitZIDist() cross-references to the public uncertainty APIs.
+- Added an end-to-end real-data regression test covering MLE, numerical Bayesian, bootstrap, fitted probabilities, interval bounds, and legacy probfun() behaviour.
+- Added the Stage 5.11 final regression audit documenting completed interfaces and optional future cleanup only.
+- Validated through roxygen, strict offline tests, strict package check, vignette build, source build, and installation.
 ## fitPS 1.0.7.014
 
 - Harmonised predict.psFit() across plug-in, posterior-mean, and bootstrap-mean probability definitions while preserving plug-in predictions as the default.

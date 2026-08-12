@@ -1,0 +1,189 @@
+---
+title: "Bayesian and bootstrap probability estimates with fitPS"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bayesian and bootstrap probability estimates with fitPS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.5
+)
+suppressPackageStartupMessages(library(fitPS))
+```
+
+## Roux et al. footwear survey
+
+This vignette uses the survey of glass particles in footwear reported by Roux et al. (2001), rather than simulated data. The data are supplied with `fitPS` as a P survey.
+
+```{r roux-data}
+data("Psurveys")
+roux = Psurveys$roux
+roux
+```
+
+The zero-inflated zeta model has two parameters: the inflation probability `pi` and the standard fitPS zeta `shape` parameter, which is greater than 1.
+
+## Plug-in probabilities
+
+The conventional maximum-likelihood fit evaluates each P term at the fitted parameter values.
+
+```{r mle-fit}
+mleFit = fitZIDist(roux, nterms = 6)
+fitted(mleFit, type = "plugIn")
+```
+
+These are plug-in estimates of the form
+
+\[
+P_k(\widehat{\theta}),
+\]
+
+where \(\widehat{\theta}=(\widehat{\pi},\widehat{\mathrm{shape}})\).
+
+## Bayesian posterior probabilities
+
+A Bayesian zero-inflated fit is requested with `method = "bayes"`. The default posterior engine is deterministic numerical integration over the joint posterior.
+
+```{r bayes-fit}
+bayesFit = fitZIDist(
+  roux,
+  nterms = 6,
+  method = "bayes",
+  bayesOptions = list(
+    posteriorMethod = "numerical"
+  )
+)
+
+bayesFit$posterior
+```
+
+The default prior for `pi` is Beta(1, 1). The shape prior is created by `makePrior()` and is log-uniform on `shape - 1` over its default support. Alternative beta-prior parameters can be supplied with `shape1` and `shape2`, and an alternative shape prior can be supplied through `bayesOptions$prior`.
+
+The probability summaries are obtained directly from the joint posterior distribution of `pi` and `shape`.
+
+```{r posterior-probs}
+posteriorProbs(bayesFit, n = 6)
+```
+
+The `estimate` column is the posterior mean probability,
+
+\[
+E\{P_k(\theta)\mid x\},
+\]
+
+not the probability evaluated at posterior mean parameters. Because the P terms are nonlinear functions of the parameters, those two quantities need not agree.
+
+```{r posterior-vs-plugin}
+cbind(
+  plugIn = fitted(bayesFit, n = 6, type = "plugIn"),
+  posteriorMean = fitted(bayesFit, n = 6, type = "posteriorMean")
+)
+```
+
+The posterior object can also be plotted directly. Points are posterior means and vertical lines are equal-tailed credible intervals.
+
+```{r posterior-plot}
+plot(bayesFit$posterior, n = 6)
+```
+
+### Other posterior engines
+
+The same public posterior interface is used for all four Bayesian engines. The numerical method is the default and is used above because it is deterministic. The alternatives are:
+
+```{r other-engines, eval=FALSE}
+mcmcFit = fitZIDist(
+  roux,
+  method = "bayes",
+  bayesOptions = list(posteriorMethod = "mcmc"),
+  nIter = 5000,
+  nBurnIn = 1000,
+  seed = 1234
+)
+
+laplaceFit = fitZIDist(
+  roux,
+  method = "bayes",
+  bayesOptions = list(posteriorMethod = "laplace"),
+  seed = 1234
+)
+
+importanceFit = fitZIDist(
+  roux,
+  method = "bayes",
+  bayesOptions = list(posteriorMethod = "importance"),
+  nSamples = 5000,
+  seed = 1234
+)
+```
+
+For the numerical engine, P-term expectations are integrated over the weighted joint posterior grid. For MCMC, each retained `(pi, shape)` draw is transformed into P terms. Importance sampling retains and uses the importance weights in means, variances, and quantiles. The Laplace engine simulates seeded draws on its unconstrained Gaussian approximation and transforms those draws back to `(pi, shape)` before calculating P terms.
+
+## Bootstrap probability distributions
+
+The frequentist analogue uses the nonparametric bootstrap distribution of the fitted parameter estimator. Starting from the maximum-likelihood fit, `bootstrapFit()` repeatedly resamples the Roux survey observations, refits the model, and transforms each successful bootstrap parameter replicate into P terms.
+
+```{r bootstrap-fit}
+bootFit = bootstrapFit(
+  mleFit,
+  B = 100,
+  seed = 1234,
+  silent = TRUE,
+  parallel = FALSE
+)
+
+bootstrapProbs(bootFit, n = 6)
+```
+
+The bootstrap probability estimate is
+
+\[
+E_*\{P_k(\widehat{\theta}^*)\},
+\]
+
+where \(E_*\) denotes expectation over the bootstrap distribution. It is not a Bayesian posterior mean and it is generally not identical to the plug-in probability.
+
+```{r compare-three}
+cbind(
+  plugIn = fitted(mleFit, n = 6, type = "plugIn"),
+  bootstrapMean = fitted(bootFit, n = 6, type = "bootstrapMean"),
+  posteriorMean = fitted(bayesFit, n = 6, type = "posteriorMean")
+)
+```
+
+The bootstrap probability object reports percentile confidence intervals and can be plotted in the same style as the posterior object.
+
+```{r bootstrap-plot}
+plot(bootFit$bootstrap, n = 6)
+```
+
+For applied work, substantially more than 100 bootstrap replicates would normally be used. The smaller value here keeps vignette building practical while demonstrating the complete workflow on the real Roux data.
+
+## Prediction interfaces
+
+The same distinction is available through `predict()`.
+
+```{r predict-interface}
+predict(mleFit, newdata = 0:5, type = "plugIn")
+predict(bootFit, newdata = 0:5, type = "bootstrapMean", interval = "percentile")
+predict(bayesFit, newdata = 0:5, type = "posteriorMean", interval = "credible")
+```
+
+Thus the three probability summaries have distinct interpretations:
+
+\[
+P_k(\widehat{\theta}), \qquad
+E_*\{P_k(\widehat{\theta}^*)\}, \qquad
+E\{P_k(\theta)\mid x\}.
+\]
+
+`probfun()` remains the plug-in probability interface. Use `posteriorProbs()` for Bayesian posterior probability summaries and `bootstrapProbs()` for bootstrap probability summaries.
+
+## Reference
+
+Roux, C., Kirk, R., Benson, S., Van Haren, T., and Petterd, C. I. (2001). Glass particles in footwear of members of the public in south-eastern Australia: a survey. *Forensic Science International*, 116(2), 149-156.

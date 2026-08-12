@@ -153,3 +153,46 @@ devtools::check(
 ## License
 
 GPL (>= 2).
+
+## Bayesian and bootstrap probability summaries
+
+For zero-inflated zeta models, `fitPS` can distinguish probabilities evaluated at fitted parameter values from probability summaries obtained by propagating parameter uncertainty. The built-in Roux et al. (2001) footwear survey provides a real-data example.
+
+```r
+data("Psurveys")
+roux = Psurveys$roux
+
+mleFit = fitZIDist(roux, nterms = 6)
+
+bayesFit = fitZIDist(
+  roux,
+  nterms = 6,
+  method = "bayes",
+  bayesOptions = list(posteriorMethod = "numerical")
+)
+
+posteriorProbs(bayesFit, n = 6)
+fitted(bayesFit, n = 6, type = "posteriorMean")
+plot(bayesFit$posterior, n = 6)
+```
+
+The Bayesian estimate is the posterior mean of each probability, `E[P_k(theta) | x]`, rather than the probability evaluated at posterior mean parameters. The available posterior engines are `numerical`, `mcmc`, `laplace`, and `importance`.
+
+The corresponding frequentist uncertainty calculation is obtained by transforming the nonparametric bootstrap replicates:
+
+```r
+bootFit = bootstrapFit(
+  mleFit,
+  B = 2000,
+  seed = 1234,
+  silent = TRUE
+)
+
+bootstrapProbs(bootFit, n = 6)
+fitted(bootFit, n = 6, type = "bootstrapMean")
+plot(bootFit$bootstrap, n = 6)
+```
+
+This gives the bootstrap mean `E*[P_k(thetaHat*)]` and percentile confidence intervals. Ordinary `fitted(fit)` and `probfun(fit)` remain plug-in interfaces for backward compatibility.
+
+See the vignette **Bayesian and bootstrap probability estimates with fitPS** for a complete worked example using the Roux survey.

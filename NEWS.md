@@ -23,6 +23,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.0.7.016
+
+- Corrected the Roux vignette description to identify the response as the number of different glass sources found on each surveyed pair of shoes.
+- Added posterior interpretation of the zero/one-inflation parameter, including the distinction between concentration near zero and formal posterior probability of a no-inflation model.
+- Added the Efron bootstrap/Bayesian connection to the bootstrap discussion while preserving the distinct inferential interpretations.
+- Added future-development context for Rubin's Bayesian bootstrap, centred on weighted-likelihood support and a possible psBayesianBootstrap object.
+- Added long-term architecture context for distribution-pluggable fitPS models and evaluation of the distributional package as a possible distribution representation layer.
+- Validated through the full fitPS documentation, test, check, vignette, build, and installation workflow.
 ## fitPS 1.0.7.015
 
 - Added a dedicated Bayesian and bootstrap probability vignette using the real Roux et al. footwear survey supplied with fitPS.

@@ -19,7 +19,7 @@ suppressPackageStartupMessages(library(fitPS))
 
 ## Roux et al. footwear survey
 
-This vignette uses the survey of glass particles in footwear reported by Roux et al. (2001), rather than simulated data. The data are supplied with `fitPS` as a P survey.
+We illustrate the functionality using the Roux et al. (2001) footwear data set, supplied with `fitPS` as a P survey. In this survey, the response is the number of different sources of glass found on each surveyed pair of shoes.
 
 ```{r roux-data}
 data("Psurveys")
@@ -92,6 +92,16 @@ The posterior object can also be plotted directly. Points are posterior means an
 plot(bayesFit$posterior, n = 6)
 ```
 
+### Inference about the inflation component
+
+The inflation parameter `pi` is itself scientifically useful. It measures the extra probability assigned to the inflated value beyond that supplied by the zeta component. For a P survey this is extra mass at `P0`; for an S survey it is extra mass at `S1`. The marginal posterior for `pi` can therefore be inspected directly.
+
+```{r pi-posterior}
+plotPosterior(bayesFit, parameter = "pi")
+```
+
+If the posterior for `pi` is concentrated near zero, with little support for appreciable inflation, that is evidence that the additional zero/one-inflation component may not be needed in practice. Conversely, posterior mass away from zero supports a substantive inflation component. This should be treated as a diagnostic rather than a formal posterior probability that the simpler model is true: under the continuous beta prior used here, the posterior probability of exactly `pi = 0` is zero. A formal Bayesian probability for the no-inflation model would require an explicit point mass at zero, a spike-and-slab construction, or comparison of the ordinary and inflated models.
+
 ### Other posterior engines
 
 The same public posterior interface is used for all four Bayesian engines. The numerical method is the default and is used above because it is deterministic. The alternatives are:
@@ -148,6 +158,8 @@ E_*\{P_k(\widehat{\theta}^*)\},
 
 where \(E_*\) denotes expectation over the bootstrap distribution. It is not a Bayesian posterior mean and it is generally not identical to the plug-in probability.
 
+There is nevertheless a useful Bayesian perspective on the bootstrap. Efron described the bootstrap as moving from the observed-data world to a "bootstrap world" by replacing the unknown data-generating distribution with an estimated one, and later showed that parametric-bootstrap draws can be reweighted by importance sampling to compute Bayesian posterior quantities. Thus bootstrap and posterior simulation remain different inferential procedures, but they support closely parallel calculations for derived quantities. In `fitPS`, the frequentist calculation averages \(P_k(\widehat{\theta}^*)\) over bootstrap replicates, whereas the Bayesian calculation averages \(P_k(\theta)\) over the posterior distribution. This parallel is one reason the package represents bootstrap and posterior uncertainty using closely related objects while retaining their different interpretations.
+
 ```{r compare-three}
 cbind(
   plugIn = fitted(mleFit, n = 6, type = "plugIn"),
@@ -185,5 +197,9 @@ E\{P_k(\theta)\mid x\}.
 `probfun()` remains the plug-in probability interface. Use `posteriorProbs()` for Bayesian posterior probability summaries and `bootstrapProbs()` for bootstrap probability summaries.
 
 ## Reference
+
+Efron, B. (2003). Second thoughts on the bootstrap. *Statistical Science*, 18(2), 135-140.
+
+Efron, B. (2012). Bayesian inference and the parametric bootstrap. *The Annals of Applied Statistics*, 6(4), 1971-1997.
 
 Roux, C., Kirk, R., Benson, S., Van Haren, T., and Petterd, C. I. (2001). Glass particles in footwear of members of the public in south-eastern Australia: a survey. *Forensic Science International*, 116(2), 149-156.

@@ -221,3 +221,27 @@ modelLogLikelihood.psModel = function(model, parameters, data, ...) {
     call. = FALSE
   )
 }
+
+#' Evaluate the plain zeta log likelihood.
+#'
+#' @param model A `zetaModel` descriptor.
+#' @param parameters Named parameters containing scalar `shape`.
+#' @param data An object of class `psData`.
+#' @param ... Additional arguments reserved for future zeta likelihood controls.
+#' @return Scalar log likelihood.
+#' @keywords internal
+#' @noRd
+modelLogLikelihood.zetaModel = function(model, parameters, data, ...) {
+  if (!is(data, "psData")) {
+    stop("data must be an object of class psData")
+  }
+
+  shape = modelParameter(parameters, "shape")
+  if (!is.numeric(shape) || length(shape) != 1L || !is.finite(shape)) {
+    stop("shape must be one finite numeric value")
+  }
+  validateZetaShape(shape)
+
+  observations = modelObservationData(model, data)
+  sum(data$data$rn * dzetaStandard(observations, shape = shape, log = TRUE))
+}

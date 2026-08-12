@@ -110,12 +110,12 @@ test_that("unmigrated and unsupported engine paths fail explicitly", {
     fitPosterior(laplacePosteriorEngine(), zetaModel(), pData, prior),
     "not supported"
   )
-  expect_error(
+  expect_s3_class(
     fitPosterior(numericalPosteriorEngine(), zetaModel(), pData, prior),
-    "not yet implemented"
+    "numericalPosteriorRepresentation"
   )
   expect_error(
     modelLogLikelihood(zetaModel(), list(shape = 2), c(1L, 2L)),
-    "not yet implemented"
+    "data must be an object of class psData"
   )
 })

@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.005
+
+- Migrated the plain-zeta numerical Bayesian fit onto the Stage 6 model and posterior-engine protocols while preserving the existing integration calculation.
+- Added the zeta model log-likelihood method and numerical-engine fit, summary, diagnostics, point-estimate, and representation methods.
+- Kept fitted P/S probabilities evaluated at the posterior mean shape and retained the legacy numerical posterior density component for compatibility.
+- Added deterministic regression tests against the pre-refactor numerical algorithm for both P and S data; ZIZ numerical fitting remains explicitly unmigrated.
+- Validated with the full fitPS stage workflow because package R source and tests changed.
+
 ## fitPS 1.0.8.004
 
 - Added internal S3 psModel descriptors for plain zeta and zero-inflated zeta models.

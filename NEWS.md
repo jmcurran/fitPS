@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.006
+
+- Migrated the plain-zeta MCMC Bayesian fit onto the Stage 6 model and posterior-engine protocols while preserving the existing sampler calculation and RNG ordering.
+- Added MCMC-engine fit, summary, diagnostics, point-estimate, and representation methods for zetaModel.
+- Retained the legacy chain, posterior-mean shape, variance, fitted probabilities, and spline density while also storing the engine representation.
+- Added deterministic P and S regression tests against the pre-refactor MCMC algorithm; ZIZ MCMC fitting remains explicitly unmigrated.
+- Validated with the full fitPS stage workflow because package R source and tests changed.
+
 ## fitPS 1.0.8.005
 
 - Migrated the plain-zeta numerical Bayesian fit onto the Stage 6 model and posterior-engine protocols while preserving the existing integration calculation.

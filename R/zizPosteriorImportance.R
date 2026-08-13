@@ -255,8 +255,11 @@ fitZIDistBayesImportance = function(x,
                                     start = c(pi = 0.5, shape = 2),
                                     level = 0.95,
                                     ...) {
-  nvals = 1:nterms
-  approximation = makeZizPosteriorImportance(
+  model = zizModel()
+  engine = importancePosteriorEngine()
+  representation = fitPosterior(
+    engine = engine,
+    model = model,
     x = x,
     prior = prior,
     shape1 = shape1,
@@ -266,8 +269,13 @@ fitZIDistBayesImportance = function(x,
     seed = seed,
     start = start
   )
+  approximation = representation$value$approximation
 
-  par = approximation$mean
+  par = posteriorPointEstimate(
+    engine = engine,
+    model = model,
+    representation = representation
+  )
   posteriorProbs = summariseZizSampleProbabilities(
     pi = approximation$samples$pi,
     shape = approximation$samples$shape,
@@ -277,25 +285,32 @@ fitZIDistBayesImportance = function(x,
     level = level,
     posteriorMethod = "importance"
   )
-  fitted = (1 - par[["pi"]]) * dzetaStandard(nvals, shape = par[["shape"]])
-  fitted[nvals == 1] = fitted[nvals == 1] + par[["pi"]]
-  names(fitted) = if (x$type == "P") {
-    paste0("P", nvals - 1)
+  probabilityIndices = if (x$type == "P") {
+    seq.int(0L, nterms - 1L)
   } else {
-    paste0("S", nvals)
+    seq_len(nterms)
   }
+  fitted = modelProbabilities(
+    model = model,
+    parameters = as.list(par),
+    n = probabilityIndices,
+    type = x$type
+  )
+  fitted = as.numeric(fitted)
+  names(fitted) = psProbabilityTermNames(probabilityIndices, x$type)
 
   result = list(
     psData = x,
     fit = list(par = par),
     pi = unname(par[["pi"]]),
     shape = unname(par[["shape"]]),
-    var.cov = approximation$varCov,
+    var.cov = representation$value$variance,
     fitted = fitted,
     weightedSamples = approximation$samples,
     posteriorProbs = posteriorProbs,
     importance = approximation,
-    posteriorDiagnostics = approximation$diagnostics,
+    posteriorDiagnostics = posteriorDiagnostics(engine, representation),
+    posteriorRepresentation = representation,
     model = "ziz",
     method = "bayes",
     posteriorMethod = "importance"
@@ -305,7 +320,7 @@ fitZIDistBayesImportance = function(x,
     result = result,
     probabilities = posteriorProbs,
     representation = approximation,
-    diagnostics = approximation$diagnostics,
+    diagnostics = result$posteriorDiagnostics,
     level = level
   )
 

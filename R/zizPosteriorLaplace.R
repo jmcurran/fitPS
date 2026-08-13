@@ -198,14 +198,18 @@ fitZIDistBayesLaplace = function(x,
                                  seed = NULL,
                                  level = 0.95,
                                  ...) {
-  nvals = 1:nterms
-  approximation = makeZizPosteriorLaplace(
+  model = zizModel()
+  engine = laplacePosteriorEngine()
+  representation = fitPosterior(
+    engine = engine,
+    model = model,
     x = x,
     prior = prior,
     shape1 = shape1,
     shape2 = shape2,
     start = start
   )
+  approximation = representation$value$approximation
 
   nPosteriorDraws = as.integer(nPosteriorDraws)
   if (!is.finite(nPosteriorDraws) || nPosteriorDraws < 100L) {
@@ -234,24 +238,35 @@ fitZIDistBayesLaplace = function(x,
     posteriorMethod = "laplace"
   )
 
-  par = approximation$mode
-  fitted = (1 - par[["pi"]]) * dzetaStandard(nvals, shape = par[["shape"]])
-  fitted[nvals == 1] = fitted[nvals == 1] + par[["pi"]]
-  names(fitted) = if (x$type == "P") {
-    paste0("P", nvals - 1)
+  par = posteriorPointEstimate(
+    engine = engine,
+    model = model,
+    representation = representation
+  )
+  probabilityIndices = if (x$type == "P") {
+    seq.int(0L, nterms - 1L)
   } else {
-    paste0("S", nvals)
+    seq_len(nterms)
   }
+  fitted = modelProbabilities(
+    model = model,
+    parameters = as.list(par),
+    n = probabilityIndices,
+    type = x$type
+  )
+  fitted = as.numeric(fitted)
+  names(fitted) = psProbabilityTermNames(probabilityIndices, x$type)
 
   result = list(
     psData = x,
     fit = list(par = par),
     pi = unname(par[["pi"]]),
     shape = unname(par[["shape"]]),
-    var.cov = approximation$varCov,
+    var.cov = representation$value$variance,
     fitted = fitted,
     laplace = approximation,
     posteriorProbs = posteriorProbs,
+    posteriorRepresentation = representation,
     model = "ziz",
     method = "bayes",
     posteriorMethod = "laplace"

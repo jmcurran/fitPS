@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.010
+
+- Migrated the existing zero-inflated zeta Laplace and importance-sampling approximations onto the shared model and posterior-engine architecture.
+- Preserved the transformed-coordinate Laplace optimisation, Hessian/delta-method covariance, importance proposal, seeded weighted sampling, posterior summaries, and fitted probability behaviour.
+- Added engine-level fitting, summary, diagnostic, and point-estimate methods while keeping plain-zeta Laplace and importance combinations explicitly unsupported.
+- Added deterministic P and S regression coverage using stable behaviour-based test names and descriptions.
+- Validated with the full fitPS stage workflow because package R source, S3 registration metadata, and tests changed.
+
 ## fitPS 1.0.8.009
 
 - Completed the zero-inflated zeta MCMC migration onto the shared model and posterior-engine architecture while preserving the established Metropolis-Hastings sampler and seeded RNG sequence.

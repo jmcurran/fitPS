@@ -245,3 +245,36 @@ modelLogLikelihood.zetaModel = function(model, parameters, data, ...) {
   observations = modelObservationData(model, data)
   sum(data$data$rn * dzetaStandard(observations, shape = shape, log = TRUE))
 }
+
+#' Evaluate the zero-inflated zeta log likelihood.
+#'
+#' @param model A `zizModel` descriptor.
+#' @param parameters Named parameters containing scalar `pi` and `shape`.
+#' @param data An object of class `psData`.
+#' @param ... Additional arguments reserved for future ZIZ likelihood controls.
+#' @return Scalar log likelihood.
+#' @keywords internal
+#' @noRd
+modelLogLikelihood.zizModel = function(model, parameters, data, ...) {
+  if (!is(data, "psData")) {
+    stop("data must be an object of class psData")
+  }
+
+  pi = modelParameter(parameters, "pi")
+  shape = modelParameter(parameters, "shape")
+
+  if (!is.numeric(pi) || length(pi) != 1L || !is.finite(pi)) {
+    stop("pi must be one finite numeric value")
+  }
+  if (!is.numeric(shape) || length(shape) != 1L || !is.finite(shape)) {
+    stop("shape must be one finite numeric value")
+  }
+
+  observations = modelObservationData(model, data)
+  zizLogLikelihood(
+    obsData = observations,
+    counts = data$data$rn,
+    pi = pi,
+    shape = shape
+  )
+}

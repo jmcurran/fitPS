@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.007
+
+- Migrated numerical zero-inflated zeta Bayesian fitting onto the shared Stage 6 model and posterior-engine protocols while preserving the existing two-dimensional posterior grid calculation.
+- Added the ZIZ model log-likelihood method and numerical-engine model dispatch while reusing the shared numerical summary, diagnostics, and point-estimate methods.
+- Retained the legacy posterior grid, marginal densities, posterior probability summaries, parameter moments, fitted probabilities, and psPosterior representation while also storing the engine wrapper.
+- Added deterministic P and S regression tests against the pre-migration numerical ZIZ orchestration; ZIZ MCMC, Laplace, and importance fitting remain unmigrated.
+- Validated with the full fitPS stage workflow because package R source and tests changed.
+
 ## fitPS 1.0.8.006
 
 - Migrated the plain-zeta MCMC Bayesian fit onto the Stage 6 model and posterior-engine protocols while preserving the existing sampler calculation and RNG ordering.

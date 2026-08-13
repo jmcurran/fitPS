@@ -162,12 +162,18 @@ test_that("fitDist numerical Bayesian path uses the migrated engine", {
   expect_true(is.function(fit$pdf))
 })
 
-test_that("numerical ZIZ remains explicitly unmigrated in Stage 6.4", {
+test_that("numerical ZIZ is migrated by Stage 6.6", {
   pData = makePSData(n = c(0, 1, 2), count = c(8, 3, 1), type = "P")
   prior = makePrior(family = "uniform", range = c(1.1, 4))
 
-  expect_error(
-    fitPosterior(numericalPosteriorEngine(), zizModel(), pData, prior),
-    "not yet implemented"
+  representation = fitPosterior(
+    numericalPosteriorEngine(),
+    zizModel(),
+    pData,
+    prior,
+    nPiGrid = 9,
+    nShapeGrid = 9
   )
+
+  expect_s3_class(representation, "numericalPosteriorRepresentation")
 })

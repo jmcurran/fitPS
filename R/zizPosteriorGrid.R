@@ -199,17 +199,26 @@ fitZIDistBayesNumerical = function(x,
                                    nShapeGrid = 101,
                                    level = 0.95,
                                    ...) {
-  nvals = 1:nterms
-  posteriorGrid = makeZizPosteriorGrid(
+  model = zizModel()
+  engine = numericalPosteriorEngine()
+  representation = fitPosterior(
+    engine = engine,
+    model = model,
     x = x,
     prior = prior,
     shape1 = shape1,
     shape2 = shape2,
     nPiGrid = nPiGrid,
-    nShapeGrid = nShapeGrid
+    nShapeGrid = nShapeGrid,
+    ...
   )
 
-  par = posteriorGrid$mean
+  posteriorGrid = representation$value$posteriorGrid
+  par = posteriorPointEstimate(
+    engine = engine,
+    model = model,
+    representation = representation
+  )
   marginalPdf = makeZizMarginalPdf(posteriorGrid)
   posteriorProbs = summariseZizGridProbabilities(
     posteriorGrid = posteriorGrid,
@@ -218,13 +227,18 @@ fitZIDistBayesNumerical = function(x,
     level = level
   )
 
-  fitted = (1 - par[["pi"]]) * dzetaStandard(nvals, shape = par[["shape"]])
-  fitted[nvals == 1] = fitted[nvals == 1] + par[["pi"]]
-  names(fitted) = if (x$type == "P") {
-    paste0("P", nvals - 1)
+  probabilityIndices = if (x$type == "P") {
+    0:(nterms - 1L)
   } else {
-    paste0("S", nvals)
+    seq_len(nterms)
   }
+  fitted = drop(modelProbabilities(
+    model = model,
+    parameters = par,
+    n = probabilityIndices,
+    type = x$type
+  ))
+  names(fitted) = psProbabilityTermNames(probabilityIndices, x$type)
 
   result = list(
     psData = x,
@@ -239,7 +253,8 @@ fitZIDistBayesNumerical = function(x,
     pdf = marginalPdf$shape,
     model = "ziz",
     method = "bayes",
-    posteriorMethod = "numerical"
+    posteriorMethod = "numerical",
+    posteriorRepresentation = representation
   )
 
   result = attachZizPosterior(

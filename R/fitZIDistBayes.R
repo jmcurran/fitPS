@@ -17,8 +17,6 @@
 #'
 #' @keywords internal
 #' @importFrom methods is
-#' @importFrom stats cov dbeta rbeta runif
-#' @importFrom utils setTxtProgressBar txtProgressBar
 fitZIDistBayes = function(x,
                           nterms = 10,
                           prior = makePrior(),
@@ -51,132 +49,29 @@ fitZIDistBayes = function(x,
     )
   }
 
-  validateBayesPrior(prior)
-
-  nIter = as.integer(nIter)
-  nBurnIn = as.integer(nBurnIn)
-
-  if (!is.finite(nIter) || nIter <= 0L) {
-    stop("nIter must be greater than zero")
-  }
-
-  if (!is.finite(nBurnIn) || nBurnIn <= 0L) {
-    stop("nBurnIn must be greater than zero")
-  }
-
-  if (nIter < 1000L) {
-    warning(
-      "The number of retained MCMC samples should usually be 1000 or higher.",
-      call. = FALSE
-    )
-  }
-
-  if (!is.numeric(theta0) || length(theta0) != 2L || any(!is.finite(theta0))) {
-    stop("theta0 must be a finite numeric vector of length two")
-  }
-
-  if (theta0[1] <= 0 || theta0[1] >= 1) {
-    stop("The starting value for pi must be in (0, 1)")
-  }
-
-  validateZetaShape(theta0[2], "theta0 shape")
-
-  if (!inRange(theta0[2], prior$range)) {
-    stop("The starting shape value must lie strictly inside the prior range")
-  }
-
-  if (!is.numeric(shape1) || length(shape1) != 1L ||
-      !is.finite(shape1) || shape1 <= 0) {
-    stop("shape1 must be a positive finite number")
-  }
-
-  if (!is.numeric(shape2) || length(shape2) != 1L ||
-      !is.finite(shape2) || shape2 <= 0) {
-    stop("shape2 must be a positive finite number")
-  }
-
-  if (!is.null(seed)) {
-    if (!is.numeric(seed) || length(seed) != 1L || !is.finite(seed)) {
-      stop("seed must be NULL or one finite number")
-    }
-    set.seed(as.integer(seed))
-  }
-
-  obsData = zizObservationData(x)
-  counts = x$data$rn
-  nTotal = nIter + nBurnIn
-  currentPi = unname(theta0[1])
-  currentShape = unname(theta0[2])
-  chain = matrix(
-    NA_real_,
-    nrow = nIter,
-    ncol = 2L,
-    dimnames = list(NULL, c("pi", "shape"))
+  model = zizModel()
+  engine = mcmcPosteriorEngine()
+  representation = fitPosterior(
+    engine = engine,
+    model = model,
+    x = x,
+    prior = prior,
+    theta0 = theta0,
+    shape1 = shape1,
+    shape2 = shape2,
+    nIter = nIter,
+    nBurnIn = nBurnIn,
+    silent = silent,
+    seed = seed
   )
-  updateShape = sample(c(TRUE, FALSE), nTotal, replace = TRUE)
-  logUniforms = log(runif(nTotal))
-  acceptedShape = 0L
-  acceptedPi = 0L
-  proposedShape = 0L
-  proposedPi = 0L
 
-  if (!silent) {
-    progressBar = txtProgressBar(
-      min = 0,
-      max = nTotal,
-      initial = 0,
-      style = 3
-    )
-    on.exit(close(progressBar), add = TRUE)
-  }
-
-  for (iteration in seq_len(nTotal)) {
-    if (updateShape[iteration]) {
-      proposedShape = proposedShape + 1L
-      candidateShape = runif(1L, prior$range[1], prior$range[2])
-
-      logAcceptance =
-        zizLogLikelihood(obsData, counts, currentPi, candidateShape) -
-        zizLogLikelihood(obsData, counts, currentPi, currentShape) +
-        prior$logd(candidateShape) - prior$logd(currentShape)
-
-      if (is.finite(logAcceptance) &&
-          (logAcceptance >= 0 || logUniforms[iteration] < logAcceptance)) {
-        currentShape = candidateShape
-        acceptedShape = acceptedShape + 1L
-      }
-    } else {
-      proposedPi = proposedPi + 1L
-      candidatePi = rbeta(1L, shape1 = shape1, shape2 = shape2)
-
-      logTargetRatio =
-        zizLogLikelihood(obsData, counts, candidatePi, currentShape) -
-        zizLogLikelihood(obsData, counts, currentPi, currentShape) +
-        dbeta(candidatePi, shape1, shape2, log = TRUE) -
-        dbeta(currentPi, shape1, shape2, log = TRUE)
-      logProposalRatio =
-        dbeta(currentPi, shape1, shape2, log = TRUE) -
-        dbeta(candidatePi, shape1, shape2, log = TRUE)
-      logAcceptance = logTargetRatio + logProposalRatio
-
-      if (is.finite(logAcceptance) &&
-          (logAcceptance >= 0 || logUniforms[iteration] < logAcceptance)) {
-        currentPi = candidatePi
-        acceptedPi = acceptedPi + 1L
-      }
-    }
-
-    if (iteration > nBurnIn) {
-      chain[iteration - nBurnIn, ] = c(currentPi, currentShape)
-    }
-
-    if (!silent) {
-      setTxtProgressBar(progressBar, iteration)
-    }
-  }
-
-  chain = as.data.frame(chain)
-  par = c(pi = mean(chain$pi), shape = mean(chain$shape))
+  par = posteriorPointEstimate(
+    engine = engine,
+    model = model,
+    representation = representation
+  )
+  diagnostics = posteriorDiagnostics(engine, representation)
+  chain = representation$value$chain
   posteriorProbs = summariseZizSampleProbabilities(
     pi = chain$pi,
     shape = chain$shape,
@@ -185,30 +80,34 @@ fitZIDistBayes = function(x,
     level = level,
     posteriorMethod = "mcmc"
   )
-  nvals = seq_len(nterms)
-  fitted = (1 - par[["pi"]]) * dzetaStandard(nvals, shape = par[["shape"]])
-  fitted[nvals == 1L] = fitted[nvals == 1L] + par[["pi"]]
-  names(fitted) = if (x$type == "P") {
-    paste0("P", nvals - 1L)
+
+  probabilityIndices = if (x$type == "P") {
+    seq.int(0L, nterms - 1L)
   } else {
-    paste0("S", nvals)
+    seq_len(nterms)
   }
+  fitted = modelProbabilities(
+    model = model,
+    parameters = as.list(par),
+    n = probabilityIndices,
+    type = x$type
+  )
+  fitted = as.numeric(fitted)
+  names(fitted) = psProbabilityTermNames(probabilityIndices, x$type)
 
   result = list(
     psData = x,
     fit = list(
       par = par,
-      acceptance = c(
-        pi = if (proposedPi > 0L) acceptedPi / proposedPi else NA_real_,
-        shape = if (proposedShape > 0L) acceptedShape / proposedShape else NA_real_
-      )
+      acceptance = diagnostics$acceptance
     ),
     pi = unname(par[["pi"]]),
     shape = unname(par[["shape"]]),
-    var.cov = cov(chain),
+    var.cov = representation$value$variance,
     fitted = fitted,
     chain = chain,
     posteriorProbs = posteriorProbs,
+    posteriorRepresentation = representation,
     model = "ziz",
     method = "bayes",
     posteriorMethod = "mcmc"

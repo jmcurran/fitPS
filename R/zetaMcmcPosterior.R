@@ -18,6 +18,7 @@ fitMcmcPosteriorModel = function(model, engine, x, prior, ...) {
 
 #' @rdname fitMcmcPosteriorModel
 #' @keywords internal
+#' @exportS3Method fitMcmcPosteriorModel psModel
 #' @noRd
 fitMcmcPosteriorModel.psModel = function(model, engine, x, prior, ...) {
   stop(
@@ -30,6 +31,7 @@ fitMcmcPosteriorModel.psModel = function(model, engine, x, prior, ...) {
 
 #' @rdname fitMcmcPosteriorModel
 #' @keywords internal
+#' @exportS3Method fitMcmcPosteriorModel zetaModel
 #' @noRd
 fitMcmcPosteriorModel.zetaModel = function(model,
                                             engine,
@@ -155,6 +157,7 @@ fitMcmcPosteriorModel.zetaModel = function(model,
 #' @param ... Model-specific MCMC controls.
 #' @return An `mcmcPosteriorRepresentation` object.
 #' @keywords internal
+#' @exportS3Method fitPosterior mcmcPosteriorEngine
 #' @noRd
 fitPosterior.mcmcPosteriorEngine = function(engine, model, x, prior, ...) {
   validateEngineModelPair(engine, model)
@@ -175,6 +178,7 @@ fitPosterior.mcmcPosteriorEngine = function(engine, model, x, prior, ...) {
 #' @param ... Additional arguments reserved for future MCMC summaries.
 #' @return A data frame of posterior parameter means and standard deviations.
 #' @keywords internal
+#' @exportS3Method summarisePosterior mcmcPosteriorEngine
 #' @noRd
 summarisePosterior.mcmcPosteriorEngine = function(engine,
                                                    model,
@@ -210,6 +214,7 @@ summarisePosterior.mcmcPosteriorEngine = function(engine,
 #' @param ... Additional arguments reserved for future diagnostics.
 #' @return A named list of MCMC diagnostics and run settings.
 #' @keywords internal
+#' @exportS3Method posteriorDiagnostics mcmcPosteriorEngine
 #' @noRd
 posteriorDiagnostics.mcmcPosteriorEngine = function(engine,
                                                      representation,
@@ -226,6 +231,7 @@ posteriorDiagnostics.mcmcPosteriorEngine = function(engine,
 #' @param ... Additional arguments passed to `summarisePosterior()`.
 #' @return Named numeric vector of posterior mean parameter estimates.
 #' @keywords internal
+#' @exportS3Method posteriorPointEstimate mcmcPosteriorEngine
 #' @noRd
 posteriorPointEstimate.mcmcPosteriorEngine = function(engine,
                                                        model,

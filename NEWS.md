@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.009
+
+- Completed the zero-inflated zeta MCMC migration onto the shared model and posterior-engine architecture while preserving the established Metropolis-Hastings sampler and seeded RNG sequence.
+- Registered the internal Stage 6 S3 methods explicitly so roxygen documentation generation succeeds without exposing those helpers as user-facing API.
+- Preserved the historical ZIZ MCMC fitted-probability component as a named numeric vector rather than a one-row matrix.
+- Kept the behaviour-based test filename cleanup and strengthened deterministic P and S regression coverage for the migrated ZIZ MCMC path.
+- Validated with the full fitPS stage workflow because package R source, S3 registration metadata, and tests changed.
+
 ## fitPS 1.0.8.007
 
 - Migrated numerical zero-inflated zeta Bayesian fitting onto the shared Stage 6 model and posterior-engine protocols while preserving the existing two-dimensional posterior grid calculation.

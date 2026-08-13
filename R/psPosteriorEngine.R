@@ -63,6 +63,7 @@ posteriorEngineName = function(engine, ...) {
 
 #' @rdname posteriorEngineName
 #' @keywords internal
+#' @exportS3Method posteriorEngineName psPosteriorEngine
 #' @noRd
 posteriorEngineName.psPosteriorEngine = function(engine, ...) {
   engine$method
@@ -139,6 +140,7 @@ fitPosterior = function(engine, model, x, prior, ...) {
 
 #' @rdname fitPosterior
 #' @keywords internal
+#' @exportS3Method fitPosterior psPosteriorEngine
 #' @noRd
 fitPosterior.psPosteriorEngine = function(engine, model, x, prior, ...) {
   validateEngineModelPair(engine, model)
@@ -167,6 +169,7 @@ summarisePosterior = function(engine, model, representation, ...) {
 
 #' @rdname summarisePosterior
 #' @keywords internal
+#' @exportS3Method summarisePosterior psPosteriorEngine
 #' @noRd
 summarisePosterior.psPosteriorEngine = function(engine,
                                                  model,
@@ -196,6 +199,7 @@ posteriorDiagnostics = function(engine, representation, ...) {
 
 #' @rdname posteriorDiagnostics
 #' @keywords internal
+#' @exportS3Method posteriorDiagnostics psPosteriorEngine
 #' @noRd
 posteriorDiagnostics.psPosteriorEngine = function(engine, representation, ...) {
   validatePosteriorRepresentation(representation, engine)
@@ -222,6 +226,7 @@ posteriorPointEstimate = function(engine, model, representation, ...) {
 
 #' @rdname posteriorPointEstimate
 #' @keywords internal
+#' @exportS3Method posteriorPointEstimate psPosteriorEngine
 #' @noRd
 posteriorPointEstimate.psPosteriorEngine = function(engine,
                                                      model,

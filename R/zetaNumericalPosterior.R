@@ -18,6 +18,7 @@ fitNumericalPosteriorModel = function(model, engine, x, prior, ...) {
 
 #' @rdname fitNumericalPosteriorModel
 #' @keywords internal
+#' @exportS3Method fitNumericalPosteriorModel psModel
 #' @noRd
 fitNumericalPosteriorModel.psModel = function(model, engine, x, prior, ...) {
   stop(
@@ -30,6 +31,7 @@ fitNumericalPosteriorModel.psModel = function(model, engine, x, prior, ...) {
 
 #' @rdname fitNumericalPosteriorModel
 #' @keywords internal
+#' @exportS3Method fitNumericalPosteriorModel zetaModel
 #' @noRd
 fitNumericalPosteriorModel.zetaModel = function(model, engine, x, prior, ...) {
   if (!is(x, "psData")) {
@@ -134,6 +136,7 @@ fitNumericalPosteriorModel.zetaModel = function(model, engine, x, prior, ...) {
 #' @param ... Model-specific numerical integration controls.
 #' @return A `numericalPosteriorRepresentation` object.
 #' @keywords internal
+#' @exportS3Method fitPosterior numericalPosteriorEngine
 #' @noRd
 fitPosterior.numericalPosteriorEngine = function(engine,
                                                    model,
@@ -158,6 +161,7 @@ fitPosterior.numericalPosteriorEngine = function(engine,
 #' @param ... Additional arguments reserved for future numerical summaries.
 #' @return A data frame of posterior parameter means and standard deviations.
 #' @keywords internal
+#' @exportS3Method summarisePosterior numericalPosteriorEngine
 #' @noRd
 summarisePosterior.numericalPosteriorEngine = function(engine,
                                                          model,
@@ -193,6 +197,7 @@ summarisePosterior.numericalPosteriorEngine = function(engine,
 #' @param ... Additional arguments reserved for future diagnostics.
 #' @return A named list of numerical integration diagnostics.
 #' @keywords internal
+#' @exportS3Method posteriorDiagnostics numericalPosteriorEngine
 #' @noRd
 posteriorDiagnostics.numericalPosteriorEngine = function(engine,
                                                            representation,
@@ -209,6 +214,7 @@ posteriorDiagnostics.numericalPosteriorEngine = function(engine,
 #' @param ... Additional arguments passed to `summarisePosterior()`.
 #' @return Named numeric vector of posterior mean parameter estimates.
 #' @keywords internal
+#' @exportS3Method posteriorPointEstimate numericalPosteriorEngine
 #' @noRd
 posteriorPointEstimate.numericalPosteriorEngine = function(engine,
                                                              model,

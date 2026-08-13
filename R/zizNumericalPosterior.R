@@ -15,6 +15,7 @@
 #' @param ... Additional numerical controls reserved for future use.
 #' @return A `numericalPosteriorRepresentation` object.
 #' @keywords internal
+#' @exportS3Method fitNumericalPosteriorModel zizModel
 #' @noRd
 fitNumericalPosteriorModel.zizModel = function(model,
                                                 engine,

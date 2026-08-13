@@ -60,7 +60,7 @@ test_that("ZIZ model log likelihood delegates to the characterised likelihood", 
   expect_equal(actual, expected, tolerance = 0)
 })
 
-test_that("numerical ZIZ engine implements the Stage 6 posterior protocol", {
+test_that("numerical ZIZ engine implements the posterior protocol", {
   pData = makePSData(n = c(0, 1, 2), count = c(8, 3, 1), type = "P")
   prior = makePrior(family = "uniform", range = c(1.1, 4))
   engine = numericalPosteriorEngine()
@@ -96,7 +96,7 @@ test_that("numerical ZIZ engine implements the Stage 6 posterior protocol", {
   )
 })
 
-test_that("Stage 6.6 numerical ZIZ fit reproduces the legacy orchestration", {
+test_that("numerical ZIZ fitting reproduces the legacy orchestration", {
   prior = makePrior(family = "uniform", range = c(1.1, 4))
 
   for (type in c("P", "S")) {

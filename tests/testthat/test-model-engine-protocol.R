@@ -1,4 +1,4 @@
-test_that("Stage 6 model descriptors declare parameters and supported engines", {
+test_that("model descriptors declare parameters and supported engines", {
   zeta = zetaModel()
   ziz = zizModel()
 

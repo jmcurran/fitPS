@@ -63,7 +63,7 @@ legacyMcmcZetaFit = function(x,
   )
 }
 
-test_that("MCMC zeta engine implements the Stage 6 posterior protocol", {
+test_that("MCMC zeta engine implements the posterior protocol", {
   pData = makePSData(n = c(0, 1, 2), count = c(8, 3, 1), type = "P")
   prior = makePrior(family = "uniform", range = c(1.1, 4))
   engine = mcmcPosteriorEngine()
@@ -95,7 +95,7 @@ test_that("MCMC zeta engine implements the Stage 6 posterior protocol", {
   expect_identical(diagnostics$nBurnIn, 100)
 })
 
-test_that("Stage 6.5 MCMC zeta fit reproduces the legacy algorithm", {
+test_that("MCMC zeta fitting reproduces the legacy algorithm", {
   prior = makePrior(family = "uniform", range = c(1.1, 4))
 
   for (type in c("P", "S")) {
@@ -158,12 +158,3 @@ test_that("fitDist MCMC Bayesian path uses the migrated engine", {
   expect_true(is.function(fit$pdf))
 })
 
-test_that("MCMC ZIZ remains explicitly unmigrated in Stage 6.5", {
-  pData = makePSData(n = c(0, 1, 2), count = c(8, 3, 1), type = "P")
-  prior = makePrior(family = "uniform", range = c(1.1, 4))
-
-  expect_error(
-    fitPosterior(mcmcPosteriorEngine(), zizModel(), pData, prior),
-    "not yet implemented"
-  )
-})

@@ -114,7 +114,7 @@ test_that("numerical engine fits and summarises the plain zeta posterior", {
   )
 })
 
-test_that("Stage 6.4 numerical zeta fit reproduces the legacy algorithm", {
+test_that("numerical zeta fitting reproduces the legacy algorithm", {
   prior = makePrior(family = "uniform", range = c(1.1, 4))
 
   for (type in c("P", "S")) {
@@ -162,18 +162,3 @@ test_that("fitDist numerical Bayesian path uses the migrated engine", {
   expect_true(is.function(fit$pdf))
 })
 
-test_that("numerical ZIZ is migrated by Stage 6.6", {
-  pData = makePSData(n = c(0, 1, 2), count = c(8, 3, 1), type = "P")
-  prior = makePrior(family = "uniform", range = c(1.1, 4))
-
-  representation = fitPosterior(
-    numericalPosteriorEngine(),
-    zizModel(),
-    pData,
-    prior,
-    nPiGrid = 9,
-    nShapeGrid = 9
-  )
-
-  expect_s3_class(representation, "numericalPosteriorRepresentation")
-})

@@ -76,6 +76,7 @@ modelParameterNames = function(model, ...) {
 
 #' @rdname modelParameterNames
 #' @keywords internal
+#' @exportS3Method modelParameterNames psModel
 #' @noRd
 modelParameterNames.psModel = function(model, ...) {
   model$parameterNames
@@ -94,6 +95,7 @@ supportedPosteriorEngines = function(model, ...) {
 
 #' @rdname supportedPosteriorEngines
 #' @keywords internal
+#' @exportS3Method supportedPosteriorEngines psModel
 #' @noRd
 supportedPosteriorEngines.psModel = function(model, ...) {
   model$supportedEngines
@@ -137,6 +139,7 @@ modelObservationData = function(model, x, ...) {
 
 #' @rdname modelObservationData
 #' @keywords internal
+#' @exportS3Method modelObservationData psModel
 #' @noRd
 modelObservationData.psModel = function(model, x, ...) {
   psObservationData(x)
@@ -172,6 +175,7 @@ modelParameter = function(parameters, name) {
 
 #' @rdname modelProbabilities
 #' @keywords internal
+#' @exportS3Method modelProbabilities zetaModel
 #' @noRd
 modelProbabilities.zetaModel = function(model, parameters, n, type, ...) {
   zetaProbabilities(
@@ -183,6 +187,7 @@ modelProbabilities.zetaModel = function(model, parameters, n, type, ...) {
 
 #' @rdname modelProbabilities
 #' @keywords internal
+#' @exportS3Method modelProbabilities zizModel
 #' @noRd
 modelProbabilities.zizModel = function(model, parameters, n, type, ...) {
   zizProbabilities(
@@ -212,6 +217,7 @@ modelLogLikelihood = function(model, parameters, data, ...) {
 
 #' @rdname modelLogLikelihood
 #' @keywords internal
+#' @exportS3Method modelLogLikelihood psModel
 #' @noRd
 modelLogLikelihood.psModel = function(model, parameters, data, ...) {
   stop(
@@ -230,6 +236,7 @@ modelLogLikelihood.psModel = function(model, parameters, data, ...) {
 #' @param ... Additional arguments reserved for future zeta likelihood controls.
 #' @return Scalar log likelihood.
 #' @keywords internal
+#' @exportS3Method modelLogLikelihood zetaModel
 #' @noRd
 modelLogLikelihood.zetaModel = function(model, parameters, data, ...) {
   if (!is(data, "psData")) {
@@ -254,6 +261,7 @@ modelLogLikelihood.zetaModel = function(model, parameters, data, ...) {
 #' @param ... Additional arguments reserved for future ZIZ likelihood controls.
 #' @return Scalar log likelihood.
 #' @keywords internal
+#' @exportS3Method modelLogLikelihood zizModel
 #' @noRd
 modelLogLikelihood.zizModel = function(model, parameters, data, ...) {
   if (!is(data, "psData")) {

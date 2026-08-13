@@ -62,13 +62,9 @@ posteriorInflation.psPosterior = function(object, epsilon = 0.01, ...) {
     stop("posteriorInflation() requires a zero-inflated posterior")
   }
 
-  probabilityBelow = switch(
-    object$method,
-    numerical = numericalInflationProbability(object$representation, epsilon),
-    mcmc = mcmcInflationProbability(object$representation, epsilon),
-    importance = importanceInflationProbability(object$representation, epsilon),
-    laplace = laplaceInflationProbability(object$representation, epsilon),
-    stop("posteriorInflation() is not implemented for posterior method: ", object$method)
+  probabilityBelow = posteriorInflationProbability(
+    object$representation,
+    epsilon = epsilon
   )
 
   probabilityBelow = min(1, max(0, unname(probabilityBelow)))
@@ -176,4 +172,76 @@ laplaceInflationProbability = function(approximation, epsilon) {
   # The Laplace approximation is Gaussian in eta = logit(pi), so transform the
   # natural-scale threshold to eta before evaluating its Gaussian CDF.
   pnorm(qlogis(epsilon), mean = etaMean, sd = etaSd)
+}
+
+#' Compute negligible-inflation probability through posterior representation dispatch.
+#'
+#' @param representation An internal `psPosteriorRepresentation` object.
+#' @param epsilon Practical inflation threshold.
+#' @param ... Additional representation-specific controls.
+#' @return Posterior probability that `pi < epsilon`.
+#' @keywords internal
+#' @noRd
+posteriorInflationProbability = function(representation, epsilon, ...) {
+  UseMethod("posteriorInflationProbability")
+}
+
+#' @rdname posteriorInflationProbability
+#' @keywords internal
+#' @exportS3Method posteriorInflationProbability psPosteriorRepresentation
+#' @noRd
+posteriorInflationProbability.psPosteriorRepresentation = function(representation,
+                                                                    epsilon,
+                                                                    ...) {
+  stop(
+    "Inflation probability is not implemented for posterior representation '",
+    class(representation)[1L],
+    "'",
+    call. = FALSE
+  )
+}
+
+#' @rdname posteriorInflationProbability
+#' @keywords internal
+#' @exportS3Method posteriorInflationProbability numericalPosteriorRepresentation
+#' @noRd
+posteriorInflationProbability.numericalPosteriorRepresentation = function(representation,
+                                                                           epsilon,
+                                                                           ...) {
+  validateInflationEpsilon(epsilon)
+  posteriorGrid = representation$value$posteriorGrid
+  numericalInflationProbability(posteriorGrid, epsilon)
+}
+
+#' @rdname posteriorInflationProbability
+#' @keywords internal
+#' @exportS3Method posteriorInflationProbability mcmcPosteriorRepresentation
+#' @noRd
+posteriorInflationProbability.mcmcPosteriorRepresentation = function(representation,
+                                                                      epsilon,
+                                                                      ...) {
+  validateInflationEpsilon(epsilon)
+  mcmcInflationProbability(representation$value$chain, epsilon)
+}
+
+#' @rdname posteriorInflationProbability
+#' @keywords internal
+#' @exportS3Method posteriorInflationProbability importancePosteriorRepresentation
+#' @noRd
+posteriorInflationProbability.importancePosteriorRepresentation = function(representation,
+                                                                            epsilon,
+                                                                            ...) {
+  validateInflationEpsilon(epsilon)
+  importanceInflationProbability(representation$value$approximation, epsilon)
+}
+
+#' @rdname posteriorInflationProbability
+#' @keywords internal
+#' @exportS3Method posteriorInflationProbability laplacePosteriorRepresentation
+#' @noRd
+posteriorInflationProbability.laplacePosteriorRepresentation = function(representation,
+                                                                         epsilon,
+                                                                         ...) {
+  validateInflationEpsilon(epsilon)
+  laplaceInflationProbability(representation$value$approximation, epsilon)
 }

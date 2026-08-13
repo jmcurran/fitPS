@@ -1,14 +1,16 @@
 test_that("posteriorInflation respects numerical posterior weights", {
-  posterior = structure(
-    list(
-      method = "numerical",
-      representation = list(
+  representation = newPsPosteriorRepresentation(
+    numericalPosteriorEngine(),
+    value = list(
+      posteriorGrid = list(
         pi = c(0.005, 0.02),
         marginalDensity = list(pi = c(40, 10)),
         dPi = 0.02
-      ),
-      model = "ziz"
-    ),
+      )
+    )
+  )
+  posterior = structure(
+    list(method = "numerical", representation = representation, model = "ziz"),
     class = "psPosterior"
   )
 
@@ -18,12 +20,12 @@ test_that("posteriorInflation respects numerical posterior weights", {
 })
 
 test_that("posteriorInflation respects MCMC draws", {
+  representation = newPsPosteriorRepresentation(
+    mcmcPosteriorEngine(),
+    value = list(chain = data.frame(pi = c(0.001, 0.005, 0.02, 0.03)))
+  )
   posterior = structure(
-    list(
-      method = "mcmc",
-      representation = data.frame(pi = c(0.001, 0.005, 0.02, 0.03)),
-      model = "ziz"
-    ),
+    list(method = "mcmc", representation = representation, model = "ziz"),
     class = "psPosterior"
   )
 
@@ -32,17 +34,19 @@ test_that("posteriorInflation respects MCMC draws", {
 })
 
 test_that("posteriorInflation respects importance weights", {
-  posterior = structure(
-    list(
-      method = "importance",
-      representation = list(
+  representation = newPsPosteriorRepresentation(
+    importancePosteriorEngine(),
+    value = list(
+      approximation = list(
         samples = data.frame(
           pi = c(0.001, 0.02, 0.03),
           weight = c(0.6, 0.3, 0.1)
         )
-      ),
-      model = "ziz"
-    ),
+      )
+    )
+  )
+  posterior = structure(
+    list(method = "importance", representation = representation, model = "ziz"),
     class = "psPosterior"
   )
 
@@ -51,19 +55,20 @@ test_that("posteriorInflation respects importance weights", {
 })
 
 test_that("posteriorInflation uses the Laplace logit approximation", {
+  approximation = list(
+    modeWorking = c(eta = -4, tau = 0),
+    covarianceWorking = matrix(
+      c(0.25, 0, 0, 0.5),
+      nrow = 2,
+      dimnames = list(c("eta", "tau"), c("eta", "tau"))
+    )
+  )
+  representation = newPsPosteriorRepresentation(
+    laplacePosteriorEngine(),
+    value = list(approximation = approximation)
+  )
   posterior = structure(
-    list(
-      method = "laplace",
-      representation = list(
-        modeWorking = c(eta = -4, tau = 0),
-        covarianceWorking = matrix(
-          c(0.25, 0, 0, 0.5),
-          nrow = 2,
-          dimnames = list(c("eta", "tau"), c("eta", "tau"))
-        )
-      ),
-      model = "ziz"
-    ),
+    list(method = "laplace", representation = representation, model = "ziz"),
     class = "psPosterior"
   )
 
@@ -73,12 +78,12 @@ test_that("posteriorInflation uses the Laplace logit approximation", {
 })
 
 test_that("posteriorInflation validates epsilon", {
+  representation = newPsPosteriorRepresentation(
+    mcmcPosteriorEngine(),
+    value = list(chain = data.frame(pi = c(0.001, 0.02)))
+  )
   posterior = structure(
-    list(
-      method = "mcmc",
-      representation = data.frame(pi = c(0.001, 0.02)),
-      model = "ziz"
-    ),
+    list(method = "mcmc", representation = representation, model = "ziz"),
     class = "psPosterior"
   )
 

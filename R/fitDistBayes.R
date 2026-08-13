@@ -22,42 +22,23 @@ fitDistBayes = function(x, prior = makePrior(), nterms, ...) {
     prior = prior,
     ...
   )
-  summary = summarisePosterior(engine, model, representation)
-  pointEstimate = posteriorPointEstimate(engine, model, representation)
-
-  shape = unname(pointEstimate["shape"])
-  varShape = summary$sd[summary$parameter == "shape"]^2
-  probabilityIndices = if (x$type == "P") {
-    0:(nterms - 1L)
-  } else {
-    seq_len(nterms)
-  }
-  fittedMatrix = modelProbabilities(
-    model = model,
-    parameters = pointEstimate,
-    n = probabilityIndices,
-    type = x$type
-  )
-  fitted = as.numeric(fittedMatrix[1L, ])
-  names(fitted) = colnames(fittedMatrix)
 
   chain = representation$value$chain
   densityEstimate = density(chain, from = prior$range[1])
   pdf = splinefun(densityEstimate$x, densityEstimate$y)
+  varShape = unname(representation$value$variance["shape", "shape"])
 
-  result = list(
-    psData = x,
-    fit = list(par = shape),
-    shape = shape,
-    var.shape = varShape,
-    fitted = fitted,
-    chain = chain,
-    pdf = pdf,
-    posteriorRepresentation = representation,
-    model = "zeta",
-    method = "bayes"
+  finaliseBayesianPsFit(
+    model = model,
+    engine = engine,
+    representation = representation,
+    x = x,
+    nterms = nterms,
+    fit = list(par = unname(representation$value$mean[["shape"]])),
+    legacyFields = list(
+      var.shape = varShape,
+      chain = chain,
+      pdf = pdf
+    )
   )
-
-  class(result) = "psFit"
-  result
 }

@@ -141,7 +141,7 @@ test_that("numerical ZIZ fitting reproduces the legacy orchestration", {
       actual$posteriorRepresentation,
       "numericalPosteriorRepresentation"
     )
-    expect_identical(actual$posterior$representation, actual$posteriorGrid)
+    expect_identical(actual$posterior$representation, actual$posteriorRepresentation)
     expect_null(actual$posterior$diagnostics)
   }
 })

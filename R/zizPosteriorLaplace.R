@@ -211,75 +211,22 @@ fitZIDistBayesLaplace = function(x,
   )
   approximation = representation$value$approximation
 
-  nPosteriorDraws = as.integer(nPosteriorDraws)
-  if (!is.finite(nPosteriorDraws) || nPosteriorDraws < 100L) {
-    stop("nPosteriorDraws must be at least 100")
-  }
-
-  if (!is.null(seed)) {
-    if (!is.numeric(seed) || length(seed) != 1L || !is.finite(seed)) {
-      stop("seed must be NULL or a finite numeric value")
-    }
-    set.seed(as.integer(seed))
-  }
-
-  workingDraws = makeZizProposalDraws(
-    mean = approximation$modeWorking,
-    covariance = approximation$covarianceWorking,
-    n = nPosteriorDraws
-  )
-  thetaDraws = t(apply(workingDraws, 1L, zizWorkingToTheta))
-  posteriorProbs = summariseZizSampleProbabilities(
-    pi = thetaDraws[, "pi"],
-    shape = thetaDraws[, "shape"],
-    type = x$type,
+  finaliseBayesianPsFit(
+    model = model,
+    engine = engine,
+    representation = representation,
+    x = x,
     nterms = nterms,
     level = level,
-    posteriorMethod = "laplace"
+    fit = list(par = posteriorPointEstimate(engine, model, representation)),
+    legacyFields = list(
+      var.cov = representation$value$variance,
+      laplace = approximation
+    ),
+    probabilityArgs = list(
+      nPosteriorDraws = nPosteriorDraws,
+      seed = seed
+    ),
+    useEngineDiagnostics = FALSE
   )
-
-  par = posteriorPointEstimate(
-    engine = engine,
-    model = model,
-    representation = representation
-  )
-  probabilityIndices = if (x$type == "P") {
-    seq.int(0L, nterms - 1L)
-  } else {
-    seq_len(nterms)
-  }
-  fitted = modelProbabilities(
-    model = model,
-    parameters = as.list(par),
-    n = probabilityIndices,
-    type = x$type
-  )
-  fitted = as.numeric(fitted)
-  names(fitted) = psProbabilityTermNames(probabilityIndices, x$type)
-
-  result = list(
-    psData = x,
-    fit = list(par = par),
-    pi = unname(par[["pi"]]),
-    shape = unname(par[["shape"]]),
-    var.cov = representation$value$variance,
-    fitted = fitted,
-    laplace = approximation,
-    posteriorProbs = posteriorProbs,
-    posteriorRepresentation = representation,
-    model = "ziz",
-    method = "bayes",
-    posteriorMethod = "laplace"
-  )
-
-  result = attachZizPosterior(
-    result = result,
-    probabilities = posteriorProbs,
-    representation = approximation,
-    diagnostics = NULL,
-    level = level
-  )
-
-  class(result) = "psFit"
-  result
 }

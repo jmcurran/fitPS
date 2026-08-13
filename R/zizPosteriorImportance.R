@@ -270,60 +270,23 @@ fitZIDistBayesImportance = function(x,
     start = start
   )
   approximation = representation$value$approximation
+  diagnostics = posteriorDiagnostics(engine, representation)
 
-  par = posteriorPointEstimate(
+  finaliseBayesianPsFit(
+    model = model,
     engine = engine,
-    model = model,
-    representation = representation
-  )
-  posteriorProbs = summariseZizSampleProbabilities(
-    pi = approximation$samples$pi,
-    shape = approximation$samples$shape,
-    type = x$type,
+    representation = representation,
+    x = x,
     nterms = nterms,
-    weights = approximation$samples$weight,
     level = level,
-    posteriorMethod = "importance"
+    fit = list(par = posteriorPointEstimate(engine, model, representation)),
+    legacyFields = list(
+      var.cov = representation$value$variance,
+      weightedSamples = approximation$samples,
+      importance = approximation,
+      posteriorDiagnostics = diagnostics
+    ),
+    posteriorDiagnosticsValue = diagnostics,
+    useEngineDiagnostics = FALSE
   )
-  probabilityIndices = if (x$type == "P") {
-    seq.int(0L, nterms - 1L)
-  } else {
-    seq_len(nterms)
-  }
-  fitted = modelProbabilities(
-    model = model,
-    parameters = as.list(par),
-    n = probabilityIndices,
-    type = x$type
-  )
-  fitted = as.numeric(fitted)
-  names(fitted) = psProbabilityTermNames(probabilityIndices, x$type)
-
-  result = list(
-    psData = x,
-    fit = list(par = par),
-    pi = unname(par[["pi"]]),
-    shape = unname(par[["shape"]]),
-    var.cov = representation$value$variance,
-    fitted = fitted,
-    weightedSamples = approximation$samples,
-    posteriorProbs = posteriorProbs,
-    importance = approximation,
-    posteriorDiagnostics = posteriorDiagnostics(engine, representation),
-    posteriorRepresentation = representation,
-    model = "ziz",
-    method = "bayes",
-    posteriorMethod = "importance"
-  )
-
-  result = attachZizPosterior(
-    result = result,
-    probabilities = posteriorProbs,
-    representation = approximation,
-    diagnostics = result$posteriorDiagnostics,
-    level = level
-  )
-
-  class(result) = "psFit"
-  result
 }

@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.011
+
+- Consolidated Bayesian psFit finalisation and psPosterior construction across plain zeta and zero-inflated zeta models.
+- Added the common psPosterior contract and posterior mean probability summaries to plain-zeta numerical and MCMC fits.
+- Standardised psPosterior representation storage on typed engine wrappers while retaining legacy top-level representation fields during migration.
+- Replaced inflation method-name switching with S3 dispatch on posterior representation classes and centralised derived probability summarisation.
+- Validated with the full fitPS stage workflow because package R source, S3 registration metadata, and tests changed.
+
 ## fitPS 1.0.8.010
 
 - Migrated the existing zero-inflated zeta Laplace and importance-sampling approximations onto the shared model and posterior-engine architecture.

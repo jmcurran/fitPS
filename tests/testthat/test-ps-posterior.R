@@ -18,7 +18,7 @@ test_that("Bayesian zero-inflated fits contain psPosterior objects", {
   expect_s3_class(fit$posterior, "psPosterior")
   expect_identical(fit$posterior$method, "numerical")
   expect_equal(fit$posterior$probabilities, fit$posteriorProbs)
-  expect_identical(fit$posterior$representation, fit$posteriorGrid)
+  expect_identical(fit$posterior$representation, fit$posteriorRepresentation)
   expect_named(
     fit$posterior,
     c(
@@ -78,7 +78,7 @@ test_that("all posterior engines attach their native representation", {
     seed = 17
   )
   expect_s3_class(mcmcFit$posterior, "psPosterior")
-  expect_identical(mcmcFit$posterior$representation, mcmcFit$chain)
+  expect_identical(mcmcFit$posterior$representation, mcmcFit$posteriorRepresentation)
 
   importanceFit = fitZIDist(
     pData,
@@ -91,7 +91,7 @@ test_that("all posterior engines attach their native representation", {
   expect_s3_class(importanceFit$posterior, "psPosterior")
   expect_identical(
     importanceFit$posterior$representation,
-    importanceFit$importance
+    importanceFit$posteriorRepresentation
   )
   expect_identical(
     importanceFit$posterior$diagnostics,
@@ -171,5 +171,65 @@ test_that("posteriorProbs rejects non-Bayesian fits", {
   expect_error(
     fitted(fit, type = "posteriorMean"),
     "require a Bayesian"
+  )
+})
+
+test_that("plain zeta Bayesian fits use the common psPosterior contract", {
+  pData = makePSData(
+    n = c(0, 1, 2),
+    count = c(8, 3, 1),
+    type = "P"
+  )
+  prior = makePrior(family = "uniform", range = c(1.1, 4))
+
+  numericalFit = fitDist(
+    pData,
+    nterms = 4,
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical", prior = prior)
+  )
+  set.seed(2301)
+  mcmcFit = fitDist(
+    pData,
+    nterms = 4,
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "mcmc", prior = prior),
+    nIter = 1000,
+    nBurnIn = 100,
+    silent = TRUE
+  )
+
+  for (fit in list(numericalFit, mcmcFit)) {
+    expect_s3_class(fit$posterior, "psPosterior")
+    expect_identical(fit$posterior$representation, fit$posteriorRepresentation)
+    expect_identical(fit$posterior$model, "zeta")
+    expect_identical(fit$posteriorProbs, fit$posterior$probabilities)
+    expect_identical(fit$posterior$parameters$parameter, "shape")
+    expect_identical(fit$posterior$probabilities$term, paste0("P", 0:3))
+    expect_null(dim(fit$fitted))
+  }
+})
+
+test_that("Bayesian fit finalisation preserves fitted vector contracts", {
+  pData = makePSData(
+    n = c(0, 1, 2),
+    count = c(8, 3, 1),
+    type = "P"
+  )
+
+  zizFit = fitZIDist(
+    pData,
+    nterms = 4,
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical"),
+    nPiGrid = 21,
+    nShapeGrid = 21
+  )
+
+  expect_null(dim(zizFit$fitted))
+  expect_identical(names(zizFit$fitted), paste0("P", 0:3))
+  expect_identical(
+    zizFit$posterior$representation,
+    zizFit$posteriorRepresentation
   )
 })

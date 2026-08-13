@@ -65,62 +65,25 @@ fitZIDistBayes = function(x,
     seed = seed
   )
 
-  par = posteriorPointEstimate(
-    engine = engine,
-    model = model,
-    representation = representation
-  )
   diagnostics = posteriorDiagnostics(engine, representation)
   chain = representation$value$chain
-  posteriorProbs = summariseZizSampleProbabilities(
-    pi = chain$pi,
-    shape = chain$shape,
-    type = x$type,
+
+  finaliseBayesianPsFit(
+    model = model,
+    engine = engine,
+    representation = representation,
+    x = x,
     nterms = nterms,
     level = level,
-    posteriorMethod = "mcmc"
-  )
-
-  probabilityIndices = if (x$type == "P") {
-    seq.int(0L, nterms - 1L)
-  } else {
-    seq_len(nterms)
-  }
-  fitted = modelProbabilities(
-    model = model,
-    parameters = as.list(par),
-    n = probabilityIndices,
-    type = x$type
-  )
-  fitted = as.numeric(fitted)
-  names(fitted) = psProbabilityTermNames(probabilityIndices, x$type)
-
-  result = list(
-    psData = x,
     fit = list(
-      par = par,
+      par = posteriorPointEstimate(engine, model, representation),
       acceptance = diagnostics$acceptance
     ),
-    pi = unname(par[["pi"]]),
-    shape = unname(par[["shape"]]),
-    var.cov = representation$value$variance,
-    fitted = fitted,
-    chain = chain,
-    posteriorProbs = posteriorProbs,
-    posteriorRepresentation = representation,
-    model = "ziz",
-    method = "bayes",
-    posteriorMethod = "mcmc"
+    legacyFields = list(
+      var.cov = representation$value$variance,
+      chain = chain
+    ),
+    posteriorDiagnosticsValue = diagnostics$acceptance,
+    useEngineDiagnostics = FALSE
   )
-
-  result = attachZizPosterior(
-    result = result,
-    probabilities = posteriorProbs,
-    representation = chain,
-    diagnostics = result$fit$acceptance,
-    level = level
-  )
-
-  class(result) = "psFit"
-  result
 }

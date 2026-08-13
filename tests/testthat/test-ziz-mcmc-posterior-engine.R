@@ -277,7 +277,7 @@ test_that("MCMC ZIZ fitting reproduces the legacy sampler and orchestration", {
     expect_null(dim(actual$fitted))
     expect_equal(actual$posteriorProbs, expected$posteriorProbs, tolerance = 0)
     expect_s3_class(actual$posteriorRepresentation, "mcmcPosteriorRepresentation")
-    expect_identical(actual$posterior$representation, actual$chain)
+    expect_identical(actual$posterior$representation, actual$posteriorRepresentation)
     expect_equal(actual$posterior$diagnostics, actual$fit$acceptance, tolerance = 0)
   }
 })
@@ -302,5 +302,5 @@ test_that("fitZIDist MCMC Bayesian path uses the migrated engine", {
   expect_identical(fit$posteriorMethod, "mcmc")
   expect_s3_class(fit$posteriorRepresentation, "mcmcPosteriorRepresentation")
   expect_s3_class(fit$posterior, "psPosterior")
-  expect_identical(fit$posterior$representation, fit$chain)
+  expect_identical(fit$posterior$representation, fit$posteriorRepresentation)
 })

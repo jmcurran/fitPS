@@ -214,57 +214,22 @@ fitZIDistBayesNumerical = function(x,
   )
 
   posteriorGrid = representation$value$posteriorGrid
-  par = posteriorPointEstimate(
-    engine = engine,
-    model = model,
-    representation = representation
-  )
   marginalPdf = makeZizMarginalPdf(posteriorGrid)
-  posteriorProbs = summariseZizGridProbabilities(
-    posteriorGrid = posteriorGrid,
-    type = x$type,
-    nterms = nterms,
-    level = level
-  )
 
-  probabilityIndices = if (x$type == "P") {
-    0:(nterms - 1L)
-  } else {
-    seq_len(nterms)
-  }
-  fitted = drop(modelProbabilities(
+  finaliseBayesianPsFit(
     model = model,
-    parameters = par,
-    n = probabilityIndices,
-    type = x$type
-  ))
-  names(fitted) = psProbabilityTermNames(probabilityIndices, x$type)
-
-  result = list(
-    psData = x,
-    fit = list(par = par),
-    pi = unname(par[["pi"]]),
-    shape = unname(par[["shape"]]),
-    var.cov = posteriorGrid$varCov,
-    fitted = fitted,
-    posteriorGrid = posteriorGrid,
-    posteriorProbs = posteriorProbs,
-    marginalPdf = marginalPdf,
-    pdf = marginalPdf$shape,
-    model = "ziz",
-    method = "bayes",
-    posteriorMethod = "numerical",
-    posteriorRepresentation = representation
+    engine = engine,
+    representation = representation,
+    x = x,
+    nterms = nterms,
+    level = level,
+    fit = list(par = posteriorPointEstimate(engine, model, representation)),
+    legacyFields = list(
+      var.cov = posteriorGrid$varCov,
+      posteriorGrid = posteriorGrid,
+      marginalPdf = marginalPdf,
+      pdf = marginalPdf$shape
+    ),
+    useEngineDiagnostics = FALSE
   )
-
-  result = attachZizPosterior(
-    result = result,
-    probabilities = posteriorProbs,
-    representation = posteriorGrid,
-    diagnostics = NULL,
-    level = level
-  )
-
-  class(result) = "psFit"
-  result
 }

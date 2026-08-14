@@ -198,11 +198,11 @@ modelProbabilities.zizModel = function(model, parameters, n, type, ...) {
   )
 }
 
-#' Evaluate a model log likelihood through the Stage 6 model protocol.
+#' Evaluate a model log likelihood through the shared model protocol.
 #'
-#' Concrete likelihood methods are introduced when each fitting path migrates
-#' to the new architecture. The base method fails explicitly so an unsupported
-#' or not-yet-migrated path cannot silently use the wrong mathematics.
+#' Concrete likelihood methods implement the model-specific mathematics behind
+#' the shared interface. The base method fails explicitly so an unsupported
+#' model cannot silently use the wrong likelihood.
 #'
 #' @param model An internal `psModel` object.
 #' @param parameters Named model parameters.

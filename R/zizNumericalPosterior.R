@@ -2,7 +2,7 @@
 #'
 #' The ZIZ model retains its existing rectangular two-dimensional grid
 #' calculation. The numerical engine wraps that representation in the common
-#' Stage 6 posterior contract rather than duplicating the integration logic.
+#' shared posterior contract rather than duplicating the integration logic.
 #'
 #' @param model A `zizModel` descriptor.
 #' @param engine A `numericalPosteriorEngine` object.

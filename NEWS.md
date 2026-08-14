@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.014
+
+- Completed the final Bayesian architecture and regression audit for the model/engine migration.
+- Added durable tests for the supported model/engine matrix, removal of provisional fitter paths, and model-descriptor extensibility.
+- Confirmed all named R functions remain documented and removed the last migration-stage wording from internal roxygen text.
+- Recorded logarithmic-distribution extensibility and AIC/DIC model comparison as post-migration follow-on work.
+- Re-ran the full fitPS validation workflow before closing Stage 6.
+
 ## fitPS 1.0.8.013
 
 - Completed the provisional Bayesian cleanup and repaired controlled Git staging for deleted generated documentation.

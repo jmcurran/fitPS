@@ -66,8 +66,8 @@ test_that("fitZIDist dispatches to Bayesian importance sampling", {
   expect_equal(fit$method, "bayes")
   expect_equal(fit$posteriorMethod, "importance")
   expect_named(fit$fit$par, c("pi", "shape"))
-  expect_equal(nrow(fit$weightedSamples), 300L)
-  expect_true(is.list(fit$posteriorDiagnostics))
+  expect_equal(nrow(fit$posterior$representation$value$approximation$samples), 300L)
+  expect_true(is.list(fit$posterior$diagnostics))
 })
 
 test_that("importance posterior engine preserves ZIZ fit orchestration", {
@@ -108,25 +108,23 @@ test_that("importance posterior engine preserves ZIZ fit orchestration", {
       paste0("S", nvals)
     }
 
-    actual = fitZIDistBayesImportance(
+    actual = fitZIDist(
       x = x,
       nterms = 4,
       prior = prior,
+      method = "bayes",
+      bayesOptions = list(posteriorMethod = "importance"),
       nSamples = 300,
       proposalScale = 2,
       seed = 271,
       start = c(pi = 0.4, shape = 2)
     )
 
-    expect_s3_class(actual$posteriorRepresentation, "importancePosteriorRepresentation")
+    expect_s3_class(actual$posterior$representation, "importancePosteriorRepresentation")
     expect_equal(actual$fit$par, approximation$mean)
-    expect_equal(actual$var.cov, approximation$varCov)
     expect_equal(actual$fitted, expectedFitted)
     expect_null(dim(actual$fitted))
-    expect_equal(actual$weightedSamples, approximation$samples)
-    expect_equal(actual$posteriorProbs, expectedPosteriorProbs)
-    expect_equal(actual$posteriorDiagnostics, approximation$diagnostics)
-    expect_equal(actual$importance, approximation)
+    expect_equal(actual$posterior$probabilities, expectedPosteriorProbs)
   }
 })
 

@@ -19,21 +19,19 @@
 #' }
 #' where \eqn{\zeta(s)}{zeta(s)} is the Riemann zeta function.
 #'
-#' @details The function returns an object of class \code{psFit} which is a
-#'   \code{list} containing eight or nine elements:
+#' @details The function returns an object of class \code{psFit}. Core fitted
+#'   values are stored at the top level, while Bayesian uncertainty is stored
+#'   in the attached \code{psPosterior} object. Important components include:
 #' \describe{
 #' \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
-#' \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
+#' \item{\code{fit}}{ -- method-specific point-estimate information,}
 #' \item{\code{pi}}{ - the maximum likelihood estimate, or the posterior mean, of the mixing parameter,}
 #' \item{\code{shape}}{ -- the maximum likelihood estimate, or the posterior mean, of the shape parameter,}
-#' \item{\code{var.cov}}{ -- the estimated (posterior) variance-covariance matrix for the parameters,}
+#' \item{\code{var.cov}}{ -- for maximum-likelihood fits, the estimated variance-covariance matrix for the parameters,}
 #' \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms} of the fitted distribution.}
 #' \item{\code{model}}{ -- set to \code{"ziz"} for this model,}
 #' \item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"},}
 #' \item{\code{posterior}}{ -- for Bayesian fits, an object of class \code{psPosterior} containing posterior parameter summaries, posterior probability summaries, and the engine-specific posterior representation,}
-#' \item{\code{chain}}{ -- if \code{method == "bayes"}, then this element will contain the Markov Chain from the sampler,
-#' that is, hopefully a sample from the posterior density of the mixing parameter and the shape parameter.
-#' If \code{method == "mle"}, then this element does not exist.}
 #' }
 #'
 #' The output can be used in a variety of ways. If the interest is just in the
@@ -101,12 +99,10 @@
 #'   own starting value, keep the mixing parameter greater than 0.5 and use
 #'   \code{shape > 1}.
 #'
-#'   If \code{method == "bayes"}, then there are seven optional parameters (which,
-#'   despite the documentation, are actually case-insensitive):
+#'   If \code{method == "bayes"}, engine-specific controls can be supplied
+#'   through \code{...}. Common MCMC controls include:
 #' \describe{
 #'   \item{\code{theta0}}{ -- The initial values of the mixing parameter and shape parameter. The default is \code{c(0.5, 2)}. }
-#'   \item{\code{a}}{ -- The lower bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is -2. }
-#'   \item{\code{b}}{ -- The upper bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is +2. }
 #'   \item{\code{shape1}}{ -- The first shape parameter for the beta prior on the mixing distribution, Beta(shape1, shape2). The default is 1. }
 #'   \item{\code{shape2}}{ -- The second shape parameter for the beta prior on the mixing distribution, Beta(shape1, shape2). The default is 1. }
 #'   \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000. }
@@ -232,89 +228,27 @@ fitZIDist = function(x, nterms = 10,
     class(result) = "psFit"
 
     return(result)
-  }else{ ## method == "bayes"
-    dotargs = list(...)
-    hasLegacyShapeBounds = any(c("a", "b") %in% names(dotargs))
-    hasExplicitPrior = !missing(prior) ||
-      (!is.null(bayesOptions) && !is.null(bayesOptions$prior))
-
-    if (identical(bayesOptions$posteriorMethod, "mcmc") &&
-        hasLegacyShapeBounds && hasExplicitPrior) {
-      stop("Specify the MCMC shape prior with prior or with legacy a/b bounds, not both")
-    }
-
-    if (identical(bayesOptions$posteriorMethod, "mcmc") &&
-        hasLegacyShapeBounds && !hasExplicitPrior) {
-      a = if ("a" %in% names(dotargs)) dotargs$a else -2
-      b = if ("b" %in% names(dotargs)) dotargs$b else 2
-
-      if (!is.numeric(a) || length(a) != 1L || !is.finite(a) ||
-          !is.numeric(b) || length(b) != 1L || !is.finite(b) || b <= a) {
-        stop("Legacy MCMC bounds must be finite numbers with b greater than a")
-      }
-
-      options = normaliseBayesOptions(
-        bayesOptions = bayesOptions,
-        prior = makePrior(
-          family = "loguniform",
-          range = 1 + exp(c(a, b))
-        )
-      )
-    } else if (missing(prior)) {
-      options = normaliseBayesOptions(bayesOptions = bayesOptions)
+  } else { ## method == "bayes"
+    options = if (missing(prior)) {
+      normaliseBayesOptions(bayesOptions = bayesOptions)
     } else {
-      options = normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
+      normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
     }
 
-    if (options$posteriorMethod == "numerical") {
-      result = fitZIDistBayesNumerical(
-        x = x,
-        nterms = nterms,
-        prior = options$prior,
-        ...
-      )
-      result$bayesOptions = options
-      return(result)
-    }
+    model = zizModel()
+    engine = posteriorEngine(options$posteriorMethod)
+    validateEngineModelPair(engine, model)
 
-    if (options$posteriorMethod == "mcmc") {
-      result = fitZIDistBayes(
-        x = x,
-        nterms = nterms,
-        prior = options$prior,
-        ...
-      )
-      result$bayesOptions = options
-      return(result)
-    }
-
-    if (options$posteriorMethod == "laplace") {
-      result = fitZIDistBayesLaplace(
-        x = x,
-        nterms = nterms,
-        prior = options$prior,
-        ...
-      )
-      result$bayesOptions = options
-      return(result)
-    }
-
-    if (options$posteriorMethod == "importance") {
-      result = fitZIDistBayesImportance(
-        x = x,
-        nterms = nterms,
-        prior = options$prior,
-        ...
-      )
-      result$bayesOptions = options
-      return(result)
-    }
-
-    stop(
-      "posteriorMethod = ",
-      sQuote(options$posteriorMethod),
-      " is not implemented for fitZIDist() yet"
+    result = fitBayesianModel(
+      model = model,
+      posteriorMethod = options$posteriorMethod,
+      x = x,
+      prior = options$prior,
+      nterms = nterms,
+      ...
     )
+    result$bayesOptions = options
+    return(result)
   }
 }
 

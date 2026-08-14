@@ -17,7 +17,6 @@ legacyNumericalZizFit = function(x,
   )
 
   par = posteriorGrid$mean
-  marginalPdf = makeZizMarginalPdf(posteriorGrid)
   posteriorProbs = summariseZizGridProbabilities(
     posteriorGrid = posteriorGrid,
     type = x$type,
@@ -38,9 +37,7 @@ legacyNumericalZizFit = function(x,
     var.cov = posteriorGrid$varCov,
     fitted = fitted,
     posteriorGrid = posteriorGrid,
-    posteriorProbs = posteriorProbs,
-    marginalPdf = marginalPdf,
-    pdf = marginalPdf$shape
+    posteriorProbs = posteriorProbs
   )
 }
 
@@ -115,10 +112,12 @@ test_that("numerical ZIZ fitting reproduces the legacy orchestration", {
       nPiGrid = 31,
       nShapeGrid = 31
     )
-    actual = fitZIDistBayesNumerical(
+    actual = fitZIDist(
       data,
       prior = prior,
       nterms = 4,
+      method = "bayes",
+      bayesOptions = list(posteriorMethod = "numerical"),
       shape1 = 2,
       shape2 = 3,
       nPiGrid = 31,
@@ -128,21 +127,13 @@ test_that("numerical ZIZ fitting reproduces the legacy orchestration", {
     expect_equal(actual$fit$par, expected$par, tolerance = 0)
     expect_equal(actual$pi, unname(expected$par[["pi"]]), tolerance = 0)
     expect_equal(actual$shape, unname(expected$par[["shape"]]), tolerance = 0)
-    expect_equal(actual$var.cov, expected$var.cov, tolerance = 0)
     expect_equal(actual$fitted, expected$fitted, tolerance = 1e-14)
-    expect_equal(actual$posteriorProbs, expected$posteriorProbs, tolerance = 0)
-    expect_equal(actual$posteriorGrid$density, expected$posteriorGrid$density, tolerance = 0)
-    expect_equal(
-      actual$pdf(seq(1.2, 3.8, length.out = 7)),
-      expected$pdf(seq(1.2, 3.8, length.out = 7)),
-      tolerance = 0
-    )
+    expect_equal(actual$posterior$probabilities, expected$posteriorProbs, tolerance = 0)
     expect_s3_class(
-      actual$posteriorRepresentation,
+      actual$posterior$representation,
       "numericalPosteriorRepresentation"
     )
-    expect_identical(actual$posterior$representation, actual$posteriorRepresentation)
-    expect_null(actual$posterior$diagnostics)
+    expect_identical(actual$posterior$diagnostics$model, "ziz")
   }
 })
 
@@ -165,7 +156,7 @@ test_that("fitZIDist numerical Bayesian path uses the migrated engine", {
   expect_identical(fit$method, "bayes")
   expect_identical(fit$posteriorMethod, "numerical")
   expect_s3_class(
-    fit$posteriorRepresentation,
+    fit$posterior$representation,
     "numericalPosteriorRepresentation"
   )
   expect_s3_class(fit$posterior, "psPosterior")

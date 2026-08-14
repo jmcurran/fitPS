@@ -329,6 +329,50 @@ summarisePosteriorProbabilities.importancePosteriorEngine = function(engine,
   )
 }
 
+#' Return established pre-1.0.7 Bayesian fit fields that must remain compatible.
+#'
+#' @param model An internal `psModel` object.
+#' @param representation An internal posterior representation.
+#' @return A named list of compatibility fields.
+#' @keywords internal
+#' @noRd
+establishedBayesianFitFields = function(model, representation) {
+  UseMethod("establishedBayesianFitFields")
+}
+
+#' @rdname establishedBayesianFitFields
+#' @keywords internal
+#' @exportS3Method establishedBayesianFitFields psModel
+#' @noRd
+establishedBayesianFitFields.psModel = function(model, representation) {
+  list()
+}
+
+#' @rdname establishedBayesianFitFields
+#' @keywords internal
+#' @exportS3Method establishedBayesianFitFields zetaModel
+#' @noRd
+establishedBayesianFitFields.zetaModel = function(model, representation) {
+  validatePosteriorRepresentation(representation)
+
+  variance = unname(representation$value$variance["shape", "shape"])
+  result = list(var.shape = variance)
+
+  if (!is.null(representation$value$chain)) {
+    chain = representation$value$chain
+    densityEstimate = density(
+      chain,
+      from = representation$metadata$bounds[["lower"]]
+    )
+    result$chain = chain
+    result$pdf = splinefun(densityEstimate$x, densityEstimate$y)
+  } else if (is.function(representation$value$density)) {
+    result$pdf = representation$value$density
+  }
+
+  result
+}
+
 #' Finalise a Bayesian fit using the common posterior contract.
 #'
 #' @param model An internal `psModel` object.
@@ -337,14 +381,7 @@ summarisePosteriorProbabilities.importancePosteriorEngine = function(engine,
 #' @param x An object of class `psData`.
 #' @param nterms Number of fitted P/S probability terms.
 #' @param level Equal-tailed credible interval level.
-#' @param fit Internal legacy `fit` component to preserve.
-#' @param legacyFields Named list of legacy top-level fields retained during
-#'   the Stage 6 migration.
-#' @param probabilityArgs Named list of extra controls passed to derived
-#'   posterior probability summarisation.
-#' @param posteriorDiagnosticsValue Optional legacy diagnostic payload to store.
-#' @param useEngineDiagnostics Logical; when `TRUE`, obtain diagnostics through
-#'   `posteriorDiagnostics()`.
+#' @param ... Engine-specific controls used by posterior probability summaries.
 #' @return A Bayesian object of class `psFit` with a common `psPosterior`.
 #' @keywords internal
 #' @noRd
@@ -354,35 +391,22 @@ finaliseBayesianPsFit = function(model,
                                   x,
                                   nterms,
                                   level = 0.95,
-                                  fit = list(),
-                                  legacyFields = list(),
-                                  probabilityArgs = list(),
-                                  posteriorDiagnosticsValue = NULL,
-                                  useEngineDiagnostics = TRUE) {
+                                  ...) {
   validateEngineModelPair(engine, model)
   validatePosteriorRepresentation(representation, engine)
 
   parameterSummary = summarisePosterior(engine, model, representation)
   pointEstimate = posteriorPointEstimate(engine, model, representation)
-  diagnostics = if (useEngineDiagnostics) {
-    posteriorDiagnostics(engine, representation)
-  } else {
-    posteriorDiagnosticsValue
-  }
+  diagnostics = posteriorDiagnostics(engine, representation)
 
-  probabilitySummary = do.call(
-    summarisePosteriorProbabilities,
-    c(
-      list(
-        engine = engine,
-        model = model,
-        representation = representation,
-        x = x,
-        nterms = nterms,
-        level = level
-      ),
-      probabilityArgs
-    )
+  probabilitySummary = summarisePosteriorProbabilities(
+    engine = engine,
+    model = model,
+    representation = representation,
+    x = x,
+    nterms = nterms,
+    level = level,
+    ...
   )
 
   probabilityIndices = posteriorProbabilityIndices(x$type, nterms)
@@ -408,16 +432,14 @@ finaliseBayesianPsFit = function(model,
   result = c(
     list(
       psData = x,
-      fit = fit,
+      fit = list(par = pointEstimate),
       fitted = fitted,
-      posteriorProbs = probabilitySummary,
-      posteriorRepresentation = representation,
       posterior = posterior,
       model = model$model,
       method = "bayes",
       posteriorMethod = posteriorEngineName(engine)
     ),
-    legacyFields
+    establishedBayesianFitFields(model, representation)
   )
 
   for (parameterName in names(pointEstimate)) {
@@ -426,4 +448,45 @@ finaliseBayesianPsFit = function(model,
 
   class(result) = "psFit"
   result
+}
+
+#' Fit a Bayesian model through the shared model/engine architecture.
+#'
+#' @param model An internal `psModel` object.
+#' @param posteriorMethod Posterior approximation method.
+#' @param x An object of class `psData`.
+#' @param prior A prior object created by `makePrior()`.
+#' @param nterms Number of fitted P/S probability terms.
+#' @param level Equal-tailed credible interval level.
+#' @param ... Engine- and model-specific controls.
+#' @return A Bayesian `psFit` object.
+#' @keywords internal
+#' @noRd
+fitBayesianModel = function(model,
+                             posteriorMethod,
+                             x,
+                             prior,
+                             nterms,
+                             level = 0.95,
+                             ...) {
+  engine = posteriorEngine(posteriorMethod)
+  validateEngineModelPair(engine, model)
+
+  representation = fitPosterior(
+    engine = engine,
+    model = model,
+    x = x,
+    prior = prior,
+    ...
+  )
+
+  finaliseBayesianPsFit(
+    model = model,
+    engine = engine,
+    representation = representation,
+    x = x,
+    nterms = nterms,
+    level = level,
+    ...
+  )
 }

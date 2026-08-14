@@ -65,12 +65,10 @@ a prior object returned by \code{makePrior()}.}
   own starting value, keep the mixing parameter greater than 0.5 and use
   \code{shape > 1}.
 
-  If \code{method == "bayes"}, then there are seven optional parameters (which,
-  despite the documentation, are actually case-insensitive):
+  If \code{method == "bayes"}, engine-specific controls can be supplied
+  through \code{...}. Common MCMC controls include:
 \describe{
   \item{\code{theta0}}{ -- The initial values of the mixing parameter and shape parameter. The default is \code{c(0.5, 2)}. }
-  \item{\code{a}}{ -- The lower bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is -2. }
-  \item{\code{b}}{ -- The upper bound for the default uniform prior on \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}. The default is +2. }
   \item{\code{shape1}}{ -- The first shape parameter for the beta prior on the mixing distribution, Beta(shape1, shape2). The default is 1. }
   \item{\code{shape2}}{ -- The second shape parameter for the beta prior on the mixing distribution, Beta(shape1, shape2). The default is 1. }
   \item{\code{nIter}}{ -- The number of samples to save from the chain. Must be greater than zero, and ideally greater than 1000. }
@@ -103,21 +101,19 @@ p(0) = pi + (1-pi)/zeta(s),k = 0 and p(k) = (1-pi)k^-s/zeta(s),k>1
 where \eqn{\zeta(s)}{zeta(s)} is the Riemann zeta function.
 }
 \details{
-The function returns an object of class \code{psFit} which is a
-  \code{list} containing eight or nine elements:
+The function returns an object of class \code{psFit}. Core fitted
+  values are stored at the top level, while Bayesian uncertainty is stored
+  in the attached \code{psPosterior} object. Important components include:
 \describe{
 \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
-\item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
+\item{\code{fit}}{ -- method-specific point-estimate information,}
 \item{\code{pi}}{ - the maximum likelihood estimate, or the posterior mean, of the mixing parameter,}
 \item{\code{shape}}{ -- the maximum likelihood estimate, or the posterior mean, of the shape parameter,}
-\item{\code{var.cov}}{ -- the estimated (posterior) variance-covariance matrix for the parameters,}
+\item{\code{var.cov}}{ -- for maximum-likelihood fits, the estimated variance-covariance matrix for the parameters,}
 \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms} of the fitted distribution.}
 \item{\code{model}}{ -- set to \code{"ziz"} for this model,}
 \item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"},}
 \item{\code{posterior}}{ -- for Bayesian fits, an object of class \code{psPosterior} containing posterior parameter summaries, posterior probability summaries, and the engine-specific posterior representation,}
-\item{\code{chain}}{ -- if \code{method == "bayes"}, then this element will contain the Markov Chain from the sampler,
-that is, hopefully a sample from the posterior density of the mixing parameter and the shape parameter.
-If \code{method == "mle"}, then this element does not exist.}
 }
 
 The output can be used in a variety of ways. If the interest is just in the

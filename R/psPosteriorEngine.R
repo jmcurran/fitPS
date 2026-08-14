@@ -50,6 +50,24 @@ importancePosteriorEngine = function() {
   newPsPosteriorEngine("importance", "importancePosteriorEngine")
 }
 
+#' Construct a posterior engine from its method identifier.
+#'
+#' @param method One supported posterior approximation method.
+#' @return An internal `psPosteriorEngine` object.
+#' @keywords internal
+#' @noRd
+posteriorEngine = function(method) {
+  method = match.arg(method, c("numerical", "mcmc", "laplace", "importance"))
+
+  constructors = list(
+    numerical = numericalPosteriorEngine,
+    mcmc = mcmcPosteriorEngine,
+    laplace = laplacePosteriorEngine,
+    importance = importancePosteriorEngine
+  )
+  constructors[[method]]()
+}
+
 #' Return the identifier for a posterior engine.
 #'
 #' @param engine An internal `psPosteriorEngine` object.

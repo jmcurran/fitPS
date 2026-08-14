@@ -25,6 +25,22 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.8.013
+
+- Completed the provisional Bayesian cleanup and repaired controlled Git staging for deleted generated documentation.
+- Kept psPosterior as the source of truth for ZIZ posterior representations, probability summaries, and diagnostics.
+- Preserved established pre-1.0.7 plain-zeta Bayesian compatibility fields behind the model-specific compatibility method.
+- Carried forward the full Stage 6.10 cleanup because the failed attempt did not commit.
+- Re-ran the full fitPS validation workflow before committing the repaired cleanup.
+
+## fitPS 1.0.8.012
+
+- Removed superseded provisional Bayesian fitter wrappers and routed fitDist() and fitZIDist() through the shared model/engine orchestration.
+- Made psPosterior the source of truth for ZIZ posterior representations, probability summaries, and diagnostics instead of duplicating native engine payloads at psFit top level.
+- Preserved established pre-1.0.7 plain-zeta Bayesian compatibility fields behind a model-specific compatibility method.
+- Removed dead migration helpers and consolidated inflation calculations directly into representation-specific S3 methods.
+- Validated with the full fitPS stage workflow because package R source, S3 registration metadata, generated documentation, and tests changed.
+
 ## fitPS 1.0.8.011
 
 - Consolidated Bayesian psFit finalisation and psPosterior construction across plain zeta and zero-inflated zeta models.

@@ -159,17 +159,24 @@ getPosteriorPlotData = function(object, parameter, level, nGrid){
 #' @keywords internal
 #' @noRd
 getPosteriorSamples = function(object, parameter){
-  if(is.null(object$chain)){
+  chain = NULL
+  if (inherits(object$posterior, "psPosterior")) {
+    chain = object$posterior$representation$value$chain
+  }
+  if (is.null(chain)) {
+    chain = object$chain
+  }
+  if (is.null(chain)) {
     return(NULL)
   }
 
-  if(is.data.frame(object$chain) || is.matrix(object$chain)){
-    if(!parameter %in% colnames(object$chain)){
+  if(is.data.frame(chain) || is.matrix(chain)){
+    if(!parameter %in% colnames(chain)){
       return(NULL)
     }
-    samples = object$chain[, parameter]
-  }else if(parameter == "shape" && is.numeric(object$chain)){
-    samples = object$chain
+    samples = chain[, parameter]
+  }else if(parameter == "shape" && is.numeric(chain)){
+    samples = chain
   }else{
     return(NULL)
   }
@@ -255,6 +262,24 @@ getDensityPosteriorPlotData = function(object, parameter, level, nGrid){
 #' @keywords internal
 #' @noRd
 getPosteriorDensityFunction = function(object, parameter){
+  if (inherits(object$posterior, "psPosterior")) {
+    representation = object$posterior$representation
+    if (inherits(representation, "numericalPosteriorRepresentation")) {
+      if (is.function(representation$value$density) && parameter == "shape") {
+        return(representation$value$density)
+      }
+      if (!is.null(representation$value$posteriorGrid)) {
+        grid = representation$value$posteriorGrid
+        if (parameter == "pi") {
+          return(splinefun(grid$pi, grid$marginalDensity$pi, method = "natural"))
+        }
+        if (parameter == "shape") {
+          return(splinefun(grid$shape, grid$marginalDensity$shape, method = "natural"))
+        }
+      }
+    }
+  }
+
   if(!is.null(object$marginalPdf) && is.list(object$marginalPdf)){
     densityFunction = object$marginalPdf[[parameter]]
     if(is.function(densityFunction)){
@@ -315,6 +340,13 @@ getPosteriorGrid = function(object, parameter, nGrid){
 #' @keywords internal
 #' @noRd
 getPosteriorEstimate = function(object, parameter){
+  if (inherits(object$posterior, "psPosterior")) {
+    row = object$posterior$parameters$parameter == parameter
+    if (sum(row) == 1L) {
+      return(object$posterior$parameters$estimate[row])
+    }
+  }
+
   if(!is.null(object[[parameter]]) && is.numeric(object[[parameter]]) && length(object[[parameter]]) == 1){
     return(object[[parameter]])
   }
@@ -341,6 +373,13 @@ getPosteriorEstimate = function(object, parameter){
 #' @keywords internal
 #' @noRd
 getPosteriorSpread = function(object, parameter){
+  if (inherits(object$posterior, "psPosterior")) {
+    row = object$posterior$parameters$parameter == parameter
+    if (sum(row) == 1L) {
+      return(object$posterior$parameters$sd[row])
+    }
+  }
+
   if(parameter == "shape" && !is.null(object$var.shape)){
     return(sqrt(as.numeric(object$var.shape)))
   }

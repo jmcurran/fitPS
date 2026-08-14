@@ -46,59 +46,6 @@ newPsPosterior = function(method,
   result
 }
 
-#' Construct the common posterior parameter summary for a zero-inflated zeta fit.
-#'
-#' @param par Named vector of parameter estimates.
-#' @param varCov Variance-covariance matrix for model parameters.
-#' @return A data frame of ZIZ posterior parameter summaries.
-#' @keywords internal
-#' @noRd
-makeZizParameterSummary = function(par, varCov) {
-  par = unname(par)
-  names(par) = c("pi", "shape")
-  standardErrors = sqrt(pmax(0, diag(varCov)))
-
-  data.frame(
-    parameter = names(par),
-    estimate = unname(par),
-    sd = unname(standardErrors),
-    stringsAsFactors = FALSE
-  )
-}
-
-#' Attach a structured zero-inflated zeta posterior object to a fitted model.
-#'
-#' @param result Internal value supplied as `result`.
-#' @param probabilities Bootstrap or posterior fitted-probability values.
-#' @param representation Engine-specific posterior representation.
-#' @param diagnostics Optional engine-specific posterior diagnostics.
-#' @param level Probability level for intervals or summaries.
-#' @return The supplied fit with a `psPosterior` component attached.
-#' @keywords internal
-#' @noRd
-attachZizPosterior = function(result,
-                               probabilities,
-                               representation,
-                               diagnostics = NULL,
-                               level = 0.95) {
-  posterior = newPsPosterior(
-    method = result$posteriorMethod,
-    parameters = makeZizParameterSummary(
-      par = c(pi = result$pi, shape = result$shape),
-      varCov = result$var.cov
-    ),
-    probabilities = probabilities,
-    representation = representation,
-    level = level,
-    diagnostics = diagnostics,
-    model = "ziz"
-  )
-
-  result$posterior = posterior
-  result$posteriorProbs = posterior$probabilities
-  result
-}
-
 #' Print a fitPS posterior object
 #'
 #' @param x An object of class `psPosterior`.

@@ -25,8 +25,8 @@ test_that("zero-inflated zeta MCMC is reproducible with a seed", {
     seed = 779
   )
 
-  expect_identical(fit1$chain, fit2$chain)
-  expect_identical(fit1$fit$acceptance, fit2$fit$acceptance)
+  expect_identical(fit1$posterior$representation$value$chain, fit2$posterior$representation$value$chain)
+  expect_identical(fit1$posterior$diagnostics$acceptance, fit2$posterior$diagnostics$acceptance)
   expect_equal(fit1$pi, fit2$pi)
   expect_equal(fit1$shape, fit2$shape)
 })
@@ -58,39 +58,22 @@ test_that("MCMC agrees with the numerical posterior under a non-uniform beta pri
 
   expect_equal(mcmcFit$pi, numericalFit$pi, tolerance = 0.04)
   expect_equal(mcmcFit$shape, numericalFit$shape, tolerance = 0.12)
+  mcmcVariance = mcmcFit$posterior$representation$value$variance
+  numericalVariance = numericalFit$posterior$representation$value$variance
   piVarianceDifference = abs(
-    unname(mcmcFit$var.cov["pi", "pi"]) -
-      unname(numericalFit$var.cov["pi", "pi"])
+    unname(mcmcVariance["pi", "pi"]) -
+      unname(numericalVariance["pi", "pi"])
   )
   expect_lte(piVarianceDifference, 0.001)
   expect_equal(
-    unname(mcmcFit$var.cov["shape", "shape"]),
-    unname(numericalFit$var.cov["shape", "shape"]),
+    unname(mcmcVariance["shape", "shape"]),
+    unname(numericalVariance["shape", "shape"]),
     tolerance = 0.08
   )
-  expect_true(all(mcmcFit$fit$acceptance > 0))
-  expect_true(all(mcmcFit$fit$acceptance < 1))
+  expect_true(all(mcmcFit$posterior$diagnostics$acceptance > 0))
+  expect_true(all(mcmcFit$posterior$diagnostics$acceptance < 1))
 })
 
-test_that("legacy MCMC shape bounds define the prior actually used", {
-  pData = makePSData(n = c(0, 1, 2), count = c(8, 3, 1), type = "P")
-
-  fit = fitZIDist(
-    pData,
-    method = "bayes",
-    bayesOptions = list(posteriorMethod = "mcmc"),
-    a = -1,
-    b = 1,
-    theta0 = c(0.4, 2),
-    nIter = 1000,
-    nBurnIn = 200,
-    seed = 31
-  )
-
-  expect_equal(fit$bayesOptions$prior$range, 1 + exp(c(-1, 1)))
-  expect_true(all(fit$chain$shape > fit$bayesOptions$prior$range[1]))
-  expect_true(all(fit$chain$shape < fit$bayesOptions$prior$range[2]))
-})
 
 legacyMcmcZizFit = function(x,
                              prior,
@@ -256,10 +239,12 @@ test_that("MCMC ZIZ fitting reproduces the legacy sampler and orchestration", {
       nBurnIn = 200,
       seed = 9127
     )
-    actual = fitZIDistBayes(
+    actual = fitZIDist(
       x = data,
       prior = prior,
       nterms = 4,
+      method = "bayes",
+      bayesOptions = list(posteriorMethod = "mcmc"),
       theta0 = c(0.3, 2),
       shape1 = 2,
       shape2 = 5,
@@ -269,16 +254,13 @@ test_that("MCMC ZIZ fitting reproduces the legacy sampler and orchestration", {
       silent = TRUE
     )
 
-    expect_identical(actual$chain, expected$chain)
+    expect_identical(actual$posterior$representation$value$chain, expected$chain)
     expect_equal(actual$fit$par, expected$par, tolerance = 0)
-    expect_equal(actual$fit$acceptance, expected$acceptance, tolerance = 0)
-    expect_equal(actual$var.cov, expected$var.cov, tolerance = 0)
     expect_equal(actual$fitted, expected$fitted, tolerance = 1e-14)
     expect_null(dim(actual$fitted))
-    expect_equal(actual$posteriorProbs, expected$posteriorProbs, tolerance = 0)
-    expect_s3_class(actual$posteriorRepresentation, "mcmcPosteriorRepresentation")
-    expect_identical(actual$posterior$representation, actual$posteriorRepresentation)
-    expect_equal(actual$posterior$diagnostics, actual$fit$acceptance, tolerance = 0)
+    expect_equal(actual$posterior$probabilities, expected$posteriorProbs, tolerance = 0)
+    expect_s3_class(actual$posterior$representation, "mcmcPosteriorRepresentation")
+    expect_equal(actual$posterior$diagnostics$acceptance, expected$acceptance, tolerance = 0)
   }
 })
 
@@ -300,7 +282,6 @@ test_that("fitZIDist MCMC Bayesian path uses the migrated engine", {
   )
 
   expect_identical(fit$posteriorMethod, "mcmc")
-  expect_s3_class(fit$posteriorRepresentation, "mcmcPosteriorRepresentation")
+  expect_s3_class(fit$posterior$representation, "mcmcPosteriorRepresentation")
   expect_s3_class(fit$posterior, "psPosterior")
-  expect_identical(fit$posterior$representation, fit$posteriorRepresentation)
 })

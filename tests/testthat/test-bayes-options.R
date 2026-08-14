@@ -72,5 +72,5 @@ test_that("fitZIDist keeps MCMC available through posteriorMethod", {
   expect_s3_class(fit, "psFit")
   expect_identical(fit$method, "bayes")
   expect_identical(fit$posteriorMethod, "mcmc")
-  expect_s3_class(fit$chain, "data.frame")
+  expect_s3_class(fit$posterior$representation$value$chain, "data.frame")
 })

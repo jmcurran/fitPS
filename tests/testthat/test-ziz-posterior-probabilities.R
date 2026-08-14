@@ -32,13 +32,13 @@ test_that("numerical posterior probabilities use grid weights", {
     shape2 = 5
   )
 
-  expect_equal(fit$posteriorProbs$term, paste0("P", 0:3))
-  expect_equal(fit$posteriorProbs$posteriorMethod, rep("numerical", 4L))
-  expect_true(all(fit$posteriorProbs$lower >= 0))
-  expect_true(all(fit$posteriorProbs$upper <= 1))
+  expect_equal(fit$posterior$probabilities$term, paste0("P", 0:3))
+  expect_equal(fit$posterior$probabilities$posteriorMethod, rep("numerical", 4L))
+  expect_true(all(fit$posterior$probabilities$lower >= 0))
+  expect_true(all(fit$posterior$probabilities$upper <= 1))
   expect_true(all(
-    fit$posteriorProbs$estimate >= fit$posteriorProbs$lower &
-      fit$posteriorProbs$estimate <= fit$posteriorProbs$upper
+    fit$posterior$probabilities$estimate >= fit$posterior$probabilities$lower &
+      fit$posterior$probabilities$estimate <= fit$posterior$probabilities$upper
   ))
 })
 
@@ -58,8 +58,8 @@ test_that("MCMC posterior probabilities transform retained draws", {
   )
 
   transformed = zizProbabilities(
-    pi = fit$chain$pi,
-    shape = fit$chain$shape,
+    pi = fit$posterior$representation$value$chain$pi,
+    shape = fit$posterior$representation$value$chain$shape,
     n = 0:2,
     type = "P"
   )
@@ -85,12 +85,12 @@ test_that("importance posterior probabilities use retained weights", {
   )
 
   transformed = zizProbabilities(
-    pi = fit$weightedSamples$pi,
-    shape = fit$weightedSamples$shape,
+    pi = fit$posterior$representation$value$approximation$samples$pi,
+    shape = fit$posterior$representation$value$approximation$samples$shape,
     n = 1:3,
     type = "S"
   )
-  expected = colSums(transformed * fit$weightedSamples$weight)
+  expected = colSums(transformed * fit$posterior$representation$value$approximation$samples$weight)
 
   expect_equal(unname(fit$posterior$probabilities$estimate), unname(expected))
   expect_equal(fit$posterior$probabilities$term, paste0("S", 1:3))

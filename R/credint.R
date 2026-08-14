@@ -83,17 +83,26 @@ credint = function(psFit,
     cat("Computing contours\n")
   }
 
+  chain = if (inherits(psFit$posterior, "psPosterior")) {
+    psFit$posterior$representation$value$chain
+  } else {
+    psFit$chain
+  }
+  if (is.null(chain)) {
+    stop("credint() currently requires an MCMC posterior representation")
+  }
+
   if(model == "zeta"){
     ## estimate bandwidth
     if(!silent){
       cat("\t-- Estimating bandwidth\n")
     }
-    h = ks::hscv(psFit$chain)
+    h = ks::hscv(chain)
 
     if(!silent){
       cat("\t-- Computing KCDE\n")
     }
-    fhat = ks::kcde(psFit$chain, h) ## computes the CDF based on the KDE
+    fhat = ks::kcde(chain, h) ## computes the CDF based on the KDE
     FxInv = approxfun(fhat$estimate, fhat$eval.points)
 
     if(length(level) == 1){
@@ -113,12 +122,12 @@ credint = function(psFit,
     if(!silent){
       cat("\t-- Estimating bandwidth\n")
     }
-    H = ks::Hscv(psFit$chain)
+    H = ks::Hscv(chain)
 
     if(!silent){
       cat("\t-- Computing KDE\n")
     }
-    fhat = ks::kde(psFit$chain, H, positive = TRUE)
+    fhat = ks::kde(chain, H, positive = TRUE)
     cont = sort(100 * level)
     levels = ks::contourLevels(fhat, cont = cont, approx = TRUE)
     credRegion = contourLines(x = fhat$eval.points[[1]],
@@ -141,7 +150,7 @@ credint = function(psFit,
     names(credRegion) = paste0(cont,"%")
 
     if(plot){
-      plot(psFit$chain, pch = 'x', col = 'grey', ...)
+      plot(chain, pch = 'x', col = 'grey', ...)
       for(l in seq_along(credRegion)){
         for(cr in seq_along(credRegion[[l]])){
           polygon(credRegion[[l]][[cr]]$pi, credRegion[[l]][[cr]]$shape, border = "red", lwd = 2)

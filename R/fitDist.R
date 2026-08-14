@@ -19,17 +19,19 @@
 #'
 #' @aliases fitdist
 #'
-#' @details The function returns an object of class \code{psFit} which is a
-#'   \code{list} containing seven or eight elements:
+#' @details The function returns an object of class \code{psFit}. Core fitted
+#'   values are stored at the top level, while Bayesian uncertainty is stored
+#'   in the attached \code{psPosterior} object. Important components include:
 #' \describe{
 #' \item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
-#' \item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
+#' \item{\code{fit}}{ -- method-specific point-estimate information,}
 #' \item{\code{shape}}{ -- the maximum likelihood estimate, or the posterior mean, of the shape parameter,}
 #' \item{\code{var.shape}}{ -- the maximum likelihood estimate, or posterior estimate, of the variance of the shape parameter,}
 #' \item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms} of
 #' the fitted distribution.}
 #' \item{\code{model}}{ -- set to \code{"zeta"} for this model.}
 #' \item{\code{method}}{ -- the method of estimation used, either \code{"mle"} or \code{"bayes"}.}
+#' \item{\code{posterior}}{ -- for Bayesian fits, a \code{psPosterior} object containing parameter summaries, probability summaries, diagnostics, and the engine-specific representation,}
 #' \item{\code{chain}}{ -- if \code{method == "bayes"}, then this element will contain the Markov Chain from the sampler,
 #' that is, hopefully a sample from the posterior density of the shape parameter. If \code{method == "mle"}, then this element does not exist.}
 #' }
@@ -48,13 +50,12 @@
 #'   documentation for the \code{...} argument closely because it explains what
 #'   you can change and what the default values are.
 #'
-#'   Currently the Bayesian estimation is done using the prior returned by
-#'   \code{\link{makePrior}}. By default this is a Uniform[a, b] prior on
-#'   \eqn{\log(\mathrm{shape} - 1)}{log(shape - 1)}, so the prior support always has \code{shape > 1}. This may become more
-#'   flexible in the future. Similarly, the estimation is done using a simple
-#'   Metropolis-Hastings sampler. It might be more efficient to sample through
-#'   adaptive rejection sampling, but it is unclear whether it is worth the
-#'   effort.
+#'   Bayesian estimation uses the prior returned by \code{\link{makePrior}}
+#'   and the posterior engine selected by \code{bayesOptions$posteriorMethod}.
+#'   Plain zeta currently supports \code{"numerical"} and \code{"mcmc"}.
+#'   Both engines return the same \code{psPosterior} contract, including
+#'   posterior parameter summaries and posterior summaries of the fitted P or S
+#'   probabilities.
 #'
 #' @seealso \code{\link{plot.psFit}}, \code{\link{print.psFit}},
 #'   \code{\link{probfun}}.
@@ -216,37 +217,25 @@ fitDist = function(x, nterms = 10,
     class(result) = "psFit"
 
     return(result)
-  }else if (method == "bayes") {
+  } else if (method == "bayes") {
     options = if (missing(prior)) {
       normaliseBayesOptions(bayesOptions = bayesOptions)
     } else {
       normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
     }
 
-    if (options$posteriorMethod == "numerical") {
-      result = fitDistBayesIntegrate(
-        x = x,
-        prior = options$prior,
-        nterms = nterms,
-        ...
-      )
-    } else if (options$posteriorMethod == "mcmc") {
-      result = fitDistBayes(
-        x = x,
-        prior = options$prior,
-        nterms = nterms,
-        ...
-      )
-    } else {
-      stop(
-        "posteriorMethod = ",
-        sQuote(options$posteriorMethod),
-        " is not implemented for fitDist() yet"
-      )
-    }
+    model = zetaModel()
+    engine = posteriorEngine(options$posteriorMethod)
+    validateEngineModelPair(engine, model)
 
-    result$method = "bayes"
-    result$posteriorMethod = options$posteriorMethod
+    result = fitBayesianModel(
+      model = model,
+      posteriorMethod = options$posteriorMethod,
+      x = x,
+      prior = options$prior,
+      nterms = nterms,
+      ...
+    )
     result$bayesOptions = options
     return(result)
   } else {

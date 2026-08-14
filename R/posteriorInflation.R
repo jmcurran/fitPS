@@ -93,87 +93,6 @@ validateInflationEpsilon = function(epsilon) {
   invisible(epsilon)
 }
 
-#' Compute the posterior probability below the inflation threshold from a numerical grid.
-#'
-#' @param posteriorGrid Numerical posterior-grid representation.
-#' @param epsilon Practical threshold below which zero inflation is treated as negligible.
-#' @return A posterior probability between zero and one.
-#' @keywords internal
-#' @noRd
-numericalInflationProbability = function(posteriorGrid, epsilon) {
-  required = c("pi", "marginalDensity", "dPi")
-  if (!is.list(posteriorGrid) || !all(required %in% names(posteriorGrid)) ||
-      is.null(posteriorGrid$marginalDensity$pi)) {
-    stop("numerical posterior representation is incomplete")
-  }
-
-  # With a continuous prior Pr(pi = 0 | data) is zero. The useful diagnostic is
-  # therefore the posterior mass below a small practical threshold epsilon.
-  selected = posteriorGrid$pi < epsilon
-  sum(posteriorGrid$marginalDensity$pi[selected]) * posteriorGrid$dPi
-}
-
-#' Compute the posterior probability below the inflation threshold from MCMC draws.
-#'
-#' @param chain MCMC posterior draws.
-#' @param epsilon Practical threshold below which zero inflation is treated as negligible.
-#' @return A posterior probability between zero and one.
-#' @keywords internal
-#' @noRd
-mcmcInflationProbability = function(chain, epsilon) {
-  if (!is.data.frame(chain) || !"pi" %in% names(chain)) {
-    stop("MCMC posterior representation does not contain pi draws")
-  }
-
-  # Estimate the practical no-inflation probability by the retained-draw
-  # proportion below epsilon; exact zero has probability zero under the prior.
-  mean(chain$pi < epsilon)
-}
-
-#' Compute the posterior probability below the inflation threshold from weighted importance samples.
-#'
-#' @param approximation Laplace or importance-sampling posterior representation.
-#' @param epsilon Practical threshold below which zero inflation is treated as negligible.
-#' @return A posterior probability between zero and one.
-#' @keywords internal
-#' @noRd
-importanceInflationProbability = function(approximation, epsilon) {
-  if (!is.list(approximation) || is.null(approximation$samples) ||
-      !all(c("pi", "weight") %in% names(approximation$samples))) {
-    stop("importance posterior representation does not contain weighted pi samples")
-  }
-
-  # Weighted posterior mass below epsilon estimates the practical no-inflation
-  # probability for an importance-sampling representation.
-  samples = approximation$samples
-  sum(samples$weight[samples$pi < epsilon]) / sum(samples$weight)
-}
-
-#' Approximate the posterior probability below the inflation threshold from a Laplace approximation.
-#'
-#' @param approximation Laplace or importance-sampling posterior representation.
-#' @param epsilon Practical threshold below which zero inflation is treated as negligible.
-#' @return An approximate posterior probability between zero and one.
-#' @keywords internal
-#' @noRd
-laplaceInflationProbability = function(approximation, epsilon) {
-  if (!is.list(approximation) || is.null(approximation$modeWorking) ||
-      is.null(approximation$covarianceWorking)) {
-    stop("Laplace posterior representation is incomplete")
-  }
-
-  etaMean = unname(approximation$modeWorking[["eta"]])
-  etaSd = sqrt(unname(approximation$covarianceWorking["eta", "eta"]))
-
-  if (!is.finite(etaMean) || !is.finite(etaSd) || etaSd <= 0) {
-    stop("Laplace approximation for pi is not valid")
-  }
-
-  # The Laplace approximation is Gaussian in eta = logit(pi), so transform the
-  # natural-scale threshold to eta before evaluating its Gaussian CDF.
-  pnorm(qlogis(epsilon), mean = etaMean, sd = etaSd)
-}
-
 #' Compute negligible-inflation probability through posterior representation dispatch.
 #'
 #' @param representation An internal `psPosteriorRepresentation` object.
@@ -210,7 +129,14 @@ posteriorInflationProbability.numericalPosteriorRepresentation = function(repres
                                                                            ...) {
   validateInflationEpsilon(epsilon)
   posteriorGrid = representation$value$posteriorGrid
-  numericalInflationProbability(posteriorGrid, epsilon)
+  required = c("pi", "marginalDensity", "dPi")
+  if (!is.list(posteriorGrid) || !all(required %in% names(posteriorGrid)) ||
+      is.null(posteriorGrid$marginalDensity$pi)) {
+    stop("numerical posterior representation is incomplete")
+  }
+
+  selected = posteriorGrid$pi < epsilon
+  sum(posteriorGrid$marginalDensity$pi[selected]) * posteriorGrid$dPi
 }
 
 #' @rdname posteriorInflationProbability
@@ -221,7 +147,12 @@ posteriorInflationProbability.mcmcPosteriorRepresentation = function(representat
                                                                       epsilon,
                                                                       ...) {
   validateInflationEpsilon(epsilon)
-  mcmcInflationProbability(representation$value$chain, epsilon)
+  chain = representation$value$chain
+  if (!is.data.frame(chain) || !"pi" %in% names(chain)) {
+    stop("MCMC posterior representation does not contain pi draws")
+  }
+
+  mean(chain$pi < epsilon)
 }
 
 #' @rdname posteriorInflationProbability
@@ -232,7 +163,14 @@ posteriorInflationProbability.importancePosteriorRepresentation = function(repre
                                                                             epsilon,
                                                                             ...) {
   validateInflationEpsilon(epsilon)
-  importanceInflationProbability(representation$value$approximation, epsilon)
+  approximation = representation$value$approximation
+  if (!is.list(approximation) || is.null(approximation$samples) ||
+      !all(c("pi", "weight") %in% names(approximation$samples))) {
+    stop("importance posterior representation does not contain weighted pi samples")
+  }
+
+  samples = approximation$samples
+  sum(samples$weight[samples$pi < epsilon]) / sum(samples$weight)
 }
 
 #' @rdname posteriorInflationProbability
@@ -243,5 +181,18 @@ posteriorInflationProbability.laplacePosteriorRepresentation = function(represen
                                                                          epsilon,
                                                                          ...) {
   validateInflationEpsilon(epsilon)
-  laplaceInflationProbability(representation$value$approximation, epsilon)
+  approximation = representation$value$approximation
+  if (!is.list(approximation) || is.null(approximation$modeWorking) ||
+      is.null(approximation$covarianceWorking)) {
+    stop("Laplace posterior representation is incomplete")
+  }
+
+  etaMean = unname(approximation$modeWorking[["eta"]])
+  etaSd = sqrt(unname(approximation$covarianceWorking["eta", "eta"]))
+
+  if (!is.finite(etaMean) || !is.finite(etaSd) || etaSd <= 0) {
+    stop("Laplace approximation for pi is not valid")
+  }
+
+  pnorm(qlogis(epsilon), mean = etaMean, sd = etaSd)
 }

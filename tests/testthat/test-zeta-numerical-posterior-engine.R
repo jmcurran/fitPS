@@ -125,7 +125,7 @@ test_that("numerical zeta fitting reproduces the legacy algorithm", {
     }
 
     expected = legacyNumericalZetaFit(data, prior, nterms = 4)
-    actual = fitDistBayesIntegrate(data, prior = prior, nterms = 4)
+    actual = fitDist(data, prior = prior, nterms = 4, method = "bayes", bayesOptions = list(posteriorMethod = "numerical"))
 
     expect_equal(actual$shape, expected$shape, tolerance = 1e-10)
     expect_equal(actual$var.shape, expected$var.shape, tolerance = 1e-10)
@@ -133,7 +133,7 @@ test_that("numerical zeta fitting reproduces the legacy algorithm", {
     grid = seq(1.2, 3.8, length.out = 7)
     expect_equal(actual$pdf(grid), expected$pdf(grid), tolerance = 1e-10)
     expect_s3_class(
-      actual$posteriorRepresentation,
+      actual$posterior$representation,
       "numericalPosteriorRepresentation"
     )
   }
@@ -156,7 +156,7 @@ test_that("fitDist numerical Bayesian path uses the migrated engine", {
   expect_identical(fit$method, "bayes")
   expect_identical(fit$posteriorMethod, "numerical")
   expect_s3_class(
-    fit$posteriorRepresentation,
+    fit$posterior$representation,
     "numericalPosteriorRepresentation"
   )
   expect_true(is.function(fit$pdf))

@@ -93,22 +93,22 @@ test_that("Laplace posterior engine preserves ZIZ fit orchestration", {
       paste0("S", nvals)
     }
 
-    actual = fitZIDistBayesLaplace(
+    actual = fitZIDist(
       x = x,
       nterms = 4,
       prior = prior,
+      method = "bayes",
+      bayesOptions = list(posteriorMethod = "laplace"),
       start = c(pi = 0.4, shape = 2),
       nPosteriorDraws = 300,
       seed = 314
     )
 
-    expect_s3_class(actual$posteriorRepresentation, "laplacePosteriorRepresentation")
+    expect_s3_class(actual$posterior$representation, "laplacePosteriorRepresentation")
     expect_equal(actual$fit$par, approximation$mode)
-    expect_equal(actual$var.cov, approximation$varCov)
     expect_equal(actual$fitted, expectedFitted)
     expect_null(dim(actual$fitted))
-    expect_equal(actual$posteriorProbs, expectedPosteriorProbs)
-    expect_equal(actual$laplace, approximation)
+    expect_equal(actual$posterior$probabilities, expectedPosteriorProbs)
   }
 })
 

@@ -114,10 +114,12 @@ test_that("MCMC zeta fitting reproduces the legacy algorithm", {
       nBurnIn = 100
     )
     set.seed(779)
-    actual = fitDistBayes(
+    actual = fitDist(
       data,
       prior = prior,
       nterms = 4,
+      method = "bayes",
+      bayesOptions = list(posteriorMethod = "mcmc"),
       nIter = 1000,
       nBurnIn = 100,
       silent = TRUE
@@ -129,7 +131,7 @@ test_that("MCMC zeta fitting reproduces the legacy algorithm", {
     expect_equal(actual$fitted, expected$fitted, tolerance = 1e-14)
     grid = seq(1.2, 3.8, length.out = 7)
     expect_equal(actual$pdf(grid), expected$pdf(grid), tolerance = 1e-12)
-    expect_s3_class(actual$posteriorRepresentation, "mcmcPosteriorRepresentation")
+    expect_s3_class(actual$posterior$representation, "mcmcPosteriorRepresentation")
   }
 })
 
@@ -153,7 +155,7 @@ test_that("fitDist MCMC Bayesian path uses the migrated engine", {
 
   expect_identical(fit$method, "bayes")
   expect_identical(fit$posteriorMethod, "mcmc")
-  expect_s3_class(fit$posteriorRepresentation, "mcmcPosteriorRepresentation")
+  expect_s3_class(fit$posterior$representation, "mcmcPosteriorRepresentation")
   expect_length(fit$chain, 1000)
   expect_true(is.function(fit$pdf))
 })

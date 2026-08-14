@@ -39,9 +39,10 @@ test_that("fitZIDist uses numerical posterior as Bayesian default", {
   expect_s3_class(fit, "psFit")
   expect_identical(fit$method, "bayes")
   expect_identical(fit$posteriorMethod, "numerical")
-  expect_true(is.list(fit$posteriorGrid))
-  expect_true(is.function(fit$marginalPdf$pi))
-  expect_true(is.function(fit$marginalPdf$shape))
+  grid = fit$posterior$representation$value$posteriorGrid
+  expect_true(is.list(grid))
+  expect_true(is.numeric(grid$marginalDensity$pi))
+  expect_true(is.numeric(grid$marginalDensity$shape))
   expect_true(fit$pi > 0 && fit$pi < 1)
   expect_true(fit$shape > 1)
 })

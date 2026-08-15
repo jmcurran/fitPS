@@ -1,0 +1,238 @@
+---
+title: "Comparing probability models for the Roux survey"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparing probability models for the Roux survey}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.5
+)
+suppressPackageStartupMessages(library(fitPS))
+```
+
+## Why compare models?
+
+The Roux et al. (2001) footwear survey records the number of different sources of glass found on each surveyed pair of shoes. It is a useful data set for comparing the probability models currently built into `fitPS` because the large number of zero observations makes the treatment of the first probability term especially important.
+
+```{r roux-data}
+data("Psurveys")
+roux = Psurveys$roux
+roux
+```
+
+Three built-in models are scientifically relevant to these P-survey counts:
+
+- the zeta model, which places a discrete power-law distribution on the latent positive counts used to define the P terms;
+- the zero-inflated zeta (ZIZ) model, which adds a separate parameter for excess zero probability;
+- the logarithmic-series model, which supplies a different one-parameter distribution on the same latent positive support.
+
+The purpose of the comparison is not to declare one of these distributions to be literally true. Instead, we ask how well each model describes the observed survey distribution, whether the extra ZIZ parameter is useful, and whether several model-selection summaries tell a consistent story.
+
+## Maximum-likelihood comparison
+
+The current public fitting interface is `fit()`. We first fit all three models by maximum likelihood.
+
+```{r mle-fits}
+mleFits = list(
+  Zeta = fit(roux, model = zetaModel()),
+  ZIZ = fit(roux, model = zizModel()),
+  Logarithmic = fit(roux, model = logarithmicModel())
+)
+```
+
+For a maximum-likelihood fit, `logLik()` returns the maximized log-likelihood together with the number of fitted parameters and the sample size. That common contract allows the standard `AIC()` and `BIC()` functions to work for all three models.
+
+```{r mle-comparison}
+mleComparison = do.call(
+  rbind,
+  lapply(names(mleFits), function(modelName) {
+    fittedModel = mleFits[[modelName]]
+    logLikelihood = logLik(fittedModel)
+
+    data.frame(
+      model = modelName,
+      parameters = attr(logLikelihood, "df"),
+      method = "MLE",
+      engine = NA_character_,
+      logLik = as.numeric(logLikelihood),
+      AIC = AIC(fittedModel),
+      BIC = BIC(fittedModel),
+      DIC = NA_real_,
+      check.names = FALSE
+    )
+  })
+)
+
+knitr::kable(mleComparison, digits = 2)
+
+aicBest = mleComparison$model[which.min(mleComparison$AIC)]
+bicBest = mleComparison$model[which.min(mleComparison$BIC)]
+```
+
+For these data, the smallest AIC is obtained by **`r aicBest`**, while the smallest BIC is obtained by **`r bicBest`**. `r if (identical(aicBest, bicBest)) "Here the two likelihood-based criteria agree on the leading model, although the size of the differences still matters." else "Here the two likelihood-based criteria rank the leading models differently, which is a reason to examine the penalty for complexity and the fitted probabilities rather than suppressing the disagreement."`
+
+The maximized log-likelihood measures agreement with the observed data at the fitted parameter values; larger values indicate better fit on that scale. AIC and BIC both start from the maximized likelihood and add a penalty for model complexity. Smaller AIC or BIC values are preferred within the set of models being compared. BIC penalizes additional parameters more strongly as the sample size increases.
+
+A difference of only a small number of criterion units should not be read as definitive evidence that one model has discovered the true data-generating process. The criteria are aids to comparison, and their practical meaning should be considered together with the fitted distributions.
+
+## Bayesian fits and DIC
+
+For the same models we can also fit Bayesian versions. These models have one or two parameters, so the generic numerical posterior engines established by `fitPS` are appropriate here. We request that core deterministic path explicitly.
+
+```{r bayesian-fits}
+bayesFits = list(
+  Zeta = fit(
+    roux,
+    model = zetaModel(),
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical")
+  ),
+  ZIZ = fit(
+    roux,
+    model = zizModel(),
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical")
+  ),
+  Logarithmic = fit(
+    roux,
+    model = logarithmicModel(),
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical")
+  )
+)
+```
+
+DIC is defined from the posterior distribution of the deviance. It is therefore a Bayesian criterion and is reported for the Bayesian fits rather than being forced onto the maximum-likelihood fits. Conversely, the AIC and BIC columns below are left undefined for the Bayesian rows because the posterior summaries stored in those fits are not maximum-likelihood estimates.
+
+```{r combined-comparison}
+bayesComparison = do.call(
+  rbind,
+  lapply(names(bayesFits), function(modelName) {
+    data.frame(
+      model = modelName,
+      parameters = mleComparison$parameters[mleComparison$model == modelName],
+      method = "Bayes",
+      engine = "numerical",
+      logLik = NA_real_,
+      AIC = NA_real_,
+      BIC = NA_real_,
+      DIC = as.numeric(DIC(bayesFits[[modelName]])),
+      check.names = FALSE
+    )
+  })
+)
+
+comparison = rbind(mleComparison, bayesComparison)
+dicBest = bayesComparison$model[which.min(bayesComparison$DIC)]
+knitr::kable(comparison, digits = 2)
+```
+
+The smallest DIC among the Bayesian fits is obtained by **`r dicBest`**. `r if (identical(dicBest, aicBest) && identical(dicBest, bicBest)) "In this example all three criteria identify the same leading model, but they arrive there through different definitions and should still be interpreted separately." else "The DIC ranking does not exactly reproduce both likelihood-based rankings, illustrating why differences between criteria should be reported and interpreted rather than hidden."`
+
+Smaller DIC values are preferred among the Bayesian fits being compared. DIC, AIC, and BIC are not numerically interchangeable scores. They arise from different calculations and answer related but distinct model-comparison questions. A model can therefore rank differently under DIC than under AIC or BIC. Such a disagreement should be examined rather than hidden.
+
+The numerical values should also be compared only within a criterion. For example, an AIC value should not be compared directly with a DIC value merely because both are on a deviance-like scale.
+
+## Look at the fitted probabilities
+
+A model-selection table does not show where models disagree. The Roux data make that particularly important because a model may gain or lose support mainly through its treatment of zero observations.
+
+We use the public `predict()` interface to obtain plug-in probabilities from the three maximum-likelihood fits. The observed proportions are shown alongside them.
+
+```{r probability-table}
+maxTerm = max(roux$data$n) + 2L
+terms = 0:maxTerm
+
+observed = numeric(length(terms))
+observed[match(roux$data$n, terms)] = roux$data$rn / sum(roux$data$rn)
+
+probabilityComparison = data.frame(
+  term = terms,
+  Observed = observed,
+  Zeta = as.numeric(predict(mleFits$Zeta, newdata = terms)),
+  ZIZ = as.numeric(predict(mleFits$ZIZ, newdata = terms)),
+  Logarithmic = as.numeric(predict(mleFits$Logarithmic, newdata = terms)),
+  check.names = FALSE
+)
+
+knitr::kable(probabilityComparison, digits = 4)
+```
+
+```{r probability-plot, echo=FALSE}
+plot(
+  probabilityComparison$term,
+  probabilityComparison$Observed,
+  type = "h",
+  lwd = 3,
+  xlab = "Number of glass sources, k",
+  ylab = "Probability",
+  ylim = range(probabilityComparison[, -1])
+)
+points(
+  probabilityComparison$term,
+  probabilityComparison$Observed,
+  pch = 16
+)
+matlines(
+  probabilityComparison$term,
+  as.matrix(probabilityComparison[, c("Zeta", "ZIZ", "Logarithmic")]),
+  lty = 1:3,
+  lwd = 2
+)
+legend(
+  "topright",
+  legend = c("Observed", "Zeta", "ZIZ", "Logarithmic"),
+  pch = c(16, NA, NA, NA),
+  lty = c(NA, 1:3),
+  lwd = c(NA, 2, 2, 2),
+  bty = "n"
+)
+```
+
+This display gives a practical check on the numerical criteria. In particular, it lets us see whether the ZIZ model's extra inflation parameter materially changes the fitted zero probability, what happens to the remaining probability mass, and whether a criterion-preferred model produces a visible improvement over its competitors.
+
+A useful comparison should therefore ask both questions: which model is favoured by a particular criterion, and where does that preference appear in the fitted probability distribution?
+
+## Parameter uncertainty and predictive probabilities
+
+Bayesian output involves several probability statements that are easy to conflate.
+
+First, the posterior distribution describes uncertainty about the model parameters after observing the data. For example, the Bayesian ZIZ fit contains posterior uncertainty about both the inflation parameter and the zeta shape parameter.
+
+Second, for any particular parameter vector \(\theta\), the model implies a conditional probability \(P_k(\theta)\). Evaluating the model at one representative parameter value, such as a posterior mean, is a plug-in calculation and does not average over parameter uncertainty.
+
+Third, a posterior predictive probability for a future survey observation averages the model-implied probability over the posterior distribution,
+
+\[
+\Pr(X = k \mid x) = E\{P_k(\theta) \mid x\}.
+\]
+
+`fitPS` exposes these posterior-averaged model probabilities through the posterior probability summaries and the `posteriorMean` prediction type. For example:
+
+```{r posterior-predictive-probabilities}
+predict(
+  bayesFits$ZIZ,
+  newdata = terms,
+  type = "posteriorMean",
+  interval = "credible"
+)
+```
+
+These distinctions matter for later uncertainty work. DIC uses the posterior distribution of model deviance; posterior predictive probabilities average model probabilities over parameter uncertainty; and a future Bayesian Bootstrap analysis would represent a different source or formulation of uncertainty. They should not be treated as synonyms.
+
+## What should be concluded?
+
+The main lesson is methodological rather than a single winning model. AIC and BIC provide likelihood-based comparisons, DIC provides a Bayesian posterior-based comparison, and fitted-probability diagnostics show where the models make different substantive predictions. Agreement among these views strengthens a modelling conclusion, while disagreement is useful information that deserves interpretation.
+
+The Roux example also illustrates why zero inflation should be judged by more than the existence of an additional parameter. The important question is whether that parameter improves the description of the observed zero frequency and the remaining probability distribution enough to justify the added complexity.
+
+## Reference
+
+Roux, C., Kirk, R., Benson, S., Van Haren, T., and Petterd, C. I. (2001). Glass particles in footwear of members of the public in south-eastern Australia: a survey. *Forensic Science International*, 116(2), 149-156.

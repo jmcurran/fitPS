@@ -5,6 +5,14 @@
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
 
+## fitPS 1.1.2.001
+
+- Added a Roux-data model-comparison vignette covering the built-in zeta, zero-inflated zeta, and logarithmic models through the public `fit()` API.
+- Compared maximum-likelihood fits with log-likelihood, AIC, and BIC, and Bayesian numerical fits with DIC without treating the criteria as interchangeable.
+- Added observed-versus-fitted probability diagnostics and clarified plug-in probabilities, posterior parameter uncertainty, and posterior predictive probabilities.
+- Kept Stage 10.1 documentation-only; Bayesian Bootstrap implementation remains deferred to later Stage 10 work.
+- Validated by directly rendering the executable vignette with the package vignette toolchain; full package-wide validation was intentionally skipped for this vignette-only stage.
+
 ## fitPS 1.1.1.021
 
 - Completed the Stage 9 Bayesian architecture audit and confirmed that external models can use fitPS-owned numerical and MCMC posterior engines through the public model mathematics contract.

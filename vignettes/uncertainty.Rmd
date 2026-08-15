@@ -1,8 +1,8 @@
 ---
-title: "Bayesian and bootstrap probability estimates with fitPS"
+title: "Probability uncertainty with fitPS"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Bayesian and bootstrap probability estimates with fitPS}
+  %\VignetteIndexEntry{Probability uncertainty with fitPS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

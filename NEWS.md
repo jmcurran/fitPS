@@ -5,6 +5,14 @@
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
 
+## fitPS 1.1.2.005
+
+- Simplified vignette filenames to `basics`, `model-comparison`, `uncertainty`, and `extending`, while removing the redundant `simple_P_fit` vignette.
+- Kept Roux as the worked dataset inside the model-comparison vignette rather than encoding the dataset name in the filename.
+- Added `.gitignore` and `.Rbuildignore` rules for transient LaTeX, knitr, and rmarkdown files created while rendering vignettes.
+- Cleaned ignored vignette rendering products after direct rendering so validation leaves only deliberate source changes.
+- Validated by direct vignette rendering followed by the full roxygen, strict test, package check, build, and install workflow.
+
 ## fitPS 1.1.2.003
 
 - Allowed Bayesian fitting to use surveys with a single occupied support value instead of rejecting them during shared observation conversion.

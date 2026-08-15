@@ -1,8 +1,8 @@
 ---
-title: "Comparing probability models for the Roux survey"
+title: "Model comparison with fitPS"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Comparing probability models for the Roux survey}
+  %\VignetteIndexEntry{Model comparison with fitPS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

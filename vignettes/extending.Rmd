@@ -1,8 +1,8 @@
 ---
-title: "Extending fitPS with External Models"
+title: "Extending fitPS with external models"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Extending fitPS with External Models}
+  %\VignetteIndexEntry{Extending fitPS with external models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

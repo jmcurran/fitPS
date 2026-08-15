@@ -1,8 +1,8 @@
 ---
-title: "Fitting a zeta distribution to a P survey: number of groups data"
+title: "fitPS basics: fitting probability surveys"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{Examples}
+  %\VignetteIndexEntry{fitPS basics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

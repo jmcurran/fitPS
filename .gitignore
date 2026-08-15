@@ -13,3 +13,21 @@ Rplots.pdf
 vignettes/*.html
 vignettes/*files/
 vignettes/*.pdf
+# Transient vignette rendering products
+vignettes/*.aux
+vignettes/*.bbl
+vignettes/*.bcf
+vignettes/*.blg
+vignettes/*.fdb_latexmk
+vignettes/*.fls
+vignettes/*.lof
+vignettes/*.lot
+vignettes/*.out
+vignettes/*.run.xml
+vignettes/*.synctex.gz
+vignettes/*.tex
+vignettes/*.toc
+vignettes/*.utf8.md
+vignettes/*.knit.md
+vignettes/*_cache/
+vignettes/figure/

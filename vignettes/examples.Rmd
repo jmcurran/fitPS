@@ -36,11 +36,13 @@ The package includes a special printing function that summarises the data for re
 roux
 ```
 
-It is very simple to fit a zeta distribution to this data set. We do this using the `fitDist` function.
+It is very simple to fit a zeta distribution to this data set. The current public interface uses `fit()` with an explicit zeta model descriptor.
 
 ```{r fit-roux}
-fit = fitDist(roux)
+fit = fit(roux, model = zetaModel())
 ```
+
+The older `fitDist()` function remains as a deprecated compatibility wrapper, but new code should use `fit()`.
 
 We have assigned the result of the fitting to an arbitrarily chosen variable name, `fit`, chosen because it is easy to remember that it is a fitted object. The package includes specialised functions for both printing and plotting the fitted object. The `print` method displays an estimate of the shape parameter $\alpha$ and the standard error of that estimate, $\widehat{\mathrm{sd}}(\hat{\alpha}) = \mathrm{se}(\hat{\alpha})$. The reported value is the same shape parameter used throughout `fitPS` and stored in the fitted object.
 
@@ -66,12 +68,14 @@ P(5)
 
 ## Fitting a zero-inflated zeta distribution
 
-We can also fit a zero-inflated zeta model using the `fitZIDist` function. As before, we can choose a variable name to store the results in.
+We can also fit a zero-inflated zeta model through the same generic interface by supplying `zizModel()`. As before, we can choose a variable name to store the results in.
 
 ```{r fit-zero-inflated}
-fit.zi = fitZIDist(roux)
+fit.zi = fit(roux, model = zizModel())
 fit.zi
 ```
+
+The older `fitZIDist()` function remains as a deprecated compatibility wrapper.
 
 In the example above we fit a zero-inflated model to Roux et al.'s data and print the resulting fit. We get estimates of the parameters and a default set of fitted values. The output is interesting because the value of $\hat{\pi}$ shows that the zero part of the zero-inflated model is picking up about `r round(100 * fit.zi$pi)`% of the zeros. It is interesting to compare the estimates from the raw frequencies, the zeta model, and the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
 
@@ -139,8 +143,8 @@ Visual inspection of these surveys would suggest that they are fairly similar. W
 ```{r compare-fits}
 lau = Psurveys$lau
 jackson = Psurveys$jackson
-fit.lau = fitDist(lau)
-fit.jackson = fitDist(jackson)
+fit.lau = fit(lau, model = zetaModel())
+fit.jackson = fit(jackson, model = zetaModel())
 confint(fit.lau)$wald
 confint(fit.jackson)$wald
 ```

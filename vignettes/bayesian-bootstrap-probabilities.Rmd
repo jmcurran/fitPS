@@ -34,7 +34,7 @@ The zero-inflated zeta model has two parameters: the inflation probability `pi` 
 The conventional maximum-likelihood fit evaluates each P term at the fitted parameter values.
 
 ```{r mle-fit}
-mleFit = fitZIDist(roux, nterms = 6)
+mleFit = fit(roux, model = zizModel(), nterms = 6)
 fitted(mleFit, type = "plugIn")
 ```
 
@@ -51,8 +51,9 @@ where \(\widehat{\theta}=(\widehat{\pi},\widehat{\mathrm{shape}})\).
 A Bayesian zero-inflated fit is requested with `method = "bayes"`. The default posterior engine is deterministic numerical integration over the joint posterior.
 
 ```{r bayes-fit}
-bayesFit = fitZIDist(
+bayesFit = fit(
   roux,
+  model = zizModel(),
   nterms = 6,
   method = "bayes",
   bayesOptions = list(
@@ -117,37 +118,25 @@ A large value of `Pr(pi < 0.01 | data)` indicates that the posterior places subs
 
 This diagnostic also avoids a technical limitation of asking for the posterior probability of exactly `pi = 0`. Under the continuous beta prior used here, that point has posterior probability zero. A formal posterior probability for the exact no-inflation model would require a point mass at zero or explicit model comparison, whereas `Pr(pi < epsilon | data)` is available directly under the current model and answers the practically relevant question.
 
-### Other posterior engines
+### Posterior engine choice
 
-The same public posterior interface is used for all four Bayesian engines. The numerical method is the default and is used above because it is deterministic. The alternatives are:
+For one- and two-parameter models, `fitPS` uses deterministic numerical integration when the model advertises numerical support. The ZIZ model is two-dimensional, so its numerical posterior is evaluated by adaptive cubature. MCMC is the core simulation-based alternative and is the route used for models with three or more parameters.
 
-```{r other-engines, eval=FALSE}
-mcmcFit = fitZIDist(
+```{r mcmc-engine, eval=FALSE}
+mcmcFit = fit(
   roux,
+  model = zizModel(),
   method = "bayes",
   bayesOptions = list(posteriorMethod = "mcmc"),
   nIter = 5000,
   nBurnIn = 1000,
   seed = 1234
 )
-
-laplaceFit = fitZIDist(
-  roux,
-  method = "bayes",
-  bayesOptions = list(posteriorMethod = "laplace"),
-  seed = 1234
-)
-
-importanceFit = fitZIDist(
-  roux,
-  method = "bayes",
-  bayesOptions = list(posteriorMethod = "importance"),
-  nSamples = 5000,
-  seed = 1234
-)
 ```
 
-For the numerical engine, P-term expectations are integrated over the weighted joint posterior grid. For MCMC, each retained `(pi, shape)` draw is transformed into P terms. Importance sampling retains and uses the importance weights in means, variances, and quantiles. The Laplace engine simulates seeded draws on its unconstrained Gaussian approximation and transforms those draws back to `(pi, shape)` before calculating P terms.
+Laplace and importance-sampling engines remain available for the built-in ZIZ model, primarily for compatibility and specialised experimentation. They are not the main extension path: external models should normally target numerical integration when they have at most two parameters and MCMC otherwise.
+
+For numerical fitting, posterior expectations are computed by deterministic integration. For MCMC, each retained parameter draw is transformed into P or S terms before posterior summaries are calculated.
 
 ## Bootstrap probability distributions
 

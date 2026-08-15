@@ -51,13 +51,13 @@ For example:
 roux
 ```
 
-It is very simple to fit a zeta distribution to this data set. We do this using the `fitDist` function.
+It is very simple to fit a zeta distribution to this data set. The current public interface uses `fit()` together with an explicit model descriptor.
 
 ```{r fit-data}
-fit = fitDist(roux)
+fit = fit(roux, model = zetaModel())
 ```
 
-The function returns an object of class `psFit`, the details of which can be found in the help page for `fitDist`. There are both S3 `print` and S3 `plot` methods for objects of this class. The `print` method displays an estimate of the shape parameter $\alpha$ and the standard error of that estimate, $\widehat{\mathrm{sd}}(\hat{\alpha}) = \mathrm{se}(\hat{\alpha})$. The reported value is the same shape parameter used throughout `fitPS` and stored in the fitted object. The `print` method also displays the first 10 fitted probabilities from the model by default.
+The older `fitDist()` function remains as a deprecated compatibility wrapper, but new code should use `fit()`. The function returns an object of class `psFit`, documented through the common fitting interface. There are both S3 `print` and S3 `plot` methods for objects of this class. The `print` method displays an estimate of the shape parameter $\alpha$ and the standard error of that estimate, $\widehat{\mathrm{sd}}(\hat{\alpha}) = \mathrm{se}(\hat{\alpha})$. The reported value is the same shape parameter used throughout `fitPS` and stored in the fitted object. The `print` method also displays the first 10 fitted probabilities from the model by default.
 
 ```{r print-fit}
 fit

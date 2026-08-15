@@ -4,6 +4,14 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.1.019
+
+- Updated all executable vignettes to teach the generic `fit()` model-descriptor API rather than deprecated distribution-specific fitting wrappers.
+- Updated the Bayesian vignette to present deterministic numerical integration for one- and two-parameter models and MCMC as the core simulation route, while keeping Laplace and importance sampling secondary.
+- Expanded the external-model vignette to document the public Bayesian prior, control, transform, numerical, and MCMC extension contract with Poisson and Poisson-normal examples.
+- Documented stable standard-Normal evaluation of the Poisson-normal marginal probability and the numerical-engine policy that models with three or more parameters use MCMC.
+- Validated the documentation-only change by rendering every changed vignette directly with its established R Markdown output format.
+
 ## fitPS 1.1.1.018
 
 - Consolidated fragmented `psData` methods and operations into `R/psData-methods.R` without changing their interfaces or calculations.

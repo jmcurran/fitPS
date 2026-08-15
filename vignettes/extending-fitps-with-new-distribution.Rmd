@@ -21,7 +21,7 @@ suppressPackageStartupMessages(library(fitPS))
 
 `fitPS` supports models defined outside the package. A downstream package or an ordinary R script can construct a `psModel` subclass, provide methods for a small public S3 contract, and pass that model directly to `fit()`.
 
-The important architectural point is that the distribution-specific mathematics stays outside `fitPS`. The package supplies the generic fitting and fitted-object machinery; the external model supplies its parameter names, observation mapping, probabilities, likelihood, and any model-specific maximum-likelihood controls it needs.
+The important architectural point is that the distribution-specific mathematics stays outside `fitPS`. The package supplies generic maximum-likelihood optimisation, low-dimensional numerical posterior integration, MCMC orchestration, and fitted-object machinery. The external model supplies its parameter names, observation mapping, probabilities, likelihood, priors, parameter constraints or transformations, and any model-specific starting information it needs.
 
 This vignette develops two examples:
 
@@ -32,7 +32,7 @@ Neither example requires editing or rebuilding `fitPS`.
 
 ## The public model contract
 
-An external maximum-likelihood model normally needs the following public pieces:
+An external model starts with the following public maximum-likelihood pieces:
 
 - `psModel()` to construct the model descriptor;
 - `modelObservationData()` to map a `psData` object to the values used by the distribution;
@@ -40,9 +40,13 @@ An external maximum-likelihood model normally needs the following public pieces:
 - `modelLogLikelihood()` to calculate the model log likelihood; and
 - optionally `modelMleControl()` when the defaults stored in the model descriptor are not sufficient.
 
-The descriptor also records parameter names. `supportedPosteriorEngines()` reports any Bayesian engines explicitly supported by the model. An external model does not need to advertise a Bayesian engine simply to participate in maximum-likelihood fitting.
+The descriptor also records parameter names. `supportedPosteriorEngines()` reports Bayesian engines explicitly supported by the model. An external model does not need to advertise a Bayesian engine simply to participate in maximum-likelihood fitting.
 
-Once these pieces are supplied, `fit()` returns an ordinary `psFit`. Generic operations such as `fitted()`, `predict()`, `logLik()`, `deviance()`, `AIC()`, and `BIC()` continue to be handled by `fitPS`.
+To add Bayesian fitting, the model normally supplies `modelLogPrior()` and `modelBayesControl()`. MCMC models also provide `modelToWorking()`, `modelFromWorking()`, and `modelWorkingLogJacobian()` when constrained parameters need an unconstrained working scale. The model supplies this mathematics; it does not implement the numerical integrator or MCMC sampler.
+
+The numerical engine is deliberately low-dimensional: one-parameter models use one-dimensional numerical integration, two-parameter models use adaptive cubature, and models with three or more parameters should use MCMC. If a higher-dimensional model explicitly requests the numerical engine, `fitPS` refuses rather than silently changing the requested engine.
+
+Once these pieces are supplied, `fit()` returns an ordinary `psFit`. Generic operations such as `fitted()`, `predict()`, `logLik()`, `deviance()`, `AIC()`, `BIC()`, posterior summaries, and serialization continue to be handled by `fitPS` where applicable.
 
 ### P and S surveys shift the probability sequence
 
@@ -118,6 +122,7 @@ externalPoissonModel = function() {
     model = "poisson",
     parameterNames = "lambda",
     subclass = "externalPoissonModel",
+    supportedEngines = c("numerical", "mcmc"),
     mleStart = c(lambda = 1),
     mleLower = c(lambda = sqrt(.Machine$double.eps))
   )
@@ -133,7 +138,7 @@ modelParameterNames(poissonModel)
 supportedPosteriorEngines(poissonModel)
 ```
 
-An empty value from `supportedPosteriorEngines()` is intentional here: this example defines an external MLE model only.
+This model advertises both `numerical` and `mcmc`. Because it has one parameter, Bayesian fitting defaults to the deterministic numerical engine unless MCMC is requested explicitly.
 
 ### Supply the observation mapping
 
@@ -189,6 +194,50 @@ modelLogLikelihood.externalPoissonModel = function(model,
 }
 ```
 
+### Add the Bayesian mathematics
+
+For Bayesian fitting, use a model-specific prior object. Here a Gamma prior is convenient for the positive Poisson rate. `modelLogPrior()` evaluates that prior, while `modelBayesControl()` supplies a sensible natural-scale start and bounds for deterministic integration.
+
+```{r poisson-bayes-contract}
+modelLogPrior.externalPoissonModel = function(model, parameters, prior, ...) {
+  lambda = parameters[["lambda"]]
+  if (!is.list(prior) ||
+      !all(c("shape", "rate") %in% names(prior)) ||
+      any(!is.finite(c(prior$shape, prior$rate))) ||
+      prior$shape <= 0 || prior$rate <= 0) {
+    stop("Poisson prior must contain positive finite shape and rate values")
+  }
+  dgamma(lambda, shape = prior$shape, rate = prior$rate, log = TRUE)
+}
+
+modelBayesControl.externalPoissonModel = function(model, x, engine, prior, ...) {
+  observations = modelObservationData(model, x)
+  start = weighted.mean(observations, x$data$rn)
+  if (!is.finite(start) || start <= 0) {
+    start = 1
+  }
+  list(
+    start = c(lambda = start),
+    lower = c(lambda = 0),
+    upper = c(lambda = Inf)
+  )
+}
+
+modelToWorking.externalPoissonModel = function(model, parameters, ...) {
+  c(lambda = log(parameters[["lambda"]]))
+}
+
+modelFromWorking.externalPoissonModel = function(model, working, ...) {
+  c(lambda = exp(working[["lambda"]]))
+}
+
+modelWorkingLogJacobian.externalPoissonModel = function(model, working, ...) {
+  unname(working[["lambda"]])
+}
+```
+
+The transform methods are used by generic MCMC. The one-dimensional numerical engine integrates on the natural parameter scale and therefore does not require a sampler-specific implementation.
+
 ### Register the external S3 methods
 
 A downstream package should register these methods in its `NAMESPACE`, for example:
@@ -197,6 +246,11 @@ A downstream package should register these methods in its `NAMESPACE`, for examp
 S3method(modelObservationData,externalPoissonModel)
 S3method(modelProbabilities,externalPoissonModel)
 S3method(modelLogLikelihood,externalPoissonModel)
+S3method(modelLogPrior,externalPoissonModel)
+S3method(modelBayesControl,externalPoissonModel)
+S3method(modelToWorking,externalPoissonModel)
+S3method(modelFromWorking,externalPoissonModel)
+S3method(modelWorkingLogJacobian,externalPoissonModel)
 ```
 
 When experimenting interactively, the equivalent registration can be performed with base R's `registerS3method()`. For a self-contained script or vignette, a small helper avoids repeating the same registration boilerplate:
@@ -231,7 +285,12 @@ registerModelMethods(
   c(
     "modelObservationData",
     "modelProbabilities",
-    "modelLogLikelihood"
+    "modelLogLikelihood",
+    "modelLogPrior",
+    "modelBayesControl",
+    "modelToWorking",
+    "modelFromWorking",
+    "modelWorkingLogJacobian"
   )
 )
 ```
@@ -275,6 +334,24 @@ deviance(poissonFit)
 AIC(poissonFit)
 BIC(poissonFit)
 ```
+
+The same external model can now be fitted Bayesianly without implementing an integration routine or sampler. With one parameter and numerical support, `fitPS` chooses numerical integration by default.
+
+```{r poisson-bayes-fit}
+poissonPrior = list(shape = 2, rate = 1)
+poissonBayesFit = fit(
+  poissonData,
+  model = externalPoissonModel(),
+  method = "bayes",
+  prior = poissonPrior,
+  nterms = 5
+)
+
+summary(poissonBayesFit)
+posteriorProbs(poissonBayesFit, n = 5)
+```
+
+MCMC can be requested explicitly with `bayesOptions = list(posteriorMethod = "mcmc")`; the external model still supplies only its mathematics, while `fitPS` owns the sampler.
 
 The same probability shape can be placed on S-survey labels simply by shifting the support. The following S data contain the same frequency sequence one label to the right, so they produce the same fitted Poisson model.
 
@@ -369,7 +446,7 @@ P(Y=y_i\mid Z=z) f_Z(z;\mu,\sigma)\,dz
 \qquad \sigma > 0.
 \]
 
-This is a substantially stronger extensibility test than the ordinary Poisson model: the numerical integration remains entirely in downstream model code while `fitPS` continues to own the generic optimizer and fitted-object machinery.
+This is a substantially stronger extensibility test than the ordinary Poisson model. The inner integral defining each likelihood contribution remains distribution-specific downstream mathematics, while `fitPS` owns the generic MLE optimizer and the outer Bayesian posterior integration or MCMC machinery.
 
 ### Construct the two-parameter descriptor
 
@@ -378,7 +455,8 @@ externalPoissonNormalModel = function() {
   psModel(
     model = "poissonNormal",
     parameterNames = c("mu", "sigma"),
-    subclass = "externalPoissonNormalModel"
+    subclass = "externalPoissonNormalModel",
+    supportedEngines = c("numerical", "mcmc")
   )
 }
 ```
@@ -439,7 +517,7 @@ modelMleControl.externalPoissonNormalModel = function(model, x, ...) {
 
 ### Evaluate the marginal probability by numerical integration
 
-The distribution-specific numerical integration is downstream code. `fitPS` does not need a Poisson-normal branch or a special integration engine for this model.
+The distribution-specific integral that defines the Poisson-normal probability remains downstream code. For numerical stability, integrate over a standard Normal variable `u` with `z = mu + sigma * u`; this avoids asking `integrate()` to resolve an increasingly narrow Normal density when `sigma` is small. The outer Bayesian posterior integration is still owned by `fitPS`.
 
 ```{r poisson-normal-pmf}
 poissonNormalProbability = function(n, mu, sigma) {
@@ -452,9 +530,9 @@ poissonNormalProbability = function(n, mu, sigma) {
       return(0)
     }
 
-    integrand = function(z) {
-      dpois(value, lambda = exp(z)) *
-        dnorm(z, mean = mu, sd = sigma)
+    integrand = function(u) {
+      z = mu + sigma * u
+      dpois(value, lambda = exp(z)) * dnorm(u)
     }
 
     result = integrate(
@@ -483,11 +561,19 @@ modelProbabilities.externalPoissonNormalModel = function(model,
                                                           n,
                                                           type,
                                                           ...) {
-  mu = parameters[["mu"]]
-  sigma = parameters[["sigma"]]
+  parameterFrame = as.data.frame(parameters)
+  if (!all(c("mu", "sigma") %in% names(parameterFrame))) {
+    stop("parameters must contain mu and sigma")
+  }
   support = zeroBasedSurveySupport(n, type)
-  values = poissonNormalProbability(support, mu = mu, sigma = sigma)
-  values = matrix(values, nrow = 1L)
+  values = vapply(seq_len(nrow(parameterFrame)), function(row) {
+    poissonNormalProbability(
+      support,
+      mu = parameterFrame$mu[row],
+      sigma = parameterFrame$sigma[row]
+    )
+  }, numeric(length(support)))
+  values = t(values)
   colnames(values) = paste0(type, n)
   values
 }
@@ -513,6 +599,44 @@ modelLogLikelihood.externalPoissonNormalModel = function(model,
 }
 ```
 
+### Add the Poisson-normal Bayesian contract
+
+The two-parameter example uses a Normal prior for `mu` and a half-Normal prior for positive `sigma`. The Bayesian control reuses the finite MLE bounds; these give the two-dimensional numerical engine a finite integration rectangle. MCMC uses a log transform for `sigma`.
+
+```{r poisson-normal-bayes-contract}
+modelLogPrior.externalPoissonNormalModel = function(model, parameters, prior, ...) {
+  mu = parameters[["mu"]]
+  sigma = parameters[["sigma"]]
+  required = c("muMean", "muSd", "sigmaScale")
+  if (!is.list(prior) || !all(required %in% names(prior)) ||
+      any(!is.finite(unlist(prior[required], use.names = FALSE))) ||
+      prior$muSd <= 0 || prior$sigmaScale <= 0) {
+    stop("Poisson-normal prior must contain muMean, positive muSd, and positive sigmaScale")
+  }
+  if (!is.finite(sigma) || sigma <= 0) {
+    return(-Inf)
+  }
+  dnorm(mu, mean = prior$muMean, sd = prior$muSd, log = TRUE) +
+    log(2) + dnorm(sigma, mean = 0, sd = prior$sigmaScale, log = TRUE)
+}
+
+modelBayesControl.externalPoissonNormalModel = function(model, x, engine, prior, ...) {
+  modelMleControl(model, x)
+}
+
+modelToWorking.externalPoissonNormalModel = function(model, parameters, ...) {
+  c(mu = parameters[["mu"]], sigma = log(parameters[["sigma"]]))
+}
+
+modelFromWorking.externalPoissonNormalModel = function(model, working, ...) {
+  c(mu = working[["mu"]], sigma = exp(working[["sigma"]]))
+}
+
+modelWorkingLogJacobian.externalPoissonNormalModel = function(model, working, ...) {
+  unname(working[["sigma"]])
+}
+```
+
 ### Register the Poisson-normal methods
 
 A downstream package would normally use these namespace registrations:
@@ -522,6 +646,11 @@ S3method(modelObservationData,externalPoissonNormalModel)
 S3method(modelMleControl,externalPoissonNormalModel)
 S3method(modelProbabilities,externalPoissonNormalModel)
 S3method(modelLogLikelihood,externalPoissonNormalModel)
+S3method(modelLogPrior,externalPoissonNormalModel)
+S3method(modelBayesControl,externalPoissonNormalModel)
+S3method(modelToWorking,externalPoissonNormalModel)
+S3method(modelFromWorking,externalPoissonNormalModel)
+S3method(modelWorkingLogJacobian,externalPoissonNormalModel)
 ```
 
 For this self-contained vignette, the same `registerModelMethods()` helper used above keeps the registration concise:
@@ -533,7 +662,12 @@ registerModelMethods(
     "modelObservationData",
     "modelMleControl",
     "modelProbabilities",
-    "modelLogLikelihood"
+    "modelLogLikelihood",
+    "modelLogPrior",
+    "modelBayesControl",
+    "modelToWorking",
+    "modelFromWorking",
+    "modelWorkingLogJacobian"
   )
 )
 ```
@@ -591,22 +725,51 @@ all.equal(
 )
 ```
 
+### Bayesian fitting of the external two-parameter model
+
+Because the model has two parameters and advertises numerical support, Bayesian fitting defaults to adaptive two-dimensional cubature. The following smaller data set keeps vignette rendering quick while exercising the complete external Bayesian path.
+
+```{r poisson-normal-bayes-fit}
+poissonNormalBayesData = makePSData(
+  n = 0:2,
+  count = c(30, 12, 4),
+  type = "P"
+)
+poissonNormalPrior = list(muMean = 0, muSd = 2, sigmaScale = 1)
+
+poissonNormalBayesFit = fit(
+  poissonNormalBayesData,
+  model = externalPoissonNormalModel(),
+  method = "bayes",
+  prior = poissonNormalPrior,
+  nterms = 4
+)
+
+summary(poissonNormalBayesFit)
+posteriorProbs(poissonNormalBayesFit, n = 4)
+```
+
+The same model can use the generic MCMC engine by requesting `posteriorMethod = "mcmc"`. Models with three or more parameters should advertise and use MCMC rather than the numerical engine.
+
 ## Serialization and retained model objects
 
 New `psFit` objects retain their originating model descriptor. That avoids reconstructing third-party models from a hard-coded list of model names.
 
 ```{r retained-model}
 class(poissonFit$modelObject)
+class(poissonBayesFit$modelObject)
 class(poissonNormalFit$modelObject)
+class(poissonNormalBayesFit$modelObject)
 ```
 
 This also means a fitted object can survive ordinary R serialization, provided the corresponding S3 methods are available when the object is used again.
 
 ```{r serialization}
 path = tempfile(fileext = ".rds")
-saveRDS(poissonNormalFit, path)
+saveRDS(poissonNormalBayesFit, path)
 restoredFit = readRDS(path)
-logLik(restoredFit)
+class(restoredFit$modelObject)
+summary(restoredFit)
 ```
 
 A downstream package therefore needs to remain installed and loadable when its fitted objects are restored, just as with other S3-based extension systems.
@@ -621,12 +784,12 @@ A real external package does not need to copy fitPS fitting code. Its distributi
 4. `S3method(...)` entries in its `NAMESPACE`; and
 5. behavioural tests showing that `fit()`, fitted probabilities, prediction, and relevant model-comparison criteria work.
 
-For an MLE-only model, there is no requirement to implement a posterior engine. Bayesian support should be declared only when the model supplies the corresponding engine-specific contract.
+For an MLE-only model, there is no requirement to advertise a posterior engine. For Bayesian models, advertise only the engines supported by the public mathematics supplied by the model. One- and two-parameter models can use generic numerical integration; MCMC is the general route and is required for models with three or more parameters. External model authors do not implement those engines themselves.
 
 ## Design lessons from the two examples
 
 The Poisson example shows that a distribution with a closed-form probability mass function can be added without another public fitting function and without any fitPS source modification.
 
-The Poisson-normal example demonstrates something stronger. Its marginal probability and likelihood require numerical integration, yet that integration, its starting-value logic, and all distribution-specific mathematics remain external. `fitPS` still provides optimizer orchestration and the standard `psFit` interface. No Poisson-normal branch is needed in `fit()`, `predict()`, `logLik()`, AIC, BIC, or deviance.
+The Poisson-normal example demonstrates something stronger. Its marginal probability and likelihood require an inner numerical integral, yet that distribution-specific calculation and all prior/parameter mathematics remain external. `fitPS` provides MLE optimisation, adaptive two-dimensional posterior cubature, generic MCMC, posterior summaries, and the standard `psFit` interface. No Poisson-normal branch is needed in `fit()`, `predict()`, `logLik()`, AIC, BIC, deviance, or the posterior engines.
 
-That is the intended extension boundary: **new statistical models supply model mathematics; fitPS supplies common fitting and fitted-object infrastructure.**
+That is the intended extension boundary: **new statistical models supply model mathematics; fitPS supplies common fitting, posterior orchestration, and fitted-object infrastructure.**

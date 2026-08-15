@@ -5,6 +5,14 @@
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
 
+## fitPS 1.1.2.008
+
+- Repaired Stage 10.4 source-package completion after verbose `devtools::build()` output obscured the returned archive path.
+- Preserved the completed unconstrained-parameter API rename and extension-vignette documentation from Stage 10.4.1.
+- Recorded the exact source archive path directly from R before installing that verified build.
+- Retained portable cleanup of older completed repository archives after the new archive is verified.
+- Revalidated documentation, the extending vignette, tests, package checks, source build, and installation.
+
 ## fitPS 1.1.2.007
 
 - Renamed the public MCMC transformation contract to `modelToUnconstrained()`, `modelFromUnconstrained()`, and `modelLogJacobian()` so the API states its mathematical purpose directly.

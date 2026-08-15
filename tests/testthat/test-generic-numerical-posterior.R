@@ -11,8 +11,7 @@ test_that("external one-parameter models fit through the generic numerical engin
     model = externalPoissonModel(),
     nterms = 5,
     method = "bayes",
-    prior = prior,
-    bayesOptions = list(posteriorMethod = "numerical")
+    prior = prior
   )
 
   posteriorShape = prior$shape + sum(data$data$rn * data$data$n)
@@ -72,20 +71,62 @@ test_that("built-in one-parameter numerical models use the generic engine", {
 })
 
 
-test_that("generic numerical fitting deliberately remains one-dimensional", {
-  model = externalPoissonNormalModel()
-  model$supportedEngines = c("numerical", model$supportedEngines)
-  data = makePSData(n = 0:3, count = c(30, 15, 6, 2), type = "P")
+test_that("external two-parameter models fit through adaptive cubature", {
+  data = makePSData(n = 0:2, count = c(30, 12, 4), type = "P")
   prior = list(muMean = 0, muSd = 2, sigmaScale = 1)
 
-  expect_error(
-    fit(
-      data,
-      model = model,
-      method = "bayes",
-      prior = prior,
-      bayesOptions = list(posteriorMethod = "numerical")
-    ),
-    "one-parameter model"
+  representation = fitPosterior(
+    numericalPosteriorEngine(),
+    externalPoissonNormalModel(),
+    data,
+    prior,
+    tol = 1e-2,
+    maxEval = 5000L,
+    summaryGridSize = 11L
   )
+
+  expect_s3_class(representation, "numericalPosteriorRepresentation")
+  expect_identical(representation$metadata$dimension, 2L)
+  expect_identical(representation$metadata$integrationMethod, "hcubature")
+  expect_identical(representation$metadata$generic, TRUE)
+  expect_named(representation$value$mean, c("mu", "sigma"))
+  expect_true(all(is.finite(representation$value$mean)))
+  expect_gt(representation$value$mean[["sigma"]], 0)
+  expect_true(all(is.finite(representation$value$variance)))
+  expect_true(is.finite(representation$metadata$expectedDeviance))
+})
+
+
+test_that("numerical fitting rejects models above two dimensions", {
+  model = psModel(
+    model = "three-parameter",
+    parameterNames = c("alpha", "beta", "gamma"),
+    supportedEngines = c("numerical", "mcmc"),
+    subclass = "threeParameterNumericalModel"
+  )
+  data = makePSData(n = 0:2, count = c(20, 8, 2), type = "P")
+
+  expect_error(
+    fitPosterior(
+      numericalPosteriorEngine(),
+      model,
+      data,
+      prior = list()
+    ),
+    "at most two parameters.*MCMC"
+  )
+})
+
+
+test_that("automatic Bayesian engine selection uses numerical only up to two dimensions", {
+  expect_identical(defaultExternalPosteriorMethod(externalPoissonModel()), "numerical")
+  expect_identical(defaultExternalPosteriorMethod(externalPoissonNormalModel()), "numerical")
+
+  model = psModel(
+    model = "three-parameter",
+    parameterNames = c("alpha", "beta", "gamma"),
+    supportedEngines = c("numerical", "mcmc"),
+    subclass = "threeParameterAutomaticModel"
+  )
+  expect_identical(defaultExternalPosteriorMethod(model), "mcmc")
 })

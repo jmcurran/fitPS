@@ -23,8 +23,8 @@ returned by `zetaModel()`, `zizModel()`, or `logarithmicModel()`.}
 \item{nterms}{Number of fitted P/S probability terms to retain.}
 
 \item{method}{Fitting method. External models support `"mle"` and generic
-`"bayes"` fitting when they advertise the MCMC posterior engine. Legacy
-`"mcmc"` selection remains accepted and is normalised to Bayesian fitting.}
+`"bayes"` fitting when they advertise numerical or MCMC posterior engines.
+Legacy `"mcmc"` selection remains accepted and is normalised to Bayesian fitting.}
 
 \item{prior}{Optional prior used for Bayesian fitting. For external Bayesian
 models this may be any model-specific object understood by `modelLogPrior()`.}
@@ -41,7 +41,7 @@ An object of class `psFit` retaining the originating model descriptor
 Fits a `psModel` object to forensic P- or S-survey data. Built-in models
 retain their established fitting implementations. External models may use
 the public model contract for fitPS-owned maximum-likelihood optimisation and
-generic MCMC Bayesian fitting without modifying or rebuilding fitPS.
+generic numerical or MCMC Bayesian fitting without modifying or rebuilding fitPS.
 }
 \examples{
 data(Psurveys)

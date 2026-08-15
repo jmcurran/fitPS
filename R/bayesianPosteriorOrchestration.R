@@ -140,9 +140,31 @@ summariseNumericalPosteriorProbabilities.psModel = function(model,
                                                              nGrid = 2001L,
                                                              ...) {
   parameterNames = modelParameterNames(model)
-  if (length(parameterNames) != 1L) {
+  dimension = length(parameterNames)
+
+  if (dimension == 2L) {
+    grid = representation$value$grid
+    if (!is.list(grid) || !is.data.frame(grid$parameters) ||
+        !is.numeric(grid$weights) || nrow(grid$parameters) != length(grid$weights)) {
+      stop("Two-dimensional numerical posterior representation is incomplete", call. = FALSE)
+    }
+    probabilities = modelProbabilities(
+      model = model,
+      parameters = grid$parameters,
+      n = posteriorProbabilityIndices(x$type, nterms),
+      type = x$type
+    )
+    return(summariseZizProbabilities(
+      probabilities = probabilities,
+      weights = grid$weights,
+      level = level,
+      posteriorMethod = posteriorEngineName(engine)
+    ))
+  }
+
+  if (dimension != 1L) {
     stop(
-      "generic numerical posterior probability summaries require a one-parameter model",
+      "numerical posterior probability summaries support models with at most two parameters",
       call. = FALSE
     )
   }

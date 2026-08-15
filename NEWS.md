@@ -4,6 +4,16 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.1.017
+
+- Extended generic numerical posterior fitting to two-parameter models with adaptive `cubature::hcubature()` integration over model-supplied natural-scale bounds.
+- Adopted a dimensional policy of deterministic numerical fitting for one and two parameters and MCMC for models with three or more parameters.
+- Migrated ZIZ posterior normalization, moments, and DIC to the generic two-dimensional engine while retaining a compatibility grid for established plotting helpers.
+- Stabilized the external Poisson-normal proof likelihood by integrating over a standard-Normal latent variable rather than a collapsing narrow Normal density.
+- Added targeted numerical regression validation through `devtools::test()` so the package and test helpers are loaded before the full suite runs.
+- Added `cubature` as a package import for core two-dimensional numerical integration and kept Laplace and importance as secondary existing capabilities.
+- Validated through targeted numerical tests, roxygen regeneration, strict full tests, package check, source build, and installation.
+
 ## fitPS 1.1.1.011
 
 - Made one-dimensional numerical posterior fitting generic through the public model likelihood, prior, and Bayesian-control contract.

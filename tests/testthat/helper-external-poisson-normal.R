@@ -3,7 +3,7 @@ externalPoissonNormalModel = function() {
     model = "poissonNormal",
     parameterNames = c("mu", "sigma"),
     subclass = "externalPoissonNormalModel",
-    supportedEngines = "mcmc"
+    supportedEngines = c("numerical", "mcmc")
   )
 }
 
@@ -49,8 +49,9 @@ externalPoissonNormalProbability = function(n, mu, sigma) {
       return(0)
     }
 
-    integrand = function(z) {
-      dpois(value, lambda = exp(z)) * dnorm(z, mean = mu, sd = sigma)
+    integrand = function(u) {
+      z = mu + sigma * u
+      dpois(value, lambda = exp(z)) * dnorm(u)
     }
 
     result = integrate(
@@ -161,7 +162,11 @@ modelLogPrior.externalPoissonNormalModel = function(model, parameters, prior, ..
 
 modelBayesControl.externalPoissonNormalModel = function(model, x, engine, prior, ...) {
   control = modelMleControl(model, x)
-  list(start = control$start)
+  list(
+    start = control$start,
+    lower = control$lower,
+    upper = control$upper
+  )
 }
 
 modelToWorking.externalPoissonNormalModel = function(model, parameters, ...) {

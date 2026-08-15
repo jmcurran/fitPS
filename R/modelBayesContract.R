@@ -280,7 +280,12 @@ modelBayesControl.zizModel = function(model,
     start[["shape"]] = mean(prior$range)
   }
 
-  list(start = start)
+  boundaryInset = sqrt(.Machine$double.eps)
+  list(
+    start = start,
+    lower = c(pi = boundaryInset, shape = prior$range[[1L]]),
+    upper = c(pi = 1 - boundaryInset, shape = prior$range[[2L]])
+  )
 }
 
 #' @rdname modelToWorking

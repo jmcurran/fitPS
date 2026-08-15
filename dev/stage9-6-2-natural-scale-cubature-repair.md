@@ -1,0 +1,7 @@
+# Stage 9.6.2 natural-scale cubature repair
+
+Stage 9.6.1 exposed a normalization failure for the external Poisson-normal proof model. The first two-dimensional implementation transformed the entire real working scale to the unit square before calling `hcubature()`. Although mathematically valid, that extra transformation can concentrate a posterior into a very small region of the unit square, allowing adaptive cubature to sample values that are numerically indistinguishable from zero and report a zero normalizing integral.
+
+The repair simplifies the public numerical contract. Two-dimensional numerical models must supply finite natural-scale `start`, `lower`, and `upper` vectors through `modelBayesControl()`. The generic engine optimizes and integrates the posterior directly over that model-supplied rectangle. Working-scale transforms remain part of the Bayesian model contract for MCMC and other algorithms that benefit from unconstrained coordinates, but they are no longer imposed on deterministic two-dimensional cubature.
+
+ZIZ supplies its natural numerical rectangle from the beta-mixture support for `pi` and the zeta prior range for `shape`. The external Poisson-normal proof reuses its existing finite MLE bounds. The dimensional policy remains unchanged: one-dimensional models use `integrate()`, two-dimensional models use `cubature::hcubature()`, and models with three or more parameters use MCMC rather than deterministic numerical integration.

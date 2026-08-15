@@ -545,9 +545,9 @@ rziz = rZIzeta
 # ---- zizNumericalPosterior.R ----
 #' Fit a numerical posterior for the zero-inflated zeta model.
 #'
-#' The ZIZ model retains its existing rectangular two-dimensional grid
-#' calculation. The numerical engine wraps that representation in the common
-#' shared posterior contract rather than duplicating the integration logic.
+#' ZIZ now delegates posterior normalization and moments to the generic
+#' two-dimensional cubature engine. A compatibility grid is retained only for
+#' established plotting and inflation-probability helpers.
 #'
 #' @param model A `zizModel` descriptor.
 #' @param engine A `numericalPosteriorEngine` object.
@@ -555,9 +555,9 @@ rziz = rZIzeta
 #' @param prior A prior object created by `makePrior()`.
 #' @param shape1 First beta-prior shape parameter for `pi`.
 #' @param shape2 Second beta-prior shape parameter for `pi`.
-#' @param nPiGrid Number of grid points for `pi`.
-#' @param nShapeGrid Number of grid points for `shape`.
-#' @param ... Additional numerical controls reserved for future use.
+#' @param nPiGrid Number of compatibility-grid points for `pi`.
+#' @param nShapeGrid Number of compatibility-grid points for `shape`.
+#' @param ... Additional numerical controls passed to the generic engine.
 #' @return A `numericalPosteriorRepresentation` object.
 #' @keywords internal
 #' @exportS3Method fitNumericalPosteriorModel zizModel
@@ -568,41 +568,83 @@ fitNumericalPosteriorModel.zizModel = function(model,
                                                 prior,
                                                 shape1 = 1,
                                                 shape2 = 1,
-                                                nPiGrid = 101,
-                                                nShapeGrid = 101,
+                                                nPiGrid = 51,
+                                                nShapeGrid = 51,
                                                 ...) {
-  if (!is(x, "psData")) {
-    stop("x must be an object of class psData")
-  }
-  if (!inherits(prior, "psPrior")) {
-    stop("prior must be an object of class psPrior")
-  }
-
-  validateZetaPriorRange(prior$range)
-
-  modelObservationData(model, x)
-  posteriorGrid = makeZizPosteriorGrid(
+  representation = fitNumericalPosteriorModel.psModel(
+    model = model,
+    engine = engine,
     x = x,
     prior = prior,
     shape1 = shape1,
     shape2 = shape2,
+    ...
+  )
+
+  representation$value$posteriorGrid = makeZizCubatureCompatibilityGrid(
+    representation = representation,
+    prior = prior,
     nPiGrid = nPiGrid,
     nShapeGrid = nShapeGrid
   )
+  representation$metadata$nPiGrid = as.integer(nPiGrid)
+  representation$metadata$nShapeGrid = as.integer(nShapeGrid)
+  representation
+}
 
-  newPsPosteriorRepresentation(
-    engine = engine,
-    value = list(
-      posteriorGrid = posteriorGrid,
-      mean = posteriorGrid$mean,
-      variance = posteriorGrid$varCov
+#' Construct the legacy ZIZ grid view from the generic cubature posterior.
+#'
+#' @keywords internal
+#' @noRd
+makeZizCubatureCompatibilityGrid = function(representation,
+                                             prior,
+                                             nPiGrid = 51L,
+                                             nShapeGrid = 51L) {
+  nPiGrid = as.integer(nPiGrid)
+  nShapeGrid = as.integer(nShapeGrid)
+  if (!is.finite(nPiGrid) || nPiGrid < 9L) {
+    stop("nPiGrid must be at least 9")
+  }
+  if (!is.finite(nShapeGrid) || nShapeGrid < 9L) {
+    stop("nShapeGrid must be at least 9")
+  }
+  validateZetaPriorRange(prior$range)
+
+  density = representation$value$density
+  piEps = sqrt(.Machine$double.eps)
+  piGrid = seq(piEps, 1 - piEps, length.out = nPiGrid)
+  shapeGrid = seq(prior$range[1L], prior$range[2L], length.out = nShapeGrid)
+  densityGrid = outer(
+    piGrid,
+    shapeGrid,
+    Vectorize(function(pi, shape) {
+      density(c(pi = pi, shape = shape))
+    })
+  )
+  densityGrid[!is.finite(densityGrid)] = 0
+  dPi = diff(range(piGrid)) / (length(piGrid) - 1L)
+  dShape = diff(range(shapeGrid)) / (length(shapeGrid) - 1L)
+  total = sum(densityGrid) * dPi * dShape
+  if (!is.finite(total) || total <= 0) {
+    stop("Unable to construct the ZIZ cubature compatibility grid")
+  }
+  densityGrid = densityGrid / total
+  marginalPiDensity = rowSums(densityGrid) * dShape
+  marginalShapeDensity = colSums(densityGrid) * dPi
+
+  list(
+    pi = piGrid,
+    shape = shapeGrid,
+    density = densityGrid,
+    marginalDensity = list(
+      pi = marginalPiDensity,
+      shape = marginalShapeDensity
     ),
-    metadata = list(
-      model = model$model,
-      nPiGrid = length(posteriorGrid$pi),
-      nShapeGrid = length(posteriorGrid$shape),
-      normalizingConstant = posteriorGrid$normalizingConstant
-    )
+    dPi = dPi,
+    dShape = dShape,
+    mean = representation$value$mean,
+    varCov = representation$value$variance,
+    normalizingConstant = 1
   )
 }
 
@@ -1884,10 +1926,13 @@ summariseNumericalPosteriorProbabilities.zizModel = function(model,
                                                               nterms,
                                                               level = 0.95,
                                                               ...) {
-  summariseZizGridProbabilities(
-    posteriorGrid = representation$value$posteriorGrid,
-    type = x$type,
+  summariseNumericalPosteriorProbabilities.psModel(
+    model = model,
+    engine = engine,
+    representation = representation,
+    x = x,
     nterms = nterms,
-    level = level
+    level = level,
+    ...
   )
 }

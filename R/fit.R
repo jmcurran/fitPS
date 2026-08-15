@@ -3,15 +3,15 @@
 #' Fits a `psModel` object to forensic P- or S-survey data. Built-in models
 #' retain their established fitting implementations. External models may use
 #' the public model contract for fitPS-owned maximum-likelihood optimisation and
-#' generic MCMC Bayesian fitting without modifying or rebuilding fitPS.
+#' generic numerical or MCMC Bayesian fitting without modifying or rebuilding fitPS.
 #'
 #' @param x An object of class `psData`.
 #' @param model A model descriptor inheriting from `psModel`, such as an object
 #'   returned by `zetaModel()`, `zizModel()`, or `logarithmicModel()`.
 #' @param nterms Number of fitted P/S probability terms to retain.
 #' @param method Fitting method. External models support `"mle"` and generic
-#'   `"bayes"` fitting when they advertise the MCMC posterior engine. Legacy
-#'   `"mcmc"` selection remains accepted and is normalised to Bayesian fitting.
+#'   `"bayes"` fitting when they advertise numerical or MCMC posterior engines.
+#'   Legacy `"mcmc"` selection remains accepted and is normalised to Bayesian fitting.
 #' @param prior Optional prior used for Bayesian fitting. For external Bayesian
 #'   models this may be any model-specific object understood by `modelLogPrior()`.
 #' @param bayesOptions Optional Bayesian fitting controls.
@@ -58,6 +58,37 @@ fit = function(x,
   do.call(fitModel, args)
 }
 
+#' Select the default Bayesian engine for an external model.
+#'
+#' Deterministic numerical fitting is preferred for one- and two-parameter
+#' models that advertise it. Models with three or more parameters use MCMC.
+#'
+#' @param model A `psModel` descriptor.
+#' @return One posterior-engine name.
+#' @keywords internal
+#' @noRd
+defaultExternalPosteriorMethod = function(model) {
+  parameterCount = length(modelParameterNames(model))
+  if (parameterCount <= 2L && supportsPosteriorEngine(model, "numerical")) {
+    return("numerical")
+  }
+  if (supportsPosteriorEngine(model, "mcmc")) {
+    return("mcmc")
+  }
+
+  supported = supportedPosteriorEngines(model)
+  if (length(supported) == 0L) {
+    stop("model does not declare a supported Bayesian posterior engine", call. = FALSE)
+  }
+  if (parameterCount > 2L && "numerical" %in% supported) {
+    stop(
+      "Models with three or more parameters require MCMC for Bayesian fitting",
+      call. = FALSE
+    )
+  }
+  supported[[1L]]
+}
+
 #' Fit one model descriptor through its established fitting implementation.
 #'
 #' Built-in methods delegate to the established internal fitting implementations
@@ -89,12 +120,18 @@ fitModel.psModel = function(model,
   bayesOptions = methodInfo$bayesOptions
 
   if (identical(method, "bayes")) {
+    automaticPosteriorMethod = defaultExternalPosteriorMethod(model)
+
     options = if (missing(prior)) {
-      normaliseExternalBayesOptions(bayesOptions = bayesOptions)
+      normaliseExternalBayesOptions(
+        bayesOptions = bayesOptions,
+        defaultPosteriorMethod = automaticPosteriorMethod
+      )
     } else {
       normaliseExternalBayesOptions(
         bayesOptions = bayesOptions,
-        prior = prior
+        prior = prior,
+        defaultPosteriorMethod = automaticPosteriorMethod
       )
     }
 

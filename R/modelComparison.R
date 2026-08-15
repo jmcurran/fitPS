@@ -169,12 +169,10 @@ posteriorExpectedDeviance.numericalPosteriorRepresentation = function(representa
     return(integral$value)
   }
 
-  if (inherits(model, "zizModel")) {
-    grid = representation$value$posteriorGrid
-    deviances = outer(grid$pi, grid$shape, Vectorize(function(pi, shape) {
-      modelDeviance(model, c(pi = pi, shape = shape), data)
-    }))
-    return(sum(deviances * grid$density) * grid$dPi * grid$dShape)
+  if (identical(representation$metadata$dimension, 2L) &&
+      is.numeric(representation$metadata$expectedDeviance) &&
+      length(representation$metadata$expectedDeviance) == 1L) {
+    return(representation$metadata$expectedDeviance)
   }
 
   stop("Numerical DIC is not implemented for model '", model$model, "'", call. = FALSE)

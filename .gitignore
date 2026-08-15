@@ -9,3 +9,4 @@ chatgpt-bundles/
 .RData
 .Rproj.user/
 Rplots.pdf
+.DS_Store

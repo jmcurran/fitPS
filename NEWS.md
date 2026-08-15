@@ -6,6 +6,17 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.1.3.004
+
+- Added an internal weighted-MLE fitting boundary for zeta, zero-inflated zeta, and logarithmic models using arbitrary positive real category weights.
+- Kept observed psData counts unchanged by substituting weights only in a private likelihood copy, avoiding makePSData() rounding and rep()-based expansion.
+- Reused the established model log-likelihood and probability contracts so weighted fits are ready for grouped Dirichlet Bayesian-Bootstrap replicates.
+- Added deterministic regression coverage for ordinary-count equivalence, fractional weights, common-scale invariance, invalid weights, and sparse-support handling.
+- Corrected the psData rounding regression test so warning detection and returned-object inspection are tested separately across testthat versions.
+- No public Bayesian Bootstrap API or uncertainty class is introduced in this stage.
+- Validated with the strict fitPS documentation, test, and package-check workflow.
+
 ## fitPS 1.1.3.001
 
 - Audited Bayesian Bootstrap weighted fitting before introducing any public Bayesian Bootstrap API.

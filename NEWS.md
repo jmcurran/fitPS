@@ -4,26 +4,12 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.0.001
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Audited the internal model protocol and defined the Stage 8 public-extension direction.
+- Established external Poisson and Poisson-normal models as proof-of-concept targets that must work without rebuilding or modifying fitPS.
+- Chose retained model descriptors with legacy name fallback as the preferred route away from hard-coded model reconstruction.
+- Started the Stage 8 development series at 1.1.0.xxx; package validation was intentionally skipped because this stage changes only a development audit document.
 
 ## fitPS 1.0.9.007
 

@@ -10,3 +10,6 @@ chatgpt-bundles/
 .Rproj.user/
 Rplots.pdf
 .DS_Store
+vignettes/*.html
+vignettes/*files/
+vignettes/*.pdf

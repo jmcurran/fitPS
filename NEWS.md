@@ -4,6 +4,14 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+
+## fitPS 1.1.1.020
+
+- Confirmed that zeta, logarithmic, and zero-inflated zeta models all satisfy the generic MCMC model contract.
+- Retained specialised built-in MCMC samplers as compatibility overrides where established stochastic behaviour remains part of the regression contract.
+- Clarified that external and future models do not need model-specific sampler implementations because the generic MCMC fallback is complete.
+- Added deterministic regression coverage for the built-in generic MCMC fallback and documented the Stage 9.8 consolidation decision.
+
 ## fitPS 1.1.1.019
 
 - Updated all executable vignettes to teach the generic `fit()` model-descriptor API rather than deprecated distribution-specific fitting wrappers.

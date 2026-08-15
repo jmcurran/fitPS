@@ -1,3 +1,19 @@
+test_that("public Bayesian transformation API uses unconstrained terminology", {
+  exports = getNamespaceExports("fitPS")
+
+  expect_true(all(c(
+    "modelToUnconstrained",
+    "modelFromUnconstrained",
+    "modelLogJacobian"
+  ) %in% exports))
+  expect_false(any(c(
+    "modelToWorking",
+    "modelFromWorking",
+    "modelWorkingLogJacobian"
+  ) %in% exports))
+})
+
+
 test_that("default Bayesian transforms provide a validated identity contract", {
   model = psModel(
     model = "identity",
@@ -6,12 +22,12 @@ test_that("default Bayesian transforms provide a validated identity contract", {
   )
   parameters = c(alpha = -0.5, beta = 2)
 
-  expect_identical(modelToWorking(model, parameters), parameters)
-  expect_identical(modelFromWorking(model, parameters), parameters)
-  expect_identical(modelWorkingLogJacobian(model, parameters), 0)
+  expect_identical(modelToUnconstrained(model, parameters), parameters)
+  expect_identical(modelFromUnconstrained(model, parameters), parameters)
+  expect_identical(modelLogJacobian(model, parameters), 0)
 
   expect_error(
-    modelToWorking(model, c(alpha = 1)),
+    modelToUnconstrained(model, c(alpha = 1)),
     "matching modelParameterNames"
   )
 })
@@ -90,28 +106,28 @@ test_that("built-in models expose prior mathematics through the public contract"
 })
 
 
-test_that("built-in working transformations round trip and report Jacobians", {
+test_that("built-in unconstrained transformations round trip and report Jacobians", {
   zeta = zetaModel()
   zetaParameters = c(shape = 2.5)
-  zetaWorking = modelToWorking(zeta, zetaParameters)
-  expect_equal(modelFromWorking(zeta, zetaWorking), zetaParameters)
-  expect_equal(modelWorkingLogJacobian(zeta, zetaWorking), unname(zetaWorking))
+  zetaUnconstrained = modelToUnconstrained(zeta, zetaParameters)
+  expect_equal(modelFromUnconstrained(zeta, zetaUnconstrained), zetaParameters)
+  expect_equal(modelLogJacobian(zeta, zetaUnconstrained), unname(zetaUnconstrained))
 
   logarithmic = logarithmicModel()
   logParameters = c(pi = 0.35)
-  logWorking = modelToWorking(logarithmic, logParameters)
-  expect_equal(modelFromWorking(logarithmic, logWorking), logParameters)
+  logUnconstrained = modelToUnconstrained(logarithmic, logParameters)
+  expect_equal(modelFromUnconstrained(logarithmic, logUnconstrained), logParameters)
   expect_equal(
-    modelWorkingLogJacobian(logarithmic, logWorking),
+    modelLogJacobian(logarithmic, logUnconstrained),
     log(0.35) + log1p(-0.35)
   )
 
   ziz = zizModel()
   zizParameters = c(pi = 0.3, shape = 2.4)
-  zizWorking = modelToWorking(ziz, zizParameters)
-  expect_equal(modelFromWorking(ziz, zizWorking), zizParameters)
+  zizUnconstrained = modelToUnconstrained(ziz, zizParameters)
+  expect_equal(modelFromUnconstrained(ziz, zizUnconstrained), zizParameters)
   expect_equal(
-    modelWorkingLogJacobian(ziz, zizWorking),
+    modelLogJacobian(ziz, zizUnconstrained),
     log(0.3) + log1p(-0.3) + log(1.4)
   )
 })

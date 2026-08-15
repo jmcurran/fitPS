@@ -5,6 +5,16 @@
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
 
+## fitPS 1.1.2.007
+
+- Renamed the public MCMC transformation contract to `modelToUnconstrained()`, `modelFromUnconstrained()`, and `modelLogJacobian()` so the API states its mathematical purpose directly.
+- Removed the unreleased `modelToWorking()`, `modelFromWorking()`, and `modelWorkingLogJacobian()` names rather than retaining compatibility aliases.
+- Expanded the extending vignette to explain natural and unconstrained parameter scales, inverse transformations, Jacobian direction, and one- and multi-parameter examples.
+- Updated built-in models, generic MCMC, external-model fixtures, and public-contract regression tests to use the new terminology.
+- Replaced non-portable completed-archive cleanup with a macOS-safe Bash glob loop in the Stage 10.4.1 runner.
+- Loaded the changed source namespace before direct vignette rendering so extension-method registration validates the renamed generics before package installation.
+- Validated by roxygen regeneration, direct rendering of the extending vignette, strict tests, package check, source build, and installation.
+
 ## fitPS 1.1.2.005
 
 - Simplified vignette filenames to `basics`, `model-comparison`, `uncertainty`, and `extending`, while removing the redundant `simple_P_fit` vignette.

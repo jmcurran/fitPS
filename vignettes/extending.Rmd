@@ -42,9 +42,79 @@ An external model starts with the following public maximum-likelihood pieces:
 
 The descriptor also records parameter names. `supportedPosteriorEngines()` reports Bayesian engines explicitly supported by the model. An external model does not need to advertise a Bayesian engine simply to participate in maximum-likelihood fitting.
 
-To add Bayesian fitting, the model normally supplies `modelLogPrior()` and `modelBayesControl()`. MCMC models also provide `modelToWorking()`, `modelFromWorking()`, and `modelWorkingLogJacobian()` when constrained parameters need an unconstrained working scale. The model supplies this mathematics; it does not implement the numerical integrator or MCMC sampler.
+To add Bayesian fitting, the model normally supplies `modelLogPrior()` and `modelBayesControl()`. Models that can be fitted by the generic MCMC engine also supply `modelToUnconstrained()`, `modelFromUnconstrained()`, and `modelLogJacobian()` when any natural parameter is constrained. The model supplies this transformation mathematics; it does not implement the numerical integrator or MCMC sampler.
 
-The numerical engine is deliberately low-dimensional: one-parameter models use one-dimensional numerical integration, two-parameter models use adaptive cubature, and models with three or more parameters should use MCMC. If a higher-dimensional model explicitly requests the numerical engine, `fitPS` refuses rather than silently changing the requested engine.
+### Why MCMC needs unconstrained parameters
+
+A model should be expressed to users on its **natural parameter scale**. For example, a Poisson rate satisfies
+
+\[
+\lambda > 0,
+\]
+
+a probability satisfies
+
+\[
+0 < p < 1,
+\]
+
+and the zeta shape used by `fitPS` satisfies
+
+\[
+\alpha > 1.
+\]
+
+Those constraints are scientifically meaningful, but they are awkward for a generic random-walk MCMC algorithm. A proposal made directly on the natural scale can easily produce an impossible value such as a negative rate or a probability greater than one. The generic `fitPS` MCMC engine therefore proposes on an **unconstrained scale**, where every coordinate can range over the whole real line.
+
+The public transformation contract has three parts:
+
+1. `modelToUnconstrained(model, parameters)` maps a named vector of natural parameters \(\theta\) to unconstrained coordinates \(z\).
+2. `modelFromUnconstrained(model, unconstrained)` maps \(z\) back to the natural parameters \(\theta\). It must be the inverse of `modelToUnconstrained()` over the parameter region used for Bayesian fitting.
+3. `modelLogJacobian(model, unconstrained)` returns the change-of-variables correction
+
+\[
+\log\left|\det\left(\frac{\partial \theta}{\partial z}\right)\right|.
+\]
+
+The direction of that Jacobian is important: it is the derivative of the transformation **from unconstrained coordinates back to natural parameters**. The MCMC target on the unconstrained scale is therefore
+
+\[
+\log p(z\mid x)
+=
+\log L\{\theta(z);x\}
++
+\log \pi\{\theta(z)\}
++
+\log\left|\det\left(\frac{\partial \theta}{\partial z}\right)\right|.
+\]
+
+For a positive parameter, a common choice is
+
+\[
+z = \log(\theta),
+\qquad
+\theta = \exp(z),
+\]
+
+so `modelLogJacobian()` returns \(z\). For a probability,
+
+\[
+z = \operatorname{logit}(p),
+\qquad
+p = \operatorname{logit}^{-1}(z),
+\]
+
+and the log-Jacobian is
+
+\[
+\log(p) + \log(1-p).
+\]
+
+If a natural parameter is already unconstrained, the identity transformation is appropriate and its log-Jacobian contribution is zero. For several independently transformed parameters, the log-Jacobian is the sum of the component terms. A coupled multivariate transformation instead requires the log absolute determinant of the full inverse-transformation Jacobian matrix.
+
+All three transformation methods must return or accept named vectors whose names and order match `modelParameterNames(model)`. Keeping that contract exact is important because the generic MCMC engine has no model-specific knowledge with which to repair ambiguous parameter ordering.
+
+The deterministic numerical engines are different: they integrate over the model's natural parameter scale using the bounds supplied by `modelBayesControl()`. They do not use these MCMC transformations. One-parameter models use one-dimensional numerical integration, two-parameter models use adaptive cubature, and models with three or more parameters should use MCMC. If a higher-dimensional model explicitly requests the numerical engine, `fitPS` refuses rather than silently changing the requested engine.
 
 Once these pieces are supplied, `fit()` returns an ordinary `psFit`. Generic operations such as `fitted()`, `predict()`, `logLik()`, `deviance()`, `AIC()`, `BIC()`, posterior summaries, and serialization continue to be handled by `fitPS` where applicable.
 
@@ -223,20 +293,20 @@ modelBayesControl.externalPoissonModel = function(model, x, engine, prior, ...) 
   )
 }
 
-modelToWorking.externalPoissonModel = function(model, parameters, ...) {
+modelToUnconstrained.externalPoissonModel = function(model, parameters, ...) {
   c(lambda = log(parameters[["lambda"]]))
 }
 
-modelFromWorking.externalPoissonModel = function(model, working, ...) {
-  c(lambda = exp(working[["lambda"]]))
+modelFromUnconstrained.externalPoissonModel = function(model, unconstrained, ...) {
+  c(lambda = exp(unconstrained[["lambda"]]))
 }
 
-modelWorkingLogJacobian.externalPoissonModel = function(model, working, ...) {
-  unname(working[["lambda"]])
+modelLogJacobian.externalPoissonModel = function(model, unconstrained, ...) {
+  unname(unconstrained[["lambda"]])
 }
 ```
 
-The transform methods are used by generic MCMC. The one-dimensional numerical engine integrates on the natural parameter scale and therefore does not require a sampler-specific implementation.
+Here `lambda` is positive, so MCMC uses `log(lambda)` as its unconstrained coordinate. `modelFromUnconstrained()` exponentiates that coordinate to recover the natural Poisson rate, and `modelLogJacobian()` returns the unconstrained value because `d exp(z) / dz = exp(z)`. The one-dimensional numerical engine instead integrates `lambda` directly on its natural scale and therefore does not use these transformation methods.
 
 ### Register the external S3 methods
 
@@ -248,9 +318,9 @@ S3method(modelProbabilities,externalPoissonModel)
 S3method(modelLogLikelihood,externalPoissonModel)
 S3method(modelLogPrior,externalPoissonModel)
 S3method(modelBayesControl,externalPoissonModel)
-S3method(modelToWorking,externalPoissonModel)
-S3method(modelFromWorking,externalPoissonModel)
-S3method(modelWorkingLogJacobian,externalPoissonModel)
+S3method(modelToUnconstrained,externalPoissonModel)
+S3method(modelFromUnconstrained,externalPoissonModel)
+S3method(modelLogJacobian,externalPoissonModel)
 ```
 
 When experimenting interactively, the equivalent registration can be performed with base R's `registerS3method()`. For a self-contained script or vignette, a small helper avoids repeating the same registration boilerplate:
@@ -288,9 +358,9 @@ registerModelMethods(
     "modelLogLikelihood",
     "modelLogPrior",
     "modelBayesControl",
-    "modelToWorking",
-    "modelFromWorking",
-    "modelWorkingLogJacobian"
+    "modelToUnconstrained",
+    "modelFromUnconstrained",
+    "modelLogJacobian"
   )
 )
 ```
@@ -601,7 +671,7 @@ modelLogLikelihood.externalPoissonNormalModel = function(model,
 
 ### Add the Poisson-normal Bayesian contract
 
-The two-parameter example uses a Normal prior for `mu` and a half-Normal prior for positive `sigma`. The Bayesian control reuses the finite MLE bounds; these give the two-dimensional numerical engine a finite integration rectangle. MCMC uses a log transform for `sigma`.
+The two-parameter example uses a Normal prior for `mu` and a half-Normal prior for positive `sigma`. The Bayesian control reuses the finite MLE bounds; these give the two-dimensional numerical engine a finite integration rectangle. MCMC leaves the unconstrained location parameter `mu` unchanged and uses a log transform for positive `sigma`. Consequently the two-dimensional inverse transformation is `(mu, exp(zSigma))`, whose Jacobian determinant is `exp(zSigma)` and whose log-Jacobian is simply `zSigma`.
 
 ```{r poisson-normal-bayes-contract}
 modelLogPrior.externalPoissonNormalModel = function(model, parameters, prior, ...) {
@@ -624,16 +694,16 @@ modelBayesControl.externalPoissonNormalModel = function(model, x, engine, prior,
   modelMleControl(model, x)
 }
 
-modelToWorking.externalPoissonNormalModel = function(model, parameters, ...) {
+modelToUnconstrained.externalPoissonNormalModel = function(model, parameters, ...) {
   c(mu = parameters[["mu"]], sigma = log(parameters[["sigma"]]))
 }
 
-modelFromWorking.externalPoissonNormalModel = function(model, working, ...) {
-  c(mu = working[["mu"]], sigma = exp(working[["sigma"]]))
+modelFromUnconstrained.externalPoissonNormalModel = function(model, unconstrained, ...) {
+  c(mu = unconstrained[["mu"]], sigma = exp(unconstrained[["sigma"]]))
 }
 
-modelWorkingLogJacobian.externalPoissonNormalModel = function(model, working, ...) {
-  unname(working[["sigma"]])
+modelLogJacobian.externalPoissonNormalModel = function(model, unconstrained, ...) {
+  unname(unconstrained[["sigma"]])
 }
 ```
 
@@ -648,9 +718,9 @@ S3method(modelProbabilities,externalPoissonNormalModel)
 S3method(modelLogLikelihood,externalPoissonNormalModel)
 S3method(modelLogPrior,externalPoissonNormalModel)
 S3method(modelBayesControl,externalPoissonNormalModel)
-S3method(modelToWorking,externalPoissonNormalModel)
-S3method(modelFromWorking,externalPoissonNormalModel)
-S3method(modelWorkingLogJacobian,externalPoissonNormalModel)
+S3method(modelToUnconstrained,externalPoissonNormalModel)
+S3method(modelFromUnconstrained,externalPoissonNormalModel)
+S3method(modelLogJacobian,externalPoissonNormalModel)
 ```
 
 For this self-contained vignette, the same `registerModelMethods()` helper used above keeps the registration concise:
@@ -665,9 +735,9 @@ registerModelMethods(
     "modelLogLikelihood",
     "modelLogPrior",
     "modelBayesControl",
-    "modelToWorking",
-    "modelFromWorking",
-    "modelWorkingLogJacobian"
+    "modelToUnconstrained",
+    "modelFromUnconstrained",
+    "modelLogJacobian"
   )
 )
 ```

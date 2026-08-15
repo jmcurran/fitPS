@@ -169,22 +169,22 @@ modelBayesControl.externalPoissonNormalModel = function(model, x, engine, prior,
   )
 }
 
-modelToWorking.externalPoissonNormalModel = function(model, parameters, ...) {
+modelToUnconstrained.externalPoissonNormalModel = function(model, parameters, ...) {
   parameters = validateExternalPoissonNormalParameters(model, parameters)
   c(mu = parameters[["mu"]], sigma = log(parameters[["sigma"]]))
 }
 
-modelFromWorking.externalPoissonNormalModel = function(model, working, ...) {
-  working = validateExternalPoissonNormalParameters(model, working, workingScale = TRUE)
-  c(mu = working[["mu"]], sigma = exp(working[["sigma"]]))
+modelFromUnconstrained.externalPoissonNormalModel = function(model, unconstrained, ...) {
+  unconstrained = validateExternalPoissonNormalParameters(model, unconstrained, unconstrainedScale = TRUE)
+  c(mu = unconstrained[["mu"]], sigma = exp(unconstrained[["sigma"]]))
 }
 
-modelWorkingLogJacobian.externalPoissonNormalModel = function(model, working, ...) {
-  working = validateExternalPoissonNormalParameters(model, working, workingScale = TRUE)
-  unname(working[["sigma"]])
+modelLogJacobian.externalPoissonNormalModel = function(model, unconstrained, ...) {
+  unconstrained = validateExternalPoissonNormalParameters(model, unconstrained, unconstrainedScale = TRUE)
+  unname(unconstrained[["sigma"]])
 }
 
-validateExternalPoissonNormalParameters = function(model, value, workingScale = FALSE) {
+validateExternalPoissonNormalParameters = function(model, value, unconstrainedScale = FALSE) {
   if (!is.numeric(value) || length(value) != 2L ||
       is.null(names(value)) || !setequal(names(value), c("mu", "sigma"))) {
     stop("value must be a named numeric vector containing mu and sigma")
@@ -193,7 +193,7 @@ validateExternalPoissonNormalParameters = function(model, value, workingScale = 
   if (any(!is.finite(value))) {
     stop("mu and sigma must be finite")
   }
-  if (!workingScale && value[["sigma"]] <= 0) {
+  if (!unconstrainedScale && value[["sigma"]] <= 0) {
     stop("sigma must be positive")
   }
   value
@@ -204,9 +204,9 @@ registerExternalPoissonNormalBayesMethods = function() {
   methods = c(
     modelLogPrior = "modelLogPrior.externalPoissonNormalModel",
     modelBayesControl = "modelBayesControl.externalPoissonNormalModel",
-    modelToWorking = "modelToWorking.externalPoissonNormalModel",
-    modelFromWorking = "modelFromWorking.externalPoissonNormalModel",
-    modelWorkingLogJacobian = "modelWorkingLogJacobian.externalPoissonNormalModel"
+    modelToUnconstrained = "modelToUnconstrained.externalPoissonNormalModel",
+    modelFromUnconstrained = "modelFromUnconstrained.externalPoissonNormalModel",
+    modelLogJacobian = "modelLogJacobian.externalPoissonNormalModel"
   )
   for (generic in names(methods)) {
     registerS3method(

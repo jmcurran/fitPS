@@ -79,65 +79,113 @@ validateModelParameterVector = function(model, value, name) {
   value
 }
 
-#' Transform natural model parameters to working coordinates
+#' Transform natural model parameters to unconstrained coordinates
 #'
-#' The default `psModel` method is the identity transformation. Models with
-#' constrained parameters may override it to expose unconstrained coordinates
-#' suitable for generic Bayesian engines.
+#' Generic MCMC proposes parameter values on an unconstrained Euclidean scale.
+#' This avoids proposals that repeatedly leave a model's natural parameter
+#' space, such as negative values for a positive rate or values outside
+#' `(0, 1)` for a probability. External models with constrained parameters
+#' implement this generic to map their named natural-scale parameter vector to
+#' a named vector whose components may vary over the whole real line.
+#'
+#' The transformation must be one-to-one with [modelFromUnconstrained()] over
+#' the parameter region used for Bayesian fitting, preserve the names and order
+#' returned by [modelParameterNames()], and return finite values for valid
+#' interior natural-scale parameters. The default `psModel` method is the
+#' identity transformation, which is appropriate when every natural parameter
+#' is already unconstrained.
+#'
+#' Common choices include `log(theta)` for a positive parameter `theta` and
+#' `qlogis(p)` for a probability `p`. If several parameters are transformed,
+#' the returned vector contains one unconstrained coordinate for each natural
+#' parameter.
 #'
 #' @param model A `psModel` object.
-#' @param parameters Named natural-scale model parameters.
+#' @param parameters Named numeric model parameters on their natural scale.
 #' @param ... Additional model-specific transformation inputs.
-#' @return A named numeric working-scale parameter vector.
+#' @return A named numeric vector of unconstrained coordinates, with names and
+#'   order matching `modelParameterNames(model)`.
+#' @seealso [modelFromUnconstrained()], [modelLogJacobian()]
 #' @export
-modelToWorking = function(model, parameters, ...) {
-  UseMethod("modelToWorking")
+modelToUnconstrained = function(model, parameters, ...) {
+  UseMethod("modelToUnconstrained")
 }
 
-#' @rdname modelToWorking
-#' @exportS3Method modelToWorking psModel
-modelToWorking.psModel = function(model, parameters, ...) {
+#' @rdname modelToUnconstrained
+#' @exportS3Method modelToUnconstrained psModel
+modelToUnconstrained.psModel = function(model, parameters, ...) {
   validateModelParameterVector(model, parameters, "parameters")
 }
 
-#' Transform working coordinates to natural model parameters
+#' Transform unconstrained coordinates to natural model parameters
 #'
-#' The default `psModel` method is the identity transformation.
+#' This is the inverse of [modelToUnconstrained()]. Generic MCMC calls it for
+#' every proposed unconstrained state before evaluating the likelihood and
+#' prior, both of which remain defined on the model's natural parameter scale.
 #'
-#' @param model A `psModel` object.
-#' @param working Named working-scale model parameters.
-#' @param ... Additional model-specific transformation inputs.
-#' @return A named numeric natural-scale parameter vector.
-#' @export
-modelFromWorking = function(model, working, ...) {
-  UseMethod("modelFromWorking")
-}
-
-#' @rdname modelFromWorking
-#' @exportS3Method modelFromWorking psModel
-modelFromWorking.psModel = function(model, working, ...) {
-  validateModelParameterVector(model, working, "working")
-}
-
-#' Evaluate the inverse-transformation log-Jacobian
+#' The transformation must be one-to-one with [modelToUnconstrained()] over the
+#' Bayesian parameter region, preserve the names and order returned by
+#' [modelParameterNames()], and return valid natural-scale parameters whenever
+#' its input is finite and valid for the chosen transformation. The default
+#' `psModel` method is the identity transformation.
 #'
-#' Returns the log absolute determinant of the Jacobian for the transformation
-#' from working coordinates to natural model parameters. The default identity
-#' transformation therefore returns zero.
+#' For example, if `modelToUnconstrained()` uses `log(theta)` for a positive
+#' parameter, this method uses `exp(z)`. If it uses `qlogis(p)` for a
+#' probability, this method uses `plogis(z)`.
 #'
 #' @param model A `psModel` object.
-#' @param working Named working-scale model parameters.
+#' @param unconstrained Named numeric coordinates on the unconstrained scale.
 #' @param ... Additional model-specific transformation inputs.
-#' @return One finite numeric log absolute Jacobian value.
+#' @return A named numeric vector of natural-scale model parameters, with names
+#'   and order matching `modelParameterNames(model)`.
+#' @seealso [modelToUnconstrained()], [modelLogJacobian()]
 #' @export
-modelWorkingLogJacobian = function(model, working, ...) {
-  UseMethod("modelWorkingLogJacobian")
+modelFromUnconstrained = function(model, unconstrained, ...) {
+  UseMethod("modelFromUnconstrained")
 }
 
-#' @rdname modelWorkingLogJacobian
-#' @exportS3Method modelWorkingLogJacobian psModel
-modelWorkingLogJacobian.psModel = function(model, working, ...) {
-  validateModelParameterVector(model, working, "working")
+#' @rdname modelFromUnconstrained
+#' @exportS3Method modelFromUnconstrained psModel
+modelFromUnconstrained.psModel = function(model, unconstrained, ...) {
+  validateModelParameterVector(model, unconstrained, "unconstrained")
+}
+
+#' Evaluate the log-Jacobian for the unconstrained parameter transformation
+#'
+#' When MCMC samples an unconstrained vector `z` but the model prior is defined
+#' for natural parameters `theta = modelFromUnconstrained(model, z)`, the
+#' posterior density on the sampled scale contains the change-of-variables
+#' factor
+#'
+#' `log |det(d theta / d z)|`.
+#'
+#' This generic returns exactly that quantity: the log absolute determinant of
+#' the Jacobian of the transformation **from unconstrained coordinates back to
+#' natural parameters**. It is not the Jacobian of
+#' [modelToUnconstrained()]. Generic MCMC adds this value to the natural-scale
+#' log likelihood and log prior.
+#'
+#' For an identity transformation the value is zero. For `theta = exp(z)` it is
+#' `z`. For `p = plogis(z)` it is `log(p) + log1p(-p)`. For several independent
+#' component-wise transformations, return the sum of their log-Jacobian terms;
+#' for a genuinely coupled transformation, return the log absolute determinant
+#' of the full inverse-transformation Jacobian matrix.
+#'
+#' @param model A `psModel` object.
+#' @param unconstrained Named numeric coordinates on the unconstrained scale.
+#' @param ... Additional model-specific transformation inputs.
+#' @return One finite numeric value equal to
+#'   `log |det(d theta / d z)|` for the inverse transformation.
+#' @seealso [modelToUnconstrained()], [modelFromUnconstrained()]
+#' @export
+modelLogJacobian = function(model, unconstrained, ...) {
+  UseMethod("modelLogJacobian")
+}
+
+#' @rdname modelLogJacobian
+#' @exportS3Method modelLogJacobian psModel
+modelLogJacobian.psModel = function(model, unconstrained, ...) {
+  validateModelParameterVector(model, unconstrained, "unconstrained")
   0
 }
 
@@ -168,25 +216,25 @@ modelBayesControl.zetaModel = function(model, x, engine, prior, ...) {
   )
 }
 
-#' @rdname modelToWorking
-#' @exportS3Method modelToWorking zetaModel
-modelToWorking.zetaModel = function(model, parameters, ...) {
+#' @rdname modelToUnconstrained
+#' @exportS3Method modelToUnconstrained zetaModel
+modelToUnconstrained.zetaModel = function(model, parameters, ...) {
   parameters = validateModelParameterVector(model, parameters, "parameters")
   c(shape = shapeToTau(parameters[["shape"]]))
 }
 
-#' @rdname modelFromWorking
-#' @exportS3Method modelFromWorking zetaModel
-modelFromWorking.zetaModel = function(model, working, ...) {
-  working = validateModelParameterVector(model, working, "working")
-  c(shape = tauToShape(working[["shape"]]))
+#' @rdname modelFromUnconstrained
+#' @exportS3Method modelFromUnconstrained zetaModel
+modelFromUnconstrained.zetaModel = function(model, unconstrained, ...) {
+  unconstrained = validateModelParameterVector(model, unconstrained, "unconstrained")
+  c(shape = tauToShape(unconstrained[["shape"]]))
 }
 
-#' @rdname modelWorkingLogJacobian
-#' @exportS3Method modelWorkingLogJacobian zetaModel
-modelWorkingLogJacobian.zetaModel = function(model, working, ...) {
-  working = validateModelParameterVector(model, working, "working")
-  unname(working[["shape"]])
+#' @rdname modelLogJacobian
+#' @exportS3Method modelLogJacobian zetaModel
+modelLogJacobian.zetaModel = function(model, unconstrained, ...) {
+  unconstrained = validateModelParameterVector(model, unconstrained, "unconstrained")
+  unname(unconstrained[["shape"]])
 }
 
 #' @rdname modelLogPrior
@@ -216,25 +264,25 @@ modelBayesControl.logarithmicModel = function(model, x, engine, prior, ...) {
   )
 }
 
-#' @rdname modelToWorking
-#' @exportS3Method modelToWorking logarithmicModel
-modelToWorking.logarithmicModel = function(model, parameters, ...) {
+#' @rdname modelToUnconstrained
+#' @exportS3Method modelToUnconstrained logarithmicModel
+modelToUnconstrained.logarithmicModel = function(model, parameters, ...) {
   parameters = validateModelParameterVector(model, parameters, "parameters")
   c(pi = logitPi(parameters[["pi"]]))
 }
 
-#' @rdname modelFromWorking
-#' @exportS3Method modelFromWorking logarithmicModel
-modelFromWorking.logarithmicModel = function(model, working, ...) {
-  working = validateModelParameterVector(model, working, "working")
-  c(pi = invLogitPi(working[["pi"]]))
+#' @rdname modelFromUnconstrained
+#' @exportS3Method modelFromUnconstrained logarithmicModel
+modelFromUnconstrained.logarithmicModel = function(model, unconstrained, ...) {
+  unconstrained = validateModelParameterVector(model, unconstrained, "unconstrained")
+  c(pi = invLogitPi(unconstrained[["pi"]]))
 }
 
-#' @rdname modelWorkingLogJacobian
-#' @exportS3Method modelWorkingLogJacobian logarithmicModel
-modelWorkingLogJacobian.logarithmicModel = function(model, working, ...) {
-  working = validateModelParameterVector(model, working, "working")
-  pi = invLogitPi(working[["pi"]])
+#' @rdname modelLogJacobian
+#' @exportS3Method modelLogJacobian logarithmicModel
+modelLogJacobian.logarithmicModel = function(model, unconstrained, ...) {
+  unconstrained = validateModelParameterVector(model, unconstrained, "unconstrained")
+  pi = invLogitPi(unconstrained[["pi"]])
   unname(log(pi) + log1p(-pi))
 }
 
@@ -288,26 +336,26 @@ modelBayesControl.zizModel = function(model,
   )
 }
 
-#' @rdname modelToWorking
-#' @exportS3Method modelToWorking zizModel
-modelToWorking.zizModel = function(model, parameters, ...) {
+#' @rdname modelToUnconstrained
+#' @exportS3Method modelToUnconstrained zizModel
+modelToUnconstrained.zizModel = function(model, parameters, ...) {
   parameters = validateModelParameterVector(model, parameters, "parameters")
-  working = zizThetaToWorking(parameters)
-  names(working) = modelParameterNames(model)
-  working
+  unconstrained = zizThetaToWorking(parameters)
+  names(unconstrained) = modelParameterNames(model)
+  unconstrained
 }
 
-#' @rdname modelFromWorking
-#' @exportS3Method modelFromWorking zizModel
-modelFromWorking.zizModel = function(model, working, ...) {
-  working = validateModelParameterVector(model, working, "working")
-  parameters = zizWorkingToTheta(working)
+#' @rdname modelFromUnconstrained
+#' @exportS3Method modelFromUnconstrained zizModel
+modelFromUnconstrained.zizModel = function(model, unconstrained, ...) {
+  unconstrained = validateModelParameterVector(model, unconstrained, "unconstrained")
+  parameters = zizWorkingToTheta(unconstrained)
   parameters[modelParameterNames(model)]
 }
 
-#' @rdname modelWorkingLogJacobian
-#' @exportS3Method modelWorkingLogJacobian zizModel
-modelWorkingLogJacobian.zizModel = function(model, working, ...) {
-  working = validateModelParameterVector(model, working, "working")
-  zizWorkingLogJacobian(working)
+#' @rdname modelLogJacobian
+#' @exportS3Method modelLogJacobian zizModel
+modelLogJacobian.zizModel = function(model, unconstrained, ...) {
+  unconstrained = validateModelParameterVector(model, unconstrained, "unconstrained")
+  zizWorkingLogJacobian(unconstrained)
 }

@@ -100,19 +100,19 @@ modelBayesControl.externalPoissonModel = function(model, x, engine, prior, ...) 
   )
 }
 
-modelToWorking.externalPoissonModel = function(model, parameters, ...) {
+modelToUnconstrained.externalPoissonModel = function(model, parameters, ...) {
   parameters = validateExternalPoissonParameters(model, parameters)
   c(lambda = log(parameters[["lambda"]]))
 }
 
-modelFromWorking.externalPoissonModel = function(model, working, ...) {
-  working = validateExternalPoissonParameters(model, working, positive = FALSE)
-  c(lambda = exp(working[["lambda"]]))
+modelFromUnconstrained.externalPoissonModel = function(model, unconstrained, ...) {
+  unconstrained = validateExternalPoissonParameters(model, unconstrained, positive = FALSE)
+  c(lambda = exp(unconstrained[["lambda"]]))
 }
 
-modelWorkingLogJacobian.externalPoissonModel = function(model, working, ...) {
-  working = validateExternalPoissonParameters(model, working, positive = FALSE)
-  unname(working[["lambda"]])
+modelLogJacobian.externalPoissonModel = function(model, unconstrained, ...) {
+  unconstrained = validateExternalPoissonParameters(model, unconstrained, positive = FALSE)
+  unname(unconstrained[["lambda"]])
 }
 
 validateExternalPoissonParameters = function(model, value, positive = TRUE) {
@@ -132,9 +132,9 @@ registerExternalPoissonBayesMethods = function() {
   methods = c(
     modelLogPrior = "modelLogPrior.externalPoissonModel",
     modelBayesControl = "modelBayesControl.externalPoissonModel",
-    modelToWorking = "modelToWorking.externalPoissonModel",
-    modelFromWorking = "modelFromWorking.externalPoissonModel",
-    modelWorkingLogJacobian = "modelWorkingLogJacobian.externalPoissonModel"
+    modelToUnconstrained = "modelToUnconstrained.externalPoissonModel",
+    modelFromUnconstrained = "modelFromUnconstrained.externalPoissonModel",
+    modelLogJacobian = "modelLogJacobian.externalPoissonModel"
   )
   for (generic in names(methods)) {
     registerS3method(

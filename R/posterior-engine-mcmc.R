@@ -12,7 +12,7 @@
 #' @param nIter Number of retained MCMC iterations.
 #' @param nBurnIn Number of burn-in iterations.
 #' @param proposalScale Positive random-walk proposal standard deviation on the
-#'   working scale. Supply one value or a named value for every model parameter.
+#'   unconstrained scale. Supply one value or a named value for every model parameter.
 #' @param seed Optional integer random seed.
 #' @param ... Model-specific Bayesian controls passed to the public model
 #'   contract.
@@ -98,15 +98,15 @@ fitMcmcPosteriorModel.psModel = function(model,
   }
 
   currentNatural = validateModelParameterVector(model, controls$start, "start")
-  currentWorking = modelToWorking(model, currentNatural)
-  currentWorking = validateModelParameterVector(model, currentWorking, "working start")
+  currentUnconstrained = modelToUnconstrained(model, currentNatural)
+  currentUnconstrained = validateModelParameterVector(model, currentUnconstrained, "unconstrained start")
   parameterNames = modelParameterNames(model)
 
-  logWorkingPosterior = function(working) {
-    names(working) = parameterNames
+  logUnconstrainedPosterior = function(unconstrained) {
+    names(unconstrained) = parameterNames
 
     natural = tryCatch(
-      modelFromWorking(model, working),
+      modelFromUnconstrained(model, unconstrained),
       error = function(error) NULL
     )
     if (is.null(natural)) {
@@ -132,7 +132,7 @@ fitMcmcPosteriorModel.psModel = function(model,
       prior = prior,
       ...
     )
-    logJacobian = modelWorkingLogJacobian(model, working)
+    logJacobian = modelLogJacobian(model, unconstrained)
 
     values = c(logLikelihood, logPrior, logJacobian)
     if (!is.numeric(values) || length(values) != 3L || any(is.na(values))) {
@@ -148,7 +148,7 @@ fitMcmcPosteriorModel.psModel = function(model,
     sum(values)
   }
 
-  currentLogPosterior = logWorkingPosterior(currentWorking)
+  currentLogPosterior = logUnconstrainedPosterior(currentUnconstrained)
   if (!is.finite(currentLogPosterior)) {
     stop("posterior is not finite at the model-supplied starting values", call. = FALSE)
   }
@@ -163,24 +163,24 @@ fitMcmcPosteriorModel.psModel = function(model,
   accepted = 0L
 
   for (iteration in seq_len(nTotal)) {
-    proposedWorking = currentWorking + rnorm(
+    proposedUnconstrained = currentUnconstrained + rnorm(
       length(parameterNames),
       mean = 0,
       sd = proposalScale
     )
-    names(proposedWorking) = parameterNames
-    proposedLogPosterior = logWorkingPosterior(proposedWorking)
+    names(proposedUnconstrained) = parameterNames
+    proposedLogPosterior = logUnconstrainedPosterior(proposedUnconstrained)
 
     if (is.finite(proposedLogPosterior) &&
         (proposedLogPosterior >= currentLogPosterior ||
           log(runif(1L)) < proposedLogPosterior - currentLogPosterior)) {
-      currentWorking = proposedWorking
+      currentUnconstrained = proposedUnconstrained
       currentLogPosterior = proposedLogPosterior
       accepted = accepted + 1L
     }
 
     if (iteration > nBurnIn) {
-      chain[iteration - nBurnIn, ] = modelFromWorking(model, currentWorking)
+      chain[iteration - nBurnIn, ] = modelFromUnconstrained(model, currentUnconstrained)
     }
   }
 

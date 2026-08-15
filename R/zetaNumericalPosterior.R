@@ -42,7 +42,7 @@ fitNumericalPosteriorModel.zetaModel = function(model, engine, x, prior, ...) {
   }
 
   modelObservationData(model, x)
-  validatePriorRange(prior$range)
+  validateZetaPriorRange(prior$range)
 
   lower = prior$range[1]
   upper = prior$range[2]

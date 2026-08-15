@@ -4,65 +4,63 @@
 \alias{fitlogDist}
 \alias{fitLogdist}
 \alias{fitlogdist}
-\title{Fit a Logarithmic Distribution to Forensic Data}
+\title{Fit a logarithmic distribution to forensic data}
 \usage{
-fitlogDist(x, nterms = 10, start = 0.5, ...)
+fitlogDist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 
-fitLogdist(x, nterms = 10, start = 0.5, ...)
+fitLogdist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 
-fitlogdist(x, nterms = 10, start = 0.5, ...)
+fitlogdist(
+  x,
+  nterms = 10,
+  method = c("mle", "bayes"),
+  prior,
+  bayesOptions = NULL,
+  ...
+)
 }
 \arguments{
-\item{x}{an object of type \code{psData}, usually obtained from
-\code{\link{readData}}.}
+\item{x}{An object of class `psData`.}
 
-\item{nterms}{the number of terms to compute the probability distribution
-for.}
+\item{nterms}{Number of fitted P/S probability terms to retain.}
 
-\item{start}{a starting value for the optimiser.}
+\item{method}{Fitting method, either `"mle"` or `"bayes"`.}
 
-\item{...}{other parameters - not currently used.}
+\item{prior}{Optional `psPrior` used for Bayesian fitting. When omitted, a
+uniform prior on `(0.001, 0.999)` is used.}
+
+\item{bayesOptions}{Optional Bayesian controls. The logarithmic model supports
+`"numerical"` and `"mcmc"` posterior engines.}
+
+\item{...}{Additional fitting controls. For MLE, `start` is an optional
+initial value in `(0, 1)`. For MCMC, `pi0`, `nIter`, `nBurnIn`, and
+`silent` are passed to the logarithmic MCMC model method.}
 }
 \value{
-an object of class \code{psFit}--see Details.
+An object of class `psFit`.
 }
 \description{
-This function uses maximum likelihood estimation (MLE) to estimate the shape
-parameter of a logarithmic distribution from a set of observed counts
-for either the number of groups/sources of forensically interesting material
-(mostly glass or paint) recovered from clothing, or the number of
-fragments/particles in each group. This, in turn, allows the estimation of
-the P and S probabilities, as described by Evett and Buckleton (1990), which
-used in computing the likelihood ratio (LR) for activity level propositions.
-The data itself arises from clothing surveys. The logarithmic
-distribution has probability mass function
-\deqn{p(k) = \frac{\pi^k}{k\log_e(1-\pi)},0<\pi<1.}{pi^k / (k * ln(1 - pi)), 0 < pi < 1.}
-}
-\details{
-The function returns an object of class \code{psFit} which is a
-  \code{list} contains seven elements:
-\describe{
-\item{\code{psData}}{ -- an object of class \code{psData}--see \code{\link{readData}},}
-\item{\code{fit}}{ -- the fitted object from \code{\link[stats]{optim}},}
-\item{\code{pi}}{ - the maximum likelihood estimate of the shape parameter,}
-\item{\code{var}}{ -- the estimated variance for the shape parameter,}
-\item{\code{fitted}}{ -- a named \code{vector} containing the first \code{nterms of
-the fitted distribution.}}
-}
+Fits the logarithmic-series distribution to P- or S-survey data using
+maximum likelihood or the common fitPS Bayesian posterior architecture.
+The logarithmic model has probability mass function
+\deqn{p(k) = -\frac{\pi^k}{k\log(1-\pi)}, \quad 0 < \pi < 1.}
 }
 \examples{
 data(Psurveys)
-roux = Psurveys$roux
-fit = fitlogDist(roux)
+fit = fitlogDist(Psurveys$roux)
 fit
 }
-\references{
-Evett, I. W. and Buckleton, J. S., "The interpretation of glass
-  evidence. A practical approach", Journal of the Forensic Science Society
-  1990: 30(4): 215--223.
-}
-\seealso{
-\code{\link{plot.psFit}}, \code{\link{print.psFit}},
-  \code{\link{probfun}}.
-}
-\keyword{internal}

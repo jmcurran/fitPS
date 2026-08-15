@@ -50,7 +50,7 @@ fitMcmcPosteriorModel.zetaModel = function(model,
   }
 
   validateZetaShape(shape0, "shape0")
-  validatePriorRange(prior$range)
+  validateZetaPriorRange(prior$range)
   modelObservationData(model, x)
 
   if (nIter < 1000) {

@@ -42,6 +42,10 @@ summary.psFit = function(object, nterms = NULL, ...) {
     )
     colnames(cmat) = c("Estimate", "Std.Err", "X^2 value", "Pr(>X^2)")
     rownames(cmat) = c("shape", "pi")
+  } else if (object$model %in% c("log", "logarithmic")) {
+    cmat = matrix(c(object$pi, sqrt(object$var.pi)), nrow = 1L)
+    colnames(cmat) = c("Estimate", "Std.Err")
+    rownames(cmat) = "pi"
   } else {
     stop("summary is not currently implemented for this fitted model")
   }

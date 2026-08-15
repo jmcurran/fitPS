@@ -66,6 +66,8 @@ fitImportancePosteriorModel.zizModel = function(model,
     stop("prior must be an object of class psPrior")
   }
 
+  validateZetaPriorRange(prior$range)
+
   modelObservationData(model, x)
   approximation = makeZizPosteriorImportance(
     x = x,

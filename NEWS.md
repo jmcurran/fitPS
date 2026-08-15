@@ -25,6 +25,16 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.9.004
+
+- Added the logarithmic-series distribution as a psModel with shared P/S support, probability, and likelihood dispatch.
+- Added numerical and MCMC Bayesian logarithmic fits through the existing posterior-engine extension points and common psPosterior finalisation path.
+- Enabled logarithmic MLE fits to participate in logLik, deviance, AIC, BIC, fitted probabilities, prediction, and standard psFit summaries.
+- Enabled DIC for one-parameter numerical and MCMC models by removing residual zeta-specific parameter-name assumptions.
+- Generalised uniform/custom prior ranges while preserving zeta-domain safeguards for zeta and ZIZ posterior fits.
+- Replaced the provisional logarithmic fitter internals rather than treating them as a compatibility contract.
+- Validated by the strict fitPS stage workflow.
+
 ## fitPS 1.0.9.002
 
 - Added a shared model-comparison contract for likelihood, deviance, and parameter counting.

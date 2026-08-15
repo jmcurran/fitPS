@@ -25,7 +25,7 @@ print.psFit = function(x, nterms = NULL, ...) {
     cat("The estimated shape parameter is", round(x$shape, 4), "\n")
   }
 
-  if (x$model == "log") {
+  if (x$model %in% c("log", "logarithmic")) {
     cat("The estimated model parameter pi is", signif(x$pi, 4), "\n")
   }
 
@@ -37,7 +37,7 @@ print.psFit = function(x, nterms = NULL, ...) {
     )
   }
 
-  if (x$model %in% c("zeta", "ziz")) {
+  if (x$model %in% c("zeta", "ziz", "log", "logarithmic")) {
     if (is.null(nterms)) {
       nterms = length(x$fitted)
     }

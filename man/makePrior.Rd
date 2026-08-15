@@ -10,9 +10,9 @@ makePrior(family = c("loguniform", "uniform", "custom"), range, logd)
 \item{family}{One of \code{"loguniform"}, \code{"uniform"} or \code{"custom"}.}
 
 \item{range}{Optionally the range for which the prior density is
-evaluated. It is zero outside of this range. For zeta models
-this range is on the standard \code{shape} scale, where
-\code{shape > 1}.}
+evaluated. It is zero outside of this range. Loguniform priors
+retain the zeta \code{shape > 1} domain; uniform and custom
+priors may use another finite ordered parameter range.}
 
 \item{logd}{Optionally (required when \code{family="custom"}.) a function
 that evaluates the log density of the prior inside the range.}

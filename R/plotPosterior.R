@@ -115,12 +115,14 @@ validatePosteriorPlotInput = function(object, parameter, level, nGrid){
     stop("parameter must be a single character value.", call. = FALSE)
   }
 
-  if(!parameter %in% c("shape", "pi")){
-    stop("parameter must be either \"shape\" or \"pi\".", call. = FALSE)
-  }
-
-  if(parameter == "pi" && object$model != "ziz"){
-    stop("parameter = \"pi\" is only available for zero-inflated Bayesian fits.", call. = FALSE)
+  model = modelFromFit(object)
+  parameterNames = modelParameterNames(model)
+  if (!parameter %in% parameterNames) {
+    stop(
+      "parameter must be one of: ",
+      paste(parameterNames, collapse = ", "),
+      call. = FALSE
+    )
   }
 
   if(length(level) != 1 || !is.numeric(level) || !is.finite(level) || level <= 0 || level >= 1){
@@ -175,9 +177,14 @@ getPosteriorSamples = function(object, parameter){
       return(NULL)
     }
     samples = chain[, parameter]
-  }else if(parameter == "shape" && is.numeric(chain)){
-    samples = chain
-  }else{
+  } else if (is.numeric(chain)) {
+    parameterNames = modelParameterNames(modelFromFit(object))
+    if (length(parameterNames) == 1L && identical(parameter, parameterNames)) {
+      samples = chain
+    } else {
+      return(NULL)
+    }
+  } else {
     return(NULL)
   }
 
@@ -265,7 +272,9 @@ getPosteriorDensityFunction = function(object, parameter){
   if (inherits(object$posterior, "psPosterior")) {
     representation = object$posterior$representation
     if (inherits(representation, "numericalPosteriorRepresentation")) {
-      if (is.function(representation$value$density) && parameter == "shape") {
+      if (is.function(representation$value$density) &&
+          length(modelParameterNames(modelFromFit(object))) == 1L &&
+          identical(parameter, modelParameterNames(modelFromFit(object)))) {
         return(representation$value$density)
       }
       if (!is.null(representation$value$posteriorGrid)) {

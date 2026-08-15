@@ -63,6 +63,20 @@ zizModel = function() {
   )
 }
 
+#' Construct the logarithmic model descriptor.
+#'
+#' @return An internal object inheriting from `logarithmicModel` and `psModel`.
+#' @keywords internal
+#' @noRd
+logarithmicModel = function() {
+  newPsModel(
+    model = "logarithmic",
+    parameterNames = "pi",
+    supportedEngines = c("numerical", "mcmc"),
+    subclass = "logarithmicModel"
+  )
+}
+
 #' Return the natural parameter names declared by a fitPS model.
 #'
 #' @param model An internal `psModel` object.
@@ -285,4 +299,39 @@ modelLogLikelihood.zizModel = function(model, parameters, data, ...) {
     pi = pi,
     shape = shape
   )
+}
+
+
+#' @rdname modelProbabilities
+#' @keywords internal
+#' @exportS3Method modelProbabilities logarithmicModel
+#' @noRd
+modelProbabilities.logarithmicModel = function(model, parameters, n, type, ...) {
+  logarithmicProbabilities(
+    pi = modelParameter(parameters, "pi"),
+    n = n,
+    type = type
+  )
+}
+
+#' Evaluate the logarithmic model log likelihood.
+#'
+#' @param model A `logarithmicModel` descriptor.
+#' @param parameters Named parameters containing scalar `pi`.
+#' @param data An object of class `psData`.
+#' @param ... Additional arguments reserved for future logarithmic controls.
+#' @return Scalar log likelihood.
+#' @keywords internal
+#' @exportS3Method modelLogLikelihood logarithmicModel
+#' @noRd
+modelLogLikelihood.logarithmicModel = function(model, parameters, data, ...) {
+  if (!is(data, "psData")) {
+    stop("data must be an object of class psData")
+  }
+
+  pi = modelParameter(parameters, "pi")
+  validateLogarithmicPi(pi)
+
+  observations = modelObservationData(model, data)
+  sum(data$data$rn * dlog(observations, shape = pi, log = TRUE))
 }

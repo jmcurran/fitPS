@@ -7,22 +7,14 @@
 probfun(psFitobj)
 }
 \arguments{
-\item{psFitobj}{an object of class \code{psFit}--see \code{\link{fitDist}}
-and \code{\link{fitZIDist}}.}
+\item{psFitobj}{An object of class `psFit`.}
 }
 \value{
-a function that can be used to calculate any plug-in P or S term.
+A function that can calculate plug-in P or S terms.
 }
 \description{
-Creates a probability function that evaluates P or S terms at the fitted
-parameter values stored in a \code{psFit} object.
-}
-\details{
-This is deliberately a plug-in probability function. For Bayesian fits,
-use \code{\link{posteriorProbs}} for posterior mean probabilities. For
-maximum-likelihood fits with an attached bootstrap distribution, use
-\code{\link{bootstrapProbs}} for bootstrap mean probabilities and percentile
-confidence intervals.
+Creates a probability function that evaluates P or S terms through the
+model contract at the fitted parameter values stored in a `psFit` object.
 }
 \examples{
 p = readData(system.file("extdata", "p.xlsx", package = "fitPS"))

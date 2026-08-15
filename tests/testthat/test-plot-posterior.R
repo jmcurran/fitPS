@@ -82,5 +82,5 @@ test_that("plotPosterior rejects non-Bayesian fits and unavailable parameters", 
 
   bayesFit = fit
   bayesFit$method = "bayes"
-  expect_error(plotPosterior(bayesFit, parameter = "pi"), "zero-inflated")
+  expect_error(plotPosterior(bayesFit, parameter = "pi"), "parameter must be one of: shape")
 })

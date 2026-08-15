@@ -13,6 +13,8 @@ modelFromFit = function(object) {
     object$model,
     zeta = zetaModel(),
     ziz = zizModel(),
+    logarithmic = logarithmicModel(),
+    log = logarithmicModel(),
     stop("Unknown fitPS model '", object$model, "'", call. = FALSE)
   )
 }
@@ -136,12 +138,17 @@ posteriorExpectedDeviance.numericalPosteriorRepresentation = function(representa
                                                                        model,
                                                                        data,
                                                                        ...) {
-  if (inherits(model, "zetaModel")) {
+  parameterNames = modelParameterNames(model)
+  if (length(parameterNames) == 1L &&
+      is.function(representation$value$density)) {
+    parameterName = parameterNames[1L]
     densityFunction = representation$value$density
     bounds = representation$metadata$bounds
-    integral = integrate(function(shape) {
-      vapply(shape, function(value) {
-        modelDeviance(model, c(shape = value), data) * densityFunction(value)
+    integral = integrate(function(parameterValue) {
+      vapply(parameterValue, function(value) {
+        parameters = value
+        names(parameters) = parameterName
+        modelDeviance(model, parameters, data) * densityFunction(value)
       }, numeric(1L))
     }, lower = bounds[["lower"]], upper = bounds[["upper"]])
     return(integral$value)
@@ -174,8 +181,14 @@ posteriorExpectedDeviance.mcmcPosteriorRepresentation = function(representation,
       modelDeviance(model, row, data)
     })
   } else {
+    parameterNames = modelParameterNames(model)
+    if (length(parameterNames) != 1L) {
+      stop("scalar MCMC chains require a one-parameter model")
+    }
     values = vapply(chain, function(value) {
-      modelDeviance(model, c(shape = value), data)
+      parameters = value
+      names(parameters) = parameterNames
+      modelDeviance(model, parameters, data)
     }, numeric(1L))
   }
   mean(values)

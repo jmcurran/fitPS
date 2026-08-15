@@ -40,6 +40,8 @@ fitMcmcPosteriorModel.zizModel = function(model,
     stop("prior must be an object of class psPrior")
   }
 
+  validateZetaPriorRange(prior$range)
+
   validateBayesPrior(prior)
 
   nIter = as.integer(nIter)

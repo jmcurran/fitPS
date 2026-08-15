@@ -4,9 +4,9 @@
 #'
 #' @param family One of \code{"loguniform"}, \code{"uniform"} or \code{"custom"}.
 #' @param range Optionally the range for which the prior density is
-#'              evaluated. It is zero outside of this range. For zeta models
-#'              this range is on the standard \code{shape} scale, where
-#'              \code{shape > 1}.
+#'              evaluated. It is zero outside of this range. Loguniform priors
+#'              retain the zeta \code{shape > 1} domain; uniform and custom
+#'              priors may use another finite ordered parameter range.
 #' @param logd Optionally (required when \code{family="custom"}.) a function
 #'             that evaluates the log density of the prior inside the range.
 #'
@@ -49,6 +49,9 @@ makePrior = function(family = c("loguniform", "uniform", "custom"),
   }
 
   validatePriorRange(range)
+  if (identical(family, "loguniform")) {
+    validateZetaPriorRange(range)
+  }
 
   if (missing(logd)) {
     if (family == "loguniform") {
@@ -85,7 +88,7 @@ makePrior = function(family = c("loguniform", "uniform", "custom"),
   prior
 }
 
-#' Validate a two-element prior range for the zeta shape parameter.
+#' Validate a finite ordered two-element prior range.
 #'
 #' @param range Two-element numeric lower and upper range.
 #' @return `NULL` invisibly when validation succeeds; otherwise an error is raised.
@@ -94,10 +97,6 @@ makePrior = function(family = c("loguniform", "uniform", "custom"),
 validatePriorRange = function(range) {
   if (!is.numeric(range) || length(range) != 2L || any(!is.finite(range))) {
     stop("range must be a numeric vector of length two")
-  }
-
-  if (range[1] <= 1) {
-    stop("prior range must be on the standard shape scale with lower bound greater than 1")
   }
 
   if (range[2] <= range[1]) {
@@ -114,4 +113,19 @@ validatePriorRange = function(range) {
 #' @noRd
 inRange = function(x, range) {
   (x > range[1]) & (x < range[2])
+}
+
+
+#' Validate prior support for a zeta shape parameter
+#'
+#' @param range Two-element prior support.
+#' @return `range`, invisibly, when valid.
+#' @keywords internal
+#' @noRd
+validateZetaPriorRange = function(range) {
+  validatePriorRange(range)
+  if (range[1L] <= 1) {
+    stop("zeta prior range must have lower bound greater than 1")
+  }
+  invisible(range)
 }

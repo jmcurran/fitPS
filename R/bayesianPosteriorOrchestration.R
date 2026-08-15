@@ -84,7 +84,11 @@ summarisePosteriorProbabilities.mcmcPosteriorEngine = function(engine,
   parameters = if (is.data.frame(chain) || is.matrix(chain)) {
     as.data.frame(chain)
   } else {
-    list(shape = chain)
+    parameterNames = modelParameterNames(model)
+    if (length(parameterNames) != 1L) {
+      stop("scalar MCMC chains require a one-parameter model")
+    }
+    structure(list(chain), names = parameterNames)
   }
 
   probabilities = modelProbabilities(

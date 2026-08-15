@@ -185,12 +185,8 @@ validatePredictionIndices = function(object, newdata) {
 #' @return A numeric vector of plug-in probabilities.
 #' @noRd
 calculatePlugInPredictions = function(object, newdata) {
-  if (object$model %in% c("zeta", "ziz")) {
-    probabilityFunction = probfun(object)
-    return(unname(probabilityFunction(newdata)))
-  }
-
-  stop("This method is not currently implemented for the logarithmic distribution")
+  probabilityFunction = probfun(object)
+  unname(probabilityFunction(newdata))
 }
 
 #' Select stored uncertainty summaries for prediction

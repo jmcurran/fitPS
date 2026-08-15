@@ -4,7 +4,8 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
-## fitPS 1.001.1.001.1.001
+## fitPS 1.1.1.002
+- Repaired the Stage 9.1 version formatter, which had recycled the build component and produced an invalid six-part version; build 001 remains consumed by that attempted stage.
 
 - Audited the Bayesian architecture for external model extensibility and defined the minimum public model contract needed for fitPS-owned posterior engines.
 - Identified model-specific posterior fitting dispatch, scalar prior assumptions, and built-in parameter transformations as the main barriers to third-party Bayesian models.

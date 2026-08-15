@@ -5,6 +5,14 @@
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
 
+## fitPS 1.1.1.021
+
+- Completed the Stage 9 Bayesian architecture audit and confirmed that external models can use fitPS-owned numerical and MCMC posterior engines through the public model mathematics contract.
+- Recorded the numerical-engine policy of deterministic integration for one- and two-parameter models and MCMC for models with three or more parameters.
+- Recorded specialised built-in MCMC methods as compatibility overrides rather than extension requirements, and kept Laplace and importance as secondary existing capabilities.
+- Confirmed external Poisson and Poisson-normal regression coverage for posterior summaries, DIC, P/S support mapping, serialization, and deliberate unsupported-engine failures.
+- No installed package behaviour changed; package validation was intentionally skipped because this stage changes only development audit documentation.
+
 ## fitPS 1.1.1.020
 
 - Confirmed that zeta, logarithmic, and zero-inflated zeta models all satisfy the generic MCMC model contract.

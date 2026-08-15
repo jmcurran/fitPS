@@ -76,6 +76,20 @@ psObservationData = function(x) {
     stop("x must be an object of class psData")
   }
 
+  latentPsValues(x$data$n, x$type)
+}
+
+#' Validate the historical MLE support requirement.
+#'
+#' @param x An object of class `psData`.
+#' @return `TRUE` invisibly when the MLE support requirement is satisfied.
+#' @keywords internal
+#' @noRd
+validateMleObservationSupport = function(x) {
+  if (!is(x, "psData")) {
+    stop("x must be an object of class psData")
+  }
+
   if (length(x$data$n) < 2L) {
     if (x$type == "S") {
       stop("There has to be at least one value higher than 1")
@@ -84,5 +98,32 @@ psObservationData = function(x) {
     }
   }
 
-  latentPsValues(x$data$n, x$type)
+  invisible(TRUE)
+}
+
+#' Warn when Bayesian fitting has only one occupied support value.
+#'
+#' A proper prior may still produce a proper posterior when the likelihood has
+#' no finite interior maximum. The warning makes the resulting prior sensitivity
+#' explicit without treating sparse support as invalid data.
+#'
+#' @param x An object of class `psData`.
+#' @return `NULL` invisibly.
+#' @keywords internal
+#' @noRd
+warnSparseBayesianSupport = function(x) {
+  if (!is(x, "psData")) {
+    stop("x must be an object of class psData")
+  }
+
+  if (length(x$data$n) < 2L) {
+    warning(
+      "Survey data contain only one occupied support value. Bayesian fitting ",
+      "is proceeding, but posterior inference may be strongly influenced by ",
+      "the prior.",
+      call. = FALSE
+    )
+  }
+
+  invisible(NULL)
 }

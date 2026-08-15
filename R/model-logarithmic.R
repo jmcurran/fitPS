@@ -76,13 +76,12 @@ fitlogDistImpl = function(x,
   if (!is(x, "psData")) {
     stop("x must be an object of class psData")
   }
-  modelObservationData(logarithmicModel(), x)
-
   method = match.arg(method)
   model = logarithmicModel()
   nvals = posteriorProbabilityIndices(x$type, nterms)
 
   if (identical(method, "mle")) {
+    validateMleObservationSupport(x)
     dotargs = list(...)
     start = if ("start" %in% names(dotargs)) {
       dotargs$start

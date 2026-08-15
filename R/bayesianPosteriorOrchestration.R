@@ -457,6 +457,7 @@ fitBayesianModel = function(model,
                              ...) {
   engine = posteriorEngine(posteriorMethod)
   validateEngineModelPair(engine, model)
+  warnSparseBayesianSupport(x)
 
   representation = fitPosterior(
     engine = engine,

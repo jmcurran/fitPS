@@ -178,14 +178,6 @@ fitZIDistImpl = function(x, nterms = 10,
     stop("x must be an object of class psData")
   }
 
-  if(length(x$data$n) < 2){
-    if(x$type == "S"){
-      stop("There has to be at least one value higher than 1")
-    }else{
-      stop("There has to be at least one value higher than 0")
-    }
-  }
-
   obsData = if(x$type == 'P'){ ## the main difference is that the values need 1 added
     x$data$n + 1
   }else{
@@ -199,6 +191,7 @@ fitZIDistImpl = function(x, nterms = 10,
   model = zizModel()
 
   if(method == "mle"){
+    validateMleObservationSupport(x)
 
     dotargs = list(...)
     if("start" %in% names(dotargs)){

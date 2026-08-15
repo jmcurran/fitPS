@@ -150,6 +150,7 @@ fitModel.psModel = function(model,
     return(result)
   }
 
+  validateMleObservationSupport(x)
   control = modelMleControl(model, x, ...)
   parameterNames = modelParameterNames(model)
   objective = function(parameterValues) {

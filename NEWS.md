@@ -5,6 +5,15 @@
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
 
+## fitPS 1.1.2.003
+
+- Allowed Bayesian fitting to use surveys with a single occupied support value instead of rejecting them during shared observation conversion.
+- Preserved the historical MLE singleton-support rejection while moving that restriction into the MLE fitting layer.
+- Added an explicit Bayesian warning that singleton-support posterior inference may be strongly influenced by the prior.
+- Added regression coverage using the Pettard S survey, whose six observations are all S1, across zeta, logarithmic, and zero-inflated zeta Bayesian paths.
+- Stage 10.2.1 repaired the warning-capture and numeric-type assertions exposed by the initial validation attempt.
+- Validated with roxygen regeneration, strict tests, and package check under the full fitPS stage workflow.
+
 ## fitPS 1.1.2.001
 
 - Added a Roux-data model-comparison vignette covering the built-in zeta, zero-inflated zeta, and logarithmic models through the public `fit()` API.

@@ -25,6 +25,16 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.9.007
+
+- Completed the Stage 7 model-comparison and distribution-extensibility audit across zeta, ZIZ, and logarithmic models.
+- Corrected the cross-model audit test to accept the numeric nobs attribute returned by the shared logLik contract.
+- Added durable cross-model regression tests for the shared MLE comparison contract and intentional posterior-engine support matrix.
+- Confirmed that logarithmic integration reuses the model/engine abstractions without distribution-name branches in generic posterior engines.
+- Documented that the current extension contract remains internal and recommended a later deliberate third-party model API rather than exporting evolving internals piecemeal.
+- Recorded a future thin fit(data, model = ...) front end as the natural place to accept external model objects while retaining existing fitters.
+- Validated with vignette rendering, roxygen, strict tests, and strict package check.
+
 ## fitPS 1.0.9.005
 
 - Added the developer-facing Extending fitPS with a New Distribution vignette using the logarithmic-series model as the worked example.

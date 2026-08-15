@@ -150,6 +150,8 @@ fitZIDist = function(x, nterms = 10,
   method = methodInfo$method
   bayesOptions = methodInfo$bayesOptions
 
+  model = zizModel()
+
   if(method == "mle"){
 
     dotargs = list(...)
@@ -220,7 +222,8 @@ fitZIDist = function(x, nterms = 10,
       shape =  fit$par[2],
       var.cov = solve(fit$hessian),
       fitted = fitted,
-      model = "ziz",
+      model = model$model,
+      modelObject = model,
       method = "mle"
     )
 
@@ -235,7 +238,6 @@ fitZIDist = function(x, nterms = 10,
       normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
     }
 
-    model = zizModel()
     engine = posteriorEngine(options$posteriorMethod)
     validateEngineModelPair(engine, model)
 
@@ -367,7 +369,8 @@ fitZIDistPL = function(x, nterms = 10,
     shape =  fit$par[2],
     var.cov = solve(fit$hessian),
     fitted = fitted,
-    model = "ziz"
+    model = "ziz",
+    modelObject = zizModel()
   )
 
 

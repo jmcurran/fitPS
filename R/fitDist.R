@@ -155,6 +155,8 @@ fitDist = function(x, nterms = 10,
   method = methodInfo$method
   bayesOptions = methodInfo$bayesOptions
 
+  model = zetaModel()
+
   if(method == "mle"){
 
     dotargs = list(...)
@@ -210,7 +212,8 @@ fitDist = function(x, nterms = 10,
       shape = shape,
       var.shape = var.shape,
       fitted = fitted,
-      model = "zeta",
+      model = model$model,
+      modelObject = model,
       method = "mle"
     )
 
@@ -224,7 +227,6 @@ fitDist = function(x, nterms = 10,
       normaliseBayesOptions(bayesOptions = bayesOptions, prior = prior)
     }
 
-    model = zetaModel()
     engine = posteriorEngine(options$posteriorMethod)
     validateEngineModelPair(engine, model)
 

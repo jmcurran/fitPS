@@ -9,6 +9,13 @@ modelFromFit = function(object) {
     stop("object must be an object of class psFit")
   }
 
+  if (!is.null(object$modelObject)) {
+    if (!inherits(object$modelObject, "psModel")) {
+      stop("fit modelObject must inherit from psModel", call. = FALSE)
+    }
+    return(object$modelObject)
+  }
+
   switch(
     object$model,
     zeta = zetaModel(),

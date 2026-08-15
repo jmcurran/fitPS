@@ -35,11 +35,16 @@ newPsModel = function(model,
   result
 }
 
-#' Construct the plain zeta model descriptor.
+#' Construct built-in fitPS model descriptors
 #'
-#' @return An internal object inheriting from `zetaModel` and `psModel`.
-#' @keywords internal
-#' @noRd
+#' These constructors create model objects for the built-in fitPS distributions.
+#' They can be supplied directly to [fit()]. The lower-level third-party model
+#' constructor and extension generics are introduced separately after the public
+#' contract has been validated.
+#'
+#' @return An object inheriting from `psModel` and the concrete built-in model
+#'   class.
+#' @export
 zetaModel = function() {
   newPsModel(
     model = "zeta",
@@ -49,11 +54,8 @@ zetaModel = function() {
   )
 }
 
-#' Construct the zero-inflated zeta model descriptor.
-#'
-#' @return An internal object inheriting from `zizModel` and `psModel`.
-#' @keywords internal
-#' @noRd
+#' @rdname zetaModel
+#' @export
 zizModel = function() {
   newPsModel(
     model = "ziz",
@@ -63,11 +65,8 @@ zizModel = function() {
   )
 }
 
-#' Construct the logarithmic model descriptor.
-#'
-#' @return An internal object inheriting from `logarithmicModel` and `psModel`.
-#' @keywords internal
-#' @noRd
+#' @rdname zetaModel
+#' @export
 logarithmicModel = function() {
   newPsModel(
     model = "logarithmic",

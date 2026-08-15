@@ -78,6 +78,7 @@ fitlogDist = function(x,
       var.pi = 1 / fit$hessian[1L, 1L],
       fitted = fitted,
       model = model$model,
+      modelObject = model,
       method = "mle"
     )
     class(result) = "psFit"

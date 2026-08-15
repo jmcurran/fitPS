@@ -440,6 +440,7 @@ finaliseBayesianPsFit = function(model,
       fitted = fitted,
       posterior = posterior,
       model = model$model,
+      modelObject = model,
       method = "bayes",
       posteriorMethod = posteriorEngineName(engine)
     ),

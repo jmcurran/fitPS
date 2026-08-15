@@ -4,6 +4,16 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.0.004
+
+- Added the model-oriented `fit()` entry point for built-in zeta, zero-inflated zeta, and logarithmic model objects.
+- Fixed generic `fit()` method dispatch so its default method vector is resolved to the scalar `mle` choice before delegation to model-specific fitters.
+- Corrected the built-in model interface regression test so list names retained by `vapply()` do not cause a false failure when the fitted model identifiers are otherwise identical.
+- New `psFit` objects retain their originating model descriptor while preserving the established character model identifier.
+- Model-aware operations now prefer the retained descriptor and fall back to built-in name reconstruction for legacy fitted objects.
+- Exported the built-in model constructors needed by the new fitting interface; third-party model construction remains deferred until the external Poisson contract is validated.
+- Validated with roxygen regeneration, strict tests, and a strict package check.
+
 ## fitPS 1.1.0.001
 
 - Audited the internal model protocol and defined the Stage 8 public-extension direction.

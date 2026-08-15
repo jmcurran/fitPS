@@ -4,6 +4,15 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.0.006
+
+- Added a supported public `psModel()` constructor and exported the minimal S3 generics needed for third-party model extensions.
+- Added fitPS-owned generic maximum-likelihood optimisation using model-declared starting values and bounds, with optional `modelMleControl()` overrides for more demanding models.
+- Demonstrated true external extensibility with a Poisson model defined entirely in test helper code using public APIs only.
+- External Poisson fits now participate in fitted probabilities, point prediction, log likelihood, deviance, AIC, BIC, and fitted-object serialization without modifying fitPS source code.
+- Kept Bayesian support for arbitrary external models deliberately out of the initial contract until posterior-engine compatibility is defined explicitly.
+- Validated with roxygen regeneration, strict tests, and a strict package check.
+
 ## fitPS 1.1.0.004
 
 - Added the model-oriented `fit()` entry point for built-in zeta, zero-inflated zeta, and logarithmic model objects.

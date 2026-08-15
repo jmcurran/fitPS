@@ -36,11 +36,10 @@ An object of class `psFit` retaining the originating model descriptor
   in `modelObject` and the established character identifier in `model`.
 }
 \description{
-Fits a `psModel` object to forensic P- or S-survey data. This is the common
-model-oriented fitting entry point introduced for the fitPS public model
-API. Stage 8.2 supports the built-in zeta, zero-inflated zeta, and
-logarithmic model descriptors. The public third-party model contract is
-introduced separately so it can be validated against an external model.
+Fits a `psModel` object to forensic P- or S-survey data. Built-in models
+retain their established fitting implementations. External models may use
+the public model contract and fitPS-owned generic maximum-likelihood
+optimisation without modifying or rebuilding fitPS.
 }
 \examples{
 data(Psurveys)

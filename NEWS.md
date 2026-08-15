@@ -25,6 +25,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.9.005
+
+- Added the developer-facing Extending fitPS with a New Distribution vignette using the logarithmic-series model as the worked example.
+- Documented the psModel extension contract for parameters, probabilities, likelihoods, supported posterior engines, fitting, posterior summaries, and model comparison.
+- Documented the expected behavioural tests for new distributions and the current boundary between internal package extensibility and a future public model-registration API.
+- Recorded the possible future fit(data, model = ...) front end while retaining fitDist() and fitZIDist() as compatibility and convenience interfaces.
+- Validated the vignette by rendering it in addition to the strict fitPS test and package-check workflow.
+
 ## fitPS 1.0.9.004
 
 - Added the logarithmic-series distribution as a psModel with shared P/S support, probability, and likelihood dispatch.

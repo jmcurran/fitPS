@@ -4,6 +4,15 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.1.005
+
+- Added a public Bayesian model contract for complete prior evaluation, model-owned Bayesian controls, parameter transformations, and working-scale Jacobians.
+- Added identity transform defaults so unconstrained external models can use the contract without transformation boilerplate.
+- Exposed existing zeta, logarithmic, and zero-inflated zeta prior and transformation mathematics through the new public S3 methods without changing their current Bayesian fitting paths.
+- Added deterministic contract tests for external methods, built-in prior evaluation, transform round trips, Jacobians, and Bayesian starting values.
+- Documented method-specific Bayesian prior and starting-value arguments so generated Rd usage and argument sections remain synchronized.
+- Generic external-model Bayesian fitting remains intentionally deferred until posterior engines are migrated to consume the new contract.
+
 ## fitPS 1.1.1.002
 - Repaired the Stage 9.1 version formatter, which had recycled the build component and produced an invalid six-part version; build 001 remains consumed by that attempted stage.
 

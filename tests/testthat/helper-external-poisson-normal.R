@@ -13,35 +13,33 @@ modelObservationData.externalPoissonNormalModel = function(model, x, ...) {
 modelMleControl.externalPoissonNormalModel = function(model, x, ...) {
   observations = modelObservationData(model, x)
   weights = x$data$rn
-  muStart = weighted.mean(observations, weights)
-  varianceStart = weighted.mean((observations - muStart)^2, weights)
-  lowerVariance = muStart * 1.05
-  upperVariance = muStart * 1.95
-  varianceStart = min(max(varianceStart, lowerVariance), upperVariance)
+  meanStart = weighted.mean(observations, weights)
+  varianceStart = weighted.mean((observations - meanStart)^2, weights)
+
+  if (!is.finite(meanStart) || meanStart <= 0) {
+    meanStart = 1
+  }
+  if (!is.finite(varianceStart)) {
+    varianceStart = meanStart
+  }
+
+  extraVariance = max(
+    varianceStart - meanStart,
+    meanStart^2 * 1e-6
+  )
+  sigmaSquaredStart = log1p(extraVariance / meanStart^2)
+  sigmaStart = sqrt(max(sigmaSquaredStart, 1e-6))
+  muStart = log(meanStart) - sigmaSquaredStart / 2
 
   list(
-    start = c(mu = muStart, sigma = sqrt(varianceStart)),
-    lower = c(mu = sqrt(.Machine$double.eps), sigma = sqrt(.Machine$double.eps)),
-    upper = c(mu = Inf, sigma = Inf)
+    start = c(mu = muStart, sigma = sigmaStart),
+    lower = c(mu = -20, sigma = sqrt(.Machine$double.eps)),
+    upper = c(mu = 20, sigma = 5)
   )
 }
 
-externalPoissonNormalComponentRates = function(mu, sigma) {
-  variance = sigma^2
-  lambdaTwo = (variance - mu) / 2
-  lambdaOne = 2 * mu - variance
-
-  if (!is.finite(mu) || !is.finite(sigma) || mu <= 0 || sigma <= 0 ||
-      lambdaOne < 0 || lambdaTwo < 0) {
-    return(NULL)
-  }
-
-  c(lambdaOne = lambdaOne, lambdaTwo = lambdaTwo)
-}
-
 externalPoissonNormalProbability = function(n, mu, sigma) {
-  rates = externalPoissonNormalComponentRates(mu, sigma)
-  if (is.null(rates)) {
+  if (!is.finite(mu) || !is.finite(sigma) || sigma <= 0) {
     return(rep(NaN, length(n)))
   }
 
@@ -50,12 +48,24 @@ externalPoissonNormalProbability = function(n, mu, sigma) {
       return(0)
     }
 
-    doubleCount = 0:floor(value / 2)
-    singleCount = value - 2 * doubleCount
-    sum(
-      dpois(singleCount, lambda = rates[["lambdaOne"]]) *
-        dpois(doubleCount, lambda = rates[["lambdaTwo"]])
+    integrand = function(z) {
+      dpois(value, lambda = exp(z)) * dnorm(z, mean = mu, sd = sigma)
+    }
+
+    result = integrate(
+      integrand,
+      lower = -Inf,
+      upper = Inf,
+      rel.tol = 1e-8,
+      subdivisions = 200L,
+      stop.on.error = FALSE
     )
+
+    if (!identical(result$message, "OK")) {
+      return(NaN)
+    }
+
+    result$value
   }, numeric(1L))
 }
 

@@ -26,7 +26,7 @@ The important architectural point is that the distribution-specific mathematics 
 This vignette develops two examples:
 
 1. an ordinary Poisson model, which demonstrates the smallest useful one-parameter extension; and
-2. a two-parameter Poisson-normal (Hermite) model parameterized by `mu` and `sigma`, which demonstrates that the same public API can handle a more demanding model with a coupled parameter constraint.
+2. a two-parameter Poisson-normal model parameterized by `mu` and `sigma`, in which a latent normal log-rate is integrated out of the Poisson likelihood.
 
 Neither example requires editing or rebuilding `fitPS`.
 
@@ -45,6 +45,24 @@ The descriptor also records parameter names. `supportedPosteriorEngines()` repor
 Once these pieces are supplied, `fit()` returns an ordinary `psFit`. Generic operations such as `fitted()`, `predict()`, `logLik()`, `deviance()`, `AIC()`, and `BIC()` continue to be handled by `fitPS`.
 
 ## Example 1: an external Poisson model
+
+For a Poisson random variable with rate `lambda`,
+
+\[
+P(Y = y \mid \lambda) = \frac{e^{-\lambda}\lambda^y}{y!},
+\qquad y = 0, 1, 2, \ldots
+\]
+
+If the observed count value `y_i` occurs with survey frequency `r_i`, the weighted log likelihood used by these examples is
+
+\[
+\ell(\lambda) = \sum_i r_i
+\left[
+-\lambda + y_i \log(\lambda) - \log(y_i!)
+\right].
+\]
+
+This closed-form probability mass function makes Poisson a useful minimal example of the public extension contract.
 
 ### Construct the model
 
@@ -201,35 +219,57 @@ BIC(poissonFit)
 
 ## Example 2: a Poisson-normal model with `mu` and `sigma`
 
-The second example deliberately places more pressure on the public contract. It has two parameters and a valid region in which the two parameters are coupled.
+The second example is deliberately more demanding because its marginal likelihood contains an integral.
 
-Here the Poisson-normal model is the Hermite count distribution represented as
-
-\[
-X = X_1 + 2X_2,
-\]
-
-where `X1` and `X2` are independent Poisson random variables. We expose the distribution through the more familiar parameters
+Let the latent log-rate be normal,
 
 \[
-\mu = E(X), \qquad \sigma = \sqrt{\operatorname{Var}(X)}.
+Z \sim N(\mu, \sigma^2),
 \]
 
-For this representation,
+and let the observed count be conditionally Poisson,
 
 \[
-\lambda_2 = \frac{\sigma^2 - \mu}{2},
-\qquad
-\lambda_1 = 2\mu - \sigma^2.
+Y \mid Z = z \sim \operatorname{Poisson}(e^z).
 \]
 
-Both component rates must be non-negative, so the valid parameter region is
+The parameters `mu` and `sigma` therefore have the same interpretation and naming convention as the corresponding arguments to `dnorm()`: they describe the mean and standard deviation of the latent normal variable `Z`.
+
+After integrating out `Z`, the marginal probability of a count `y` is
 
 \[
-\mu \leq \sigma^2 \leq 2\mu.
+P(Y = y \mid \mu, \sigma)
+=
+\int_{-\infty}^{\infty}
+\frac{\exp(-e^z)e^{yz}}{y!}
+\frac{1}{\sigma\sqrt{2\pi}}
+\exp\left\{-\frac{(z-\mu)^2}{2\sigma^2}\right\}
+\, dz.
 \]
 
-The public parameter names are therefore `mu` and `sigma`, analogous to the naming used by `dnorm()`.
+Equivalently,
+
+\[
+P(Y = y \mid \mu, \sigma)
+=
+\int_{-\infty}^{\infty}
+P(Y=y\mid Z=z) f_Z(z;\mu,\sigma)\,dz.
+\]
+
+There is no simple closed-form expression for this integral, so this example evaluates it numerically. If `y_i` occurs with frequency `r_i`, the marginal log likelihood is
+
+\[
+\ell(\mu,\sigma)
+=
+\sum_i r_i
+\log\left\{
+\int_{-\infty}^{\infty}
+P(Y=y_i\mid Z=z) f_Z(z;\mu,\sigma)\,dz
+\right\},
+\qquad \sigma > 0.
+\]
+
+This is a substantially stronger extensibility test than the ordinary Poisson model: the numerical integration remains entirely in downstream model code while `fitPS` continues to own the generic optimizer and fitted-object machinery.
 
 ### Construct the two-parameter descriptor
 
@@ -245,7 +285,23 @@ externalPoissonNormalModel = function() {
 
 ### Map the data and choose starting values
 
-The same observation mapping is appropriate. This model also supplies `modelMleControl()` because useful starting values depend on the observed data.
+The observation mapping is unchanged. Starting values can be obtained from the marginal mean and variance of the Poisson-normal model,
+
+\[
+E(Y) = \exp\left(\mu + \frac{\sigma^2}{2}\right),
+\]
+
+and
+
+\[
+\operatorname{Var}(Y)
+=
+E(Y)
++
+E(Y)^2\left\{\exp(\sigma^2)-1\right\}.
+\]
+
+These moment relationships provide convenient initial values for `mu` and `sigma` without changing the model parameterization.
 
 ```{r poisson-normal-control}
 modelObservationData.externalPoissonNormalModel = function(model, x, ...) {
@@ -255,49 +311,39 @@ modelObservationData.externalPoissonNormalModel = function(model, x, ...) {
 modelMleControl.externalPoissonNormalModel = function(model, x, ...) {
   observations = modelObservationData(model, x)
   weights = x$data$rn
-  muStart = weighted.mean(observations, weights)
-  varianceStart = weighted.mean((observations - muStart)^2, weights)
-  lowerVariance = muStart * 1.05
-  upperVariance = muStart * 1.95
-  varianceStart = min(max(varianceStart, lowerVariance), upperVariance)
+  meanStart = weighted.mean(observations, weights)
+  varianceStart = weighted.mean((observations - meanStart)^2, weights)
+
+  if (!is.finite(meanStart) || meanStart <= 0) {
+    meanStart = 1
+  }
+  if (!is.finite(varianceStart)) {
+    varianceStart = meanStart
+  }
+
+  extraVariance = max(
+    varianceStart - meanStart,
+    meanStart^2 * 1e-6
+  )
+  sigmaSquaredStart = log1p(extraVariance / meanStart^2)
+  sigmaStart = sqrt(max(sigmaSquaredStart, 1e-6))
+  muStart = log(meanStart) - sigmaSquaredStart / 2
 
   list(
-    start = c(mu = muStart, sigma = sqrt(varianceStart)),
-    lower = c(
-      mu = sqrt(.Machine$double.eps),
-      sigma = sqrt(.Machine$double.eps)
-    ),
-    upper = c(mu = Inf, sigma = Inf)
+    start = c(mu = muStart, sigma = sigmaStart),
+    lower = c(mu = -20, sigma = sqrt(.Machine$double.eps)),
+    upper = c(mu = 20, sigma = 5)
   )
 }
 ```
 
-### Implement the distribution mathematics externally
+### Evaluate the marginal probability by numerical integration
 
-The helper below converts `mu` and `sigma` to the two Poisson rates. Returning `NULL` outside the legal region lets the likelihood reject invalid trial points without requiring a Poisson-normal special case inside `fitPS`.
-
-```{r poisson-normal-rates}
-poissonNormalComponentRates = function(mu, sigma) {
-  variance = sigma^2
-  lambdaTwo = (variance - mu) / 2
-  lambdaOne = 2 * mu - variance
-
-  if (!is.finite(mu) || !is.finite(sigma) || mu <= 0 || sigma <= 0 ||
-      lambdaOne < 0 || lambdaTwo < 0) {
-    return(NULL)
-  }
-
-  c(lambdaOne = lambdaOne, lambdaTwo = lambdaTwo)
-}
-```
-
-The probability mass at an integer `n` is obtained by summing over all possible values of `X2`.
+The distribution-specific numerical integration is downstream code. `fitPS` does not need a Poisson-normal branch or a special integration engine for this model.
 
 ```{r poisson-normal-pmf}
 poissonNormalProbability = function(n, mu, sigma) {
-  rates = poissonNormalComponentRates(mu, sigma)
-
-  if (is.null(rates)) {
+  if (!is.finite(mu) || !is.finite(sigma) || sigma <= 0) {
     return(rep(NaN, length(n)))
   }
 
@@ -306,18 +352,30 @@ poissonNormalProbability = function(n, mu, sigma) {
       return(0)
     }
 
-    doubleCount = 0:floor(value / 2)
-    singleCount = value - 2 * doubleCount
+    integrand = function(z) {
+      dpois(value, lambda = exp(z)) *
+        dnorm(z, mean = mu, sd = sigma)
+    }
 
-    sum(
-      dpois(singleCount, lambda = rates[["lambdaOne"]]) *
-        dpois(doubleCount, lambda = rates[["lambdaTwo"]])
+    result = integrate(
+      integrand,
+      lower = -Inf,
+      upper = Inf,
+      rel.tol = 1e-8,
+      subdivisions = 200L,
+      stop.on.error = FALSE
     )
+
+    if (!identical(result$message, "OK")) {
+      return(NaN)
+    }
+
+    result$value
   }, numeric(1L))
 }
 ```
 
-The two model methods simply expose that external mathematics to the fitPS generics.
+The fitPS-facing methods simply expose those marginal probabilities and their weighted log likelihood.
 
 ```{r poisson-normal-methods}
 modelProbabilities.externalPoissonNormalModel = function(model,
@@ -396,34 +454,29 @@ registerS3method(
 
 ### Fit the two-parameter model
 
+The following frequencies were generated from a Poisson-normal distribution with values close to `mu = 0.2` and `sigma = 0.45`.
+
 ```{r poisson-normal-fit}
 poissonNormalData = makePSData(
-  n = 0:9,
-  count = c(223, 223, 223, 149, 93, 48, 24, 10, 4, 2),
+  n = 0:8,
+  count = c(3032, 3240, 2035, 997, 426, 168, 64, 24, 9),
   type = "P"
 )
 
 poissonNormalFit = fit(
   poissonNormalData,
   model = externalPoissonNormalModel(),
-  nterms = 10
+  nterms = 9
 )
 
 c(mu = poissonNormalFit$mu, sigma = poissonNormalFit$sigma)
 ```
 
-The fitted values should satisfy the model's legal region.
-
-```{r poisson-normal-region}
-poissonNormalFit$mu <= poissonNormalFit$sigma^2
-poissonNormalFit$sigma^2 <= 2 * poissonNormalFit$mu
-```
-
-The same common fitted-object and model-comparison APIs remain available.
+The same common fitted-object and model-comparison APIs remain available even though every probability evaluation requires downstream numerical integration.
 
 ```{r poisson-normal-generic-apis}
 fitted(poissonNormalFit)
-predict(poissonNormalFit, newdata = 0:9, interval = "none")
+predict(poissonNormalFit, newdata = 0:8, interval = "none")
 logLik(poissonNormalFit)
 deviance(poissonNormalFit)
 AIC(poissonNormalFit)
@@ -456,7 +509,7 @@ A real external package does not need to copy fitPS fitting code. Its distributi
 
 1. a constructor returning `psModel(...)` with a unique subclass;
 2. S3 methods for the required public fitPS generics;
-3. any private helpers used to evaluate probabilities or parameter transformations;
+3. any private helpers used to evaluate probabilities, likelihoods, integrals, or parameter transformations;
 4. `S3method(...)` entries in its `NAMESPACE`; and
 5. behavioural tests showing that `fit()`, fitted probabilities, prediction, and relevant model-comparison criteria work.
 
@@ -464,8 +517,8 @@ For an MLE-only model, there is no requirement to implement a posterior engine. 
 
 ## Design lessons from the two examples
 
-The Poisson example shows that a simple distribution can be added without another public fitting function and without any fitPS source modification.
+The Poisson example shows that a distribution with a closed-form probability mass function can be added without another public fitting function and without any fitPS source modification.
 
-The Poisson-normal example demonstrates something stronger. Its distribution mathematics, parameter transformation, starting-value logic, and legal parameter region all remain external, while fitPS still provides the optimizer orchestration and the standard `psFit` interface. No Poisson-normal branch is needed in `fit()`, `predict()`, `logLik()`, AIC, BIC, or deviance.
+The Poisson-normal example demonstrates something stronger. Its marginal probability and likelihood require numerical integration, yet that integration, its starting-value logic, and all distribution-specific mathematics remain external. `fitPS` still provides optimizer orchestration and the standard `psFit` interface. No Poisson-normal branch is needed in `fit()`, `predict()`, `logLik()`, AIC, BIC, or deviance.
 
 That is the intended extension boundary: **new statistical models supply model mathematics; fitPS supplies common fitting and fitted-object infrastructure.**

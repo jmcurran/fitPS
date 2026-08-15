@@ -101,3 +101,100 @@ test_that("external Poisson-normal uses the generic transformed MCMC path", {
   expect_identical(names(chain), c("mu", "sigma"))
   expect_true(all(chain$sigma > 0))
 })
+
+
+test_that("external Poisson-normal Bayesian fits complete the public posterior contract", {
+  data = makePSData(
+    n = 0:4,
+    count = c(150, 120, 55, 20, 5),
+    type = "P"
+  )
+  prior = list(muMean = 0, muSd = 2, sigmaScale = 1)
+
+  fitObject = fit(
+    data,
+    model = externalPoissonNormalModel(),
+    nterms = 5,
+    method = "bayes",
+    prior = prior,
+    nIter = 30L,
+    nBurnIn = 10L,
+    proposalScale = c(mu = 0.08, sigma = 0.08),
+    seed = 779
+  )
+
+  posteriorSummary = summary(fitObject)
+  expect_s3_class(posteriorSummary, "summary.psPosterior")
+  expect_identical(
+    posteriorSummary$parameters$parameter,
+    c("mu", "sigma")
+  )
+  expect_true(all(is.finite(posteriorSummary$parameters$estimate)))
+  expect_true(all(is.finite(posteriorSummary$parameters$sd)))
+
+  probabilitySummary = fitObject$posterior$probabilities
+  expect_identical(probabilitySummary$term, paste0("P", 0:4))
+  expect_true(all(is.finite(probabilitySummary$estimate)))
+  expect_true(all(probabilitySummary$estimate >= 0))
+  expect_true(all(probabilitySummary$estimate <= 1))
+  expect_true(all(probabilitySummary$lower <= probabilitySummary$estimate))
+  expect_true(all(probabilitySummary$estimate <= probabilitySummary$upper))
+
+  expectedFitted = externalPoissonNormalProbability(
+    0:4,
+    mu = fitObject$mu,
+    sigma = fitObject$sigma
+  )
+  expect_equal(unname(fitted(fitObject)), expectedFitted, tolerance = 1e-8)
+  expect_true(is.finite(DIC(fitObject)))
+
+  path = tempfile(fileext = ".rds")
+  saveRDS(fitObject, path)
+  restored = readRDS(path)
+  expect_s3_class(restored$modelObject, "externalPoissonNormalModel")
+  expect_identical(restored$posteriorMethod, "mcmc")
+  expect_equal(restored$posterior$parameters, fitObject$posterior$parameters)
+  expect_equal(restored$posterior$probabilities, fitObject$posterior$probabilities)
+  expect_equal(restored$posterior$representation$value$chain,
+               fitObject$posterior$representation$value$chain)
+  expect_equal(fitted(restored), fitted(fitObject))
+})
+
+
+test_that("external Poisson-normal Bayesian fitting preserves P and S support mapping", {
+  counts = c(150, 120, 55, 20, 5)
+  pData = makePSData(n = 0:4, count = counts, type = "P")
+  sData = makePSData(n = 1:5, count = counts, type = "S")
+  prior = list(muMean = 0, muSd = 2, sigmaScale = 1)
+
+  fitExternal = function(data) {
+    fit(
+      data,
+      model = externalPoissonNormalModel(),
+      nterms = 5,
+      method = "bayes",
+      prior = prior,
+      nIter = 25L,
+      nBurnIn = 10L,
+      proposalScale = c(mu = 0.08, sigma = 0.08),
+      seed = 779
+    )
+  }
+
+  pFit = fitExternal(pData)
+  sFit = fitExternal(sData)
+
+  expect_equal(pFit$mu, sFit$mu, tolerance = 1e-12)
+  expect_equal(pFit$sigma, sFit$sigma, tolerance = 1e-12)
+  expect_equal(
+    pFit$posterior$representation$value$chain,
+    sFit$posterior$representation$value$chain,
+    tolerance = 1e-12
+  )
+  expect_equal(
+    pFit$posterior$probabilities$estimate,
+    sFit$posterior$probabilities$estimate,
+    tolerance = 1e-12
+  )
+  expect_equal(unname(fitted(pFit)), unname(fitted(sFit)), tolerance = 1e-12)
+})

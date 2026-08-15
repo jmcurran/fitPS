@@ -4,6 +4,15 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.1.008
+
+- Completed the multi-parameter external Bayesian proof using the Poisson-normal test model through the generic MCMC contract.
+- Verified posterior parameter summaries, generic derived probability summaries, fitted probabilities, and DIC for an external two-parameter model.
+- Verified matched P- and S-survey data retain identical zero-based support behaviour through Bayesian fitting.
+- Verified serialization preserves the external model descriptor, MCMC representation, posterior summaries, and fitted values.
+- Kept Laplace and importance as secondary existing capabilities without expanding their public extension role.
+- Validated through roxygen regeneration, strict tests, package check, source build, and installation.
+
 ## fitPS 1.1.1.007
 
 - Added a model-neutral random-walk Metropolis fallback so external psModel classes can use fitPS-owned MCMC posterior orchestration.

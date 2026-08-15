@@ -11,7 +11,9 @@ modelProbabilities(model, parameters, n, type, ...)
 
 \item{parameters}{Named model parameters.}
 
-\item{n}{Requested P/S probability indices.}
+\item{n}{Requested P/S probability indices. These are survey labels, not
+necessarily the model's natural support values; concrete methods should
+perform any required support shift before evaluating probabilities.}
 
 \item{type}{Survey type, either `"P"` or `"S"`.}
 

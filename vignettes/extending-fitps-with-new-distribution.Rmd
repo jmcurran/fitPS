@@ -44,6 +44,32 @@ The descriptor also records parameter names. `supportedPosteriorEngines()` repor
 
 Once these pieces are supplied, `fit()` returns an ordinary `psFit`. Generic operations such as `fitted()`, `predict()`, `logLik()`, `deviance()`, `AIC()`, and `BIC()` continue to be handled by `fitPS`.
 
+### P and S surveys shift the probability sequence
+
+A model method receives fitPS probability labels. P surveys are labelled `P0`, `P1`, ... and S surveys are labelled `S1`, `S2`, .... The model must place its probability sequence on those labels without changing the shape of the distribution.
+
+For a distribution with natural support `0, 1, 2, ...`, the same sequence
+
+\[
+p_0, p_1, p_2, \ldots
+\]
+
+is attached to `P0, P1, P2, ...` for a P survey and to `S1, S2, S3, ...` for an S survey. Thus an S label `s` is evaluated at natural support value `s - 1`. This is a support shift only: there is no truncation and no renormalisation.
+
+The following helper is used by both zero-based examples in this vignette:
+
+```{r zero-based-support}
+zeroBasedSurveySupport = function(n, type) {
+  type = match.arg(type, c("P", "S"))
+  if (identical(type, "P")) {
+    return(n)
+  }
+  n - 1L
+}
+```
+
+A distribution whose natural support starts at 1 can use a different mapping. For example, the logarithmic model's first probability is naturally associated with both `P0` and `S1`. The extension contract therefore asks each model to define its support mapping explicitly rather than imposing truncation.
+
 ## Example 1: an external Poisson model
 
 For a Poisson random variable with rate `lambda`,
@@ -52,6 +78,24 @@ For a Poisson random variable with rate `lambda`,
 P(Y = y \mid \lambda) = \frac{e^{-\lambda}\lambda^y}{y!},
 \qquad y = 0, 1, 2, \ldots
 \]
+
+For a P survey, probability label `Pp` uses the natural support value `p`. For an S survey, label `Ss` uses `s - 1`. Thus
+
+\[
+P(P_p \mid \lambda)
+= \frac{e^{-\lambda}\lambda^p}{p!},
+\qquad p = 0, 1, 2, \ldots,
+\]
+
+and
+
+\[
+P(S_s \mid \lambda)
+= \frac{e^{-\lambda}\lambda^{s-1}}{(s-1)!},
+\qquad s = 1, 2, 3, \ldots.
+\]
+
+These are the same probability sequence with different survey labels.
 
 If the observed count value `y_i` occurs with survey frequency `r_i`, the weighted log likelihood used by these examples is
 
@@ -93,11 +137,11 @@ An empty value from `supportedPosteriorEngines()` is intentional here: this exam
 
 ### Supply the observation mapping
 
-For these P-survey data, the observed count value used by the Poisson mass function is stored in `x$data$n`.
+The Poisson distribution is naturally zero-based. P observations can therefore be used directly, while S labels are shifted down by one before the Poisson mass function is evaluated.
 
 ```{r poisson-observations}
 modelObservationData.externalPoissonModel = function(model, x, ...) {
-  x$data$n
+  zeroBasedSurveySupport(x$data$n, x$type)
 }
 ```
 
@@ -112,8 +156,9 @@ modelProbabilities.externalPoissonModel = function(model,
                                                      type,
                                                      ...) {
   lambda = parameters[["lambda"]]
+  support = zeroBasedSurveySupport(n, type)
   values = vapply(
-    n,
+    support,
     function(value) {
       dpois(value, lambda = lambda)
     },
@@ -231,6 +276,26 @@ AIC(poissonFit)
 BIC(poissonFit)
 ```
 
+The same probability shape can be placed on S-survey labels simply by shifting the support. The following S data contain the same frequency sequence one label to the right, so they produce the same fitted Poisson model.
+
+```{r poisson-s-support}
+poissonSData = makePSData(
+  n = c(1, 2, 3, 4),
+  count = c(30, 12, 5, 1),
+  type = "S"
+)
+
+poissonSFit = fit(
+  poissonSData,
+  model = externalPoissonModel(),
+  nterms = 5
+)
+
+c(P = poissonFit$lambda, S = poissonSFit$lambda)
+unname(fitted(poissonFit))
+unname(fitted(poissonSFit))
+```
+
 ## Example 2: a Poisson-normal model with `mu` and `sigma`
 
 The second example is deliberately more demanding because its marginal likelihood contains an integral.
@@ -270,6 +335,27 @@ P(Y = y \mid \mu, \sigma)
 P(Y=y\mid Z=z) f_Z(z;\mu,\sigma)\,dz.
 \]
 
+The fitPS survey labels again change only the support location. If
+
+\[
+g(k; \mu, \sigma)
+=
+\int_{-\infty}^{\infty}
+P(Y=k\mid Z=z) f_Z(z;\mu,\sigma)\,dz,
+\]
+
+then
+
+\[
+P(P_p \mid \mu, \sigma) = g(p; \mu, \sigma)
+\]
+
+and
+
+\[
+P(S_s \mid \mu, \sigma) = g(s-1; \mu, \sigma).
+\]
+
 There is no simple closed-form expression for this integral, so this example evaluates it numerically. If `y_i` occurs with frequency `r_i`, the marginal log likelihood is
 
 \[
@@ -299,7 +385,7 @@ externalPoissonNormalModel = function() {
 
 ### Map the data and choose starting values
 
-The observation mapping is unchanged. Starting values can be obtained from the marginal mean and variance of the Poisson-normal model,
+The Poisson-normal count distribution is also naturally zero-based, so it uses the same shape-preserving P/S support mapping as the ordinary Poisson example. Starting values can be obtained from the marginal mean and variance of the Poisson-normal model,
 
 \[
 E(Y) = \exp\left(\mu + \frac{\sigma^2}{2}\right),
@@ -319,7 +405,7 @@ These moment relationships provide convenient initial values for `mu` and `sigma
 
 ```{r poisson-normal-control}
 modelObservationData.externalPoissonNormalModel = function(model, x, ...) {
-  x$data$n
+  zeroBasedSurveySupport(x$data$n, x$type)
 }
 
 modelMleControl.externalPoissonNormalModel = function(model, x, ...) {
@@ -399,7 +485,8 @@ modelProbabilities.externalPoissonNormalModel = function(model,
                                                           ...) {
   mu = parameters[["mu"]]
   sigma = parameters[["sigma"]]
-  values = poissonNormalProbability(n, mu = mu, sigma = sigma)
+  support = zeroBasedSurveySupport(n, type)
+  values = poissonNormalProbability(support, mu = mu, sigma = sigma)
   values = matrix(values, nrow = 1L)
   colnames(values) = paste0(type, n)
   values
@@ -480,6 +567,28 @@ logLik(poissonNormalFit)
 deviance(poissonNormalFit)
 AIC(poissonNormalFit)
 BIC(poissonNormalFit)
+```
+
+As with Poisson, S-survey labels shift the same probability sequence one place to the right rather than truncating it. The fitted parameter values therefore describe the same underlying distribution; only the survey labels attached to its probabilities change.
+
+```{r poisson-normal-s-support}
+poissonNormalP = modelProbabilities(
+  externalPoissonNormalModel(),
+  parameters = list(mu = poissonNormalFit$mu, sigma = poissonNormalFit$sigma),
+  n = 0:8,
+  type = "P"
+)
+poissonNormalS = modelProbabilities(
+  externalPoissonNormalModel(),
+  parameters = list(mu = poissonNormalFit$mu, sigma = poissonNormalFit$sigma),
+  n = 1:9,
+  type = "S"
+)
+
+all.equal(
+  as.numeric(poissonNormalP),
+  as.numeric(poissonNormalS)
+)
 ```
 
 ## Serialization and retained model objects

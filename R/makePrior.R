@@ -114,18 +114,3 @@ validatePriorRange = function(range) {
 inRange = function(x, range) {
   (x > range[1]) & (x < range[2])
 }
-
-
-#' Validate prior support for a zeta shape parameter
-#'
-#' @param range Two-element prior support.
-#' @return `range`, invisibly, when valid.
-#' @keywords internal
-#' @noRd
-validateZetaPriorRange = function(range) {
-  validatePriorRange(range)
-  if (range[1L] <= 1) {
-    stop("zeta prior range must have lower bound greater than 1")
-  }
-  invisible(range)
-}

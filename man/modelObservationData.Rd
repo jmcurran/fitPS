@@ -17,5 +17,8 @@ modelObservationData(model, x, ...)
 Model-specific observation data.
 }
 \description{
-Convert fitPS data to the observation support required by a model.
+External methods are responsible for mapping the P/S survey labels onto the
+model's natural support. For example, a zero-based distribution may use P0,
+P1, ... directly but map S1, S2, ... to support values 0, 1, ... so the
+probability sequence is shifted without truncation or renormalisation.
 }

@@ -164,11 +164,11 @@ fitBootstrapSample = function(x, model) {
   tryCatch(
     {
       if (model == "zeta") {
-        fit = fitDist(x)
+        fit = fit(x, model = zetaModel())
         return(c(shape = unname(fit$shape)))
       }
 
-      fit = fitZIDist(x)
+      fit = fit(x, model = zizModel())
       c(pi = unname(fit$pi), shape = unname(fit$shape))
     },
     error = function(e) {
@@ -512,4 +512,3 @@ print.summary.psBootstrap = function(x, ...) {
 
   invisible(x)
 }
-

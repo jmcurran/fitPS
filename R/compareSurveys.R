@@ -70,8 +70,8 @@ compareSurveys.default = function(x,
     stop("x and y must both be objects of type psData")
   }
 
-  fit.x = fitDist(x)
-  fit.y = fitDist(y)
+  fit.x = fit(x, model = zetaModel())
+  fit.y = fit(y, model = zetaModel())
 
   shape.x = fit.x$shape
   shape.y = fit.y$shape
@@ -141,5 +141,3 @@ compare.surveys = compareSurveys
 
 #' @describeIn compareSurveys Compare two surveys on the basis of their shape parameters
 comp.survs = compareSurveys
-
-

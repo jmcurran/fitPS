@@ -58,8 +58,8 @@ fit = function(x,
 
 #' Fit one model descriptor through its established fitting implementation.
 #'
-#' Built-in methods deliberately delegate to the established fitters so
-#' `fit()` does not duplicate their fitting mathematics. The `psModel` fallback
+#' Built-in methods delegate to the established internal fitting implementations
+#' shared by `fit()` and the deprecated compatibility wrappers. The `psModel` fallback
 #' provides the public generic MLE path for externally defined models.
 #'
 #' @param model A `psModel` descriptor.
@@ -71,37 +71,6 @@ fit = function(x,
 fitModel = function(model, x, ...) {
   UseMethod("fitModel")
 }
-
-#' @rdname fitModel
-#' @keywords internal
-#' @exportS3Method fitModel zetaModel
-#' @noRd
-fitModel.zetaModel = function(model, x, ...) {
-  result = fitDist(x = x, ...)
-  result$modelObject = model
-  result
-}
-
-#' @rdname fitModel
-#' @keywords internal
-#' @exportS3Method fitModel zizModel
-#' @noRd
-fitModel.zizModel = function(model, x, ...) {
-  result = fitZIDist(x = x, ...)
-  result$modelObject = model
-  result
-}
-
-#' @rdname fitModel
-#' @keywords internal
-#' @exportS3Method fitModel logarithmicModel
-#' @noRd
-fitModel.logarithmicModel = function(model, x, ...) {
-  result = fitlogDist(x = x, ...)
-  result$modelObject = model
-  result
-}
-
 #' @rdname fitModel
 #' @keywords internal
 #' @exportS3Method fitModel psModel

@@ -1,3 +1,11 @@
+externalZeroBasedSupport = function(n, type) {
+  type = match.arg(type, c("P", "S"))
+  if (identical(type, "P")) {
+    return(n)
+  }
+  n - 1L
+}
+
 externalPoissonModel = function() {
   psModel(
     model = "poisson",
@@ -9,7 +17,7 @@ externalPoissonModel = function() {
 }
 
 modelObservationData.externalPoissonModel = function(model, x, ...) {
-  x$data$n
+  externalZeroBasedSupport(x$data$n, x$type)
 }
 
 modelProbabilities.externalPoissonModel = function(model,
@@ -18,8 +26,9 @@ modelProbabilities.externalPoissonModel = function(model,
                                                      type,
                                                      ...) {
   lambda = parameters[["lambda"]]
+  support = externalZeroBasedSupport(n, type)
   values = vapply(
-    n,
+    support,
     function(value) {
       dpois(value, lambda = lambda)
     },

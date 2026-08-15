@@ -91,48 +91,6 @@ psModel = function(model,
     mleUpper = mleUpper
   )
 }
-
-#' Construct built-in fitPS model descriptors
-#'
-#' These constructors create model objects for the built-in fitPS distributions.
-#' They can be supplied directly to [fit()]. The lower-level third-party model
-#' constructor and extension generics are introduced separately after the public
-#' contract has been validated.
-#'
-#' @return An object inheriting from `psModel` and the concrete built-in model
-#'   class.
-#' @export
-zetaModel = function() {
-  newPsModel(
-    model = "zeta",
-    parameterNames = "shape",
-    supportedEngines = c("numerical", "mcmc"),
-    subclass = "zetaModel"
-  )
-}
-
-#' @rdname zetaModel
-#' @export
-zizModel = function() {
-  newPsModel(
-    model = "ziz",
-    parameterNames = c("pi", "shape"),
-    supportedEngines = c("numerical", "mcmc", "laplace", "importance"),
-    subclass = "zizModel"
-  )
-}
-
-#' @rdname zetaModel
-#' @export
-logarithmicModel = function() {
-  newPsModel(
-    model = "logarithmic",
-    parameterNames = "pi",
-    supportedEngines = c("numerical", "mcmc"),
-    subclass = "logarithmicModel"
-  )
-}
-
 #' Return the natural parameter names declared by a fitPS model.
 #'
 #' @param model A `psModel` object.
@@ -194,6 +152,11 @@ supportsPosteriorEngine = function(model, engine) {
 }
 
 #' Convert fitPS data to the observation support required by a model.
+#'
+#' External methods are responsible for mapping the P/S survey labels onto the
+#' model's natural support. For example, a zero-based distribution may use P0,
+#' P1, ... directly but map S1, S2, ... to support values 0, 1, ... so the
+#' probability sequence is shifted without truncation or renormalisation.
 #'
 #' @param model A `psModel` object.
 #' @param x An object of class `psData`.
@@ -285,7 +248,9 @@ modelMleControl.psModel = function(model, x, ...) {
 #'
 #' @param model A `psModel` object.
 #' @param parameters Named model parameters.
-#' @param n Requested P/S probability indices.
+#' @param n Requested P/S probability indices. These are survey labels, not
+#'   necessarily the model's natural support values; concrete methods should
+#'   perform any required support shift before evaluating probabilities.
 #' @param type Survey type, either `"P"` or `"S"`.
 #' @param ... Additional arguments reserved for model methods.
 #' @return Numeric matrix of fitted P/S probabilities.
@@ -307,32 +272,6 @@ modelParameter = function(parameters, name) {
   }
   parameters[[name]]
 }
-
-#' @rdname modelProbabilities
-#' @keywords internal
-#' @exportS3Method modelProbabilities zetaModel
-#' @noRd
-modelProbabilities.zetaModel = function(model, parameters, n, type, ...) {
-  zetaProbabilities(
-    shape = modelParameter(parameters, "shape"),
-    n = n,
-    type = type
-  )
-}
-
-#' @rdname modelProbabilities
-#' @keywords internal
-#' @exportS3Method modelProbabilities zizModel
-#' @noRd
-modelProbabilities.zizModel = function(model, parameters, n, type, ...) {
-  zizProbabilities(
-    pi = modelParameter(parameters, "pi"),
-    shape = modelParameter(parameters, "shape"),
-    n = n,
-    type = type
-  )
-}
-
 #' Evaluate a model log likelihood through the shared model protocol.
 #'
 #' Concrete likelihood methods implement the model-specific mathematics behind
@@ -360,98 +299,4 @@ modelLogLikelihood.psModel = function(model, parameters, data, ...) {
     "'",
     call. = FALSE
   )
-}
-
-#' Evaluate the plain zeta log likelihood.
-#'
-#' @param model A `zetaModel` descriptor.
-#' @param parameters Named parameters containing scalar `shape`.
-#' @param data An object of class `psData`.
-#' @param ... Additional arguments reserved for future zeta likelihood controls.
-#' @return Scalar log likelihood.
-#' @keywords internal
-#' @exportS3Method modelLogLikelihood zetaModel
-#' @noRd
-modelLogLikelihood.zetaModel = function(model, parameters, data, ...) {
-  if (!is(data, "psData")) {
-    stop("data must be an object of class psData")
-  }
-
-  shape = modelParameter(parameters, "shape")
-  if (!is.numeric(shape) || length(shape) != 1L || !is.finite(shape)) {
-    stop("shape must be one finite numeric value")
-  }
-  validateZetaShape(shape)
-
-  observations = modelObservationData(model, data)
-  sum(data$data$rn * dzetaStandard(observations, shape = shape, log = TRUE))
-}
-
-#' Evaluate the zero-inflated zeta log likelihood.
-#'
-#' @param model A `zizModel` descriptor.
-#' @param parameters Named parameters containing scalar `pi` and `shape`.
-#' @param data An object of class `psData`.
-#' @param ... Additional arguments reserved for future ZIZ likelihood controls.
-#' @return Scalar log likelihood.
-#' @keywords internal
-#' @exportS3Method modelLogLikelihood zizModel
-#' @noRd
-modelLogLikelihood.zizModel = function(model, parameters, data, ...) {
-  if (!is(data, "psData")) {
-    stop("data must be an object of class psData")
-  }
-
-  pi = modelParameter(parameters, "pi")
-  shape = modelParameter(parameters, "shape")
-
-  if (!is.numeric(pi) || length(pi) != 1L || !is.finite(pi)) {
-    stop("pi must be one finite numeric value")
-  }
-  if (!is.numeric(shape) || length(shape) != 1L || !is.finite(shape)) {
-    stop("shape must be one finite numeric value")
-  }
-
-  observations = modelObservationData(model, data)
-  zizLogLikelihood(
-    obsData = observations,
-    counts = data$data$rn,
-    pi = pi,
-    shape = shape
-  )
-}
-
-
-#' @rdname modelProbabilities
-#' @keywords internal
-#' @exportS3Method modelProbabilities logarithmicModel
-#' @noRd
-modelProbabilities.logarithmicModel = function(model, parameters, n, type, ...) {
-  logarithmicProbabilities(
-    pi = modelParameter(parameters, "pi"),
-    n = n,
-    type = type
-  )
-}
-
-#' Evaluate the logarithmic model log likelihood.
-#'
-#' @param model A `logarithmicModel` descriptor.
-#' @param parameters Named parameters containing scalar `pi`.
-#' @param data An object of class `psData`.
-#' @param ... Additional arguments reserved for future logarithmic controls.
-#' @return Scalar log likelihood.
-#' @keywords internal
-#' @exportS3Method modelLogLikelihood logarithmicModel
-#' @noRd
-modelLogLikelihood.logarithmicModel = function(model, parameters, data, ...) {
-  if (!is(data, "psData")) {
-    stop("data must be an object of class psData")
-  }
-
-  pi = modelParameter(parameters, "pi")
-  validateLogarithmicPi(pi)
-
-  observations = modelObservationData(model, data)
-  sum(data$data$rn * dlog(observations, shape = pi, log = TRUE))
 }

@@ -7,8 +7,8 @@
 #' @keywords internal
 #' @noRd
 fitCompare = function(x, start = list(zeta = 1, ziz = c(0.5, 1)), ...){
-  fit.zeta = fitDist(x, start = start$zeta, ...)
-  fit.ziz = fitZIdist(x, start = start$ziz, ...)
+  fit.zeta = fit(x, model = zetaModel(), start = start$zeta, ...)
+  fit.ziz = fit(x, model = zizModel(), start = start$ziz, ...)
   p.zeta = probfun(fit.zeta)
   p.ziz = probfun(fit.ziz)
   raw = x$data$rn / sum(x$data$rn)

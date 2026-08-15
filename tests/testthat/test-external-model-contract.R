@@ -30,6 +30,52 @@ test_that("external Poisson S3 methods are registered for fitPS generics", {
 })
 
 
+test_that("external Poisson preserves its probability shape across P and S surveys", {
+  model = externalPoissonModel()
+  parameters = list(lambda = 1.4)
+
+  pProbabilities = modelProbabilities(
+    model,
+    parameters = parameters,
+    n = 0:5,
+    type = "P"
+  )
+  sProbabilities = modelProbabilities(
+    model,
+    parameters = parameters,
+    n = 1:6,
+    type = "S"
+  )
+
+  expect_equal(as.numeric(pProbabilities), as.numeric(sProbabilities))
+  expect_equal(as.numeric(pProbabilities), dpois(0:5, lambda = 1.4))
+})
+
+
+test_that("external Poisson maps matched P and S surveys to the same support", {
+  pData = makePSData(
+    n = c(0, 1, 2, 3),
+    count = c(30, 12, 5, 1),
+    type = "P"
+  )
+  sData = makePSData(
+    n = c(1, 2, 3, 4),
+    count = c(30, 12, 5, 1),
+    type = "S"
+  )
+
+  model = externalPoissonModel()
+  expect_equal(modelObservationData(model, pData), 0:3)
+  expect_equal(modelObservationData(model, sData), 0:3)
+
+  pFit = fit(pData, model = model, nterms = 5)
+  sFit = fit(sData, model = model, nterms = 5)
+  expect_equal(pFit$lambda, sFit$lambda, tolerance = 1e-8)
+  expect_equal(unname(fitted(pFit)), unname(fitted(sFit)), tolerance = 1e-8)
+  expect_equal(as.numeric(logLik(pFit)), as.numeric(logLik(sFit)), tolerance = 1e-8)
+})
+
+
 test_that("external Poisson model fits through the public generic interface", {
   pData = makePSData(
     n = c(0, 1, 2, 3),

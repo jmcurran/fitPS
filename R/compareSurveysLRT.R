@@ -51,13 +51,15 @@ compareSurveysLRT = function(...){
     stop("All the surveys must be of the same type - either P or S")
   }
 
-  fits = lapply(Surveys, fitDist)
+  fits = lapply(Surveys, function(survey) {
+    fit(survey, model = zetaModel())
+  })
 
   ll.mle = sum(sapply(fits, function(x){
     -x$fit$value
   }))
 
-  ll.H0 = -fitDist(combineSurveys(...))$fit$value
+  ll.H0 = -fit(combineSurveys(...), model = zetaModel())$fit$value
 
   LRT.stat = 2 * (ll.mle - ll.H0)
   names(LRT.stat) = "X-squared"

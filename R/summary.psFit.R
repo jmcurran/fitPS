@@ -27,7 +27,7 @@ summary.psFit = function(object, nterms = NULL, ...) {
     colnames(cmat) = c("Estimate", "Std.Err")
     rownames(cmat) = "shape"
   } else if (object$model == "ziz") {
-    llH0 = -fitDist(object$psData)$fit$value
+    llH0 = -fit(object$psData, model = zetaModel())$fit$value
     llMle = -object$fit$value
     lrtStat = 2 * (llMle - llH0)
 

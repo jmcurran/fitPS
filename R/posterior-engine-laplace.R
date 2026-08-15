@@ -24,68 +24,6 @@ fitLaplacePosteriorModel.psModel = function(model, engine, x, prior, ...) {
     call. = FALSE
   )
 }
-
-#' Fit a Laplace posterior for the zero-inflated zeta model.
-#'
-#' This method preserves the established transformed-coordinate optimisation,
-#' Hessian calculation, and delta-method covariance while wrapping the result
-#' in the common posterior-engine representation.
-#'
-#' @param model A `zizModel` descriptor.
-#' @param engine A `laplacePosteriorEngine` object.
-#' @param x An object of class `psData`.
-#' @param prior A prior object created by `makePrior()`.
-#' @param shape1 First beta-prior shape parameter for `pi`.
-#' @param shape2 Second beta-prior shape parameter for `pi`.
-#' @param start Starting values for `pi` and `shape`.
-#' @param ... Additional Laplace controls reserved for future use.
-#' @return A `laplacePosteriorRepresentation` object.
-#' @keywords internal
-#' @exportS3Method fitLaplacePosteriorModel zizModel
-#' @noRd
-fitLaplacePosteriorModel.zizModel = function(model,
-                                              engine,
-                                              x,
-                                              prior,
-                                              shape1 = 1,
-                                              shape2 = 1,
-                                              start = c(pi = 0.5, shape = 2),
-                                              ...) {
-  if (!is(x, "psData")) {
-    stop("x must be an object of class psData")
-  }
-  if (!inherits(prior, "psPrior")) {
-    stop("prior must be an object of class psPrior")
-  }
-
-  validateZetaPriorRange(prior$range)
-
-  modelObservationData(model, x)
-  approximation = makeZizPosteriorLaplace(
-    x = x,
-    prior = prior,
-    shape1 = shape1,
-    shape2 = shape2,
-    start = start
-  )
-
-  newPsPosteriorRepresentation(
-    engine = engine,
-    value = list(
-      approximation = approximation,
-      mean = approximation$mode,
-      variance = approximation$varCov
-    ),
-    metadata = list(
-      model = model$model,
-      convergence = approximation$convergence,
-      logPosteriorMode = approximation$logPosteriorMode,
-      shape1 = shape1,
-      shape2 = shape2
-    )
-  )
-}
-
 #' Fit through the Laplace posterior engine.
 #'
 #' @param engine A Laplace posterior engine.

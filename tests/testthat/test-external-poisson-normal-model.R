@@ -33,6 +33,48 @@ test_that("external Poisson-normal probabilities integrate over a latent normal"
 })
 
 
+test_that("external Poisson-normal preserves its probability shape across P and S surveys", {
+  model = externalPoissonNormalModel()
+  parameters = list(mu = 0.2, sigma = 0.45)
+
+  pProbabilities = modelProbabilities(
+    model,
+    parameters = parameters,
+    n = 0:8,
+    type = "P"
+  )
+  sProbabilities = modelProbabilities(
+    model,
+    parameters = parameters,
+    n = 1:9,
+    type = "S"
+  )
+
+  expect_equal(as.numeric(pProbabilities), as.numeric(sProbabilities), tolerance = 1e-10)
+})
+
+
+test_that("external Poisson-normal maps matched P and S surveys to the same support", {
+  counts = c(3032, 3240, 2035, 997, 426, 168, 64, 24, 9)
+  pData = makePSData(n = 0:8, count = counts, type = "P")
+  sData = makePSData(n = 1:9, count = counts, type = "S")
+  model = externalPoissonNormalModel()
+  parameters = list(mu = 0.2, sigma = 0.45)
+
+  expect_equal(modelObservationData(model, pData), 0:8)
+  expect_equal(modelObservationData(model, sData), 0:8)
+  expect_equal(
+    modelMleControl(model, pData)$start,
+    modelMleControl(model, sData)$start
+  )
+  expect_equal(
+    modelLogLikelihood(model, parameters, pData),
+    modelLogLikelihood(model, parameters, sData),
+    tolerance = 1e-8
+  )
+})
+
+
 test_that("external Poisson-normal model fits through the generic MLE contract", {
   pData = makePSData(
     n = 0:8,

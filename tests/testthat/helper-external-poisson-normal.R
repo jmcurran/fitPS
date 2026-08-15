@@ -7,7 +7,7 @@ externalPoissonNormalModel = function() {
 }
 
 modelObservationData.externalPoissonNormalModel = function(model, x, ...) {
-  x$data$n
+  externalZeroBasedSupport(x$data$n, x$type)
 }
 
 modelMleControl.externalPoissonNormalModel = function(model, x, ...) {
@@ -76,7 +76,8 @@ modelProbabilities.externalPoissonNormalModel = function(model,
                                                           ...) {
   mu = parameters[["mu"]]
   sigma = parameters[["sigma"]]
-  values = externalPoissonNormalProbability(n, mu = mu, sigma = sigma)
+  support = externalZeroBasedSupport(n, type)
+  values = externalPoissonNormalProbability(support, mu = mu, sigma = sigma)
   values = matrix(values, nrow = 1L)
   colnames(values) = paste0(type, n)
   values

@@ -4,6 +4,16 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.0.015
+
+- Deprecated fitDist(), fitZIDist(), and fitlogDist() as compatibility entry points and direct users to the generic fit() interface.
+- Kept legacy fitters functional through common model-oriented dispatch and explicitly regression-tested their retained model metadata.
+- Consolidated distribution-specific zeta, zero/one-inflated zeta, and logarithmic implementations into model-zeta.R, model-ziz.R, and model-logarithmic.R.
+- Renamed shared numerical, MCMC, Laplace, and importance posterior code as model-neutral posterior-engine source files.
+- Corrected the external Poisson and Poisson-normal examples so S surveys shift the zero-based probability sequence from P0, P1, ... to S1, S2, ... without truncation or renormalisation.
+- Expanded extension documentation and tests to make P/S support mapping an explicit part of the public model contract.
+- Validated with roxygen regeneration, strict tests, a strict package check, source build, and installation.
+
 ## fitPS 1.1.0.010
 
 - Corrected the external Poisson-normal example to use a latent normal log-rate integrated out of the Poisson likelihood rather than the Hermite distribution.

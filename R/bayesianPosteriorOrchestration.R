@@ -145,72 +145,6 @@ summariseNumericalPosteriorProbabilities.psModel = function(model,
     call. = FALSE
   )
 }
-
-#' @rdname summariseNumericalPosteriorProbabilities
-#' @keywords internal
-#' @exportS3Method summariseNumericalPosteriorProbabilities zetaModel
-#' @noRd
-summariseNumericalPosteriorProbabilities.zetaModel = function(model,
-                                                               engine,
-                                                               representation,
-                                                               x,
-                                                               nterms,
-                                                               level = 0.95,
-                                                               nGrid = 2001L,
-                                                               ...) {
-  bounds = representation$metadata$bounds
-  densityFunction = representation$value$density
-
-  if (!is.numeric(bounds) || length(bounds) != 2L ||
-      any(!is.finite(bounds)) || !is.function(densityFunction)) {
-    stop("Numerical zeta posterior representation is incomplete")
-  }
-
-  nGrid = as.integer(nGrid)
-  if (!is.finite(nGrid) || nGrid < 101L) {
-    stop("nGrid must be at least 101")
-  }
-
-  shape = seq(bounds[1L], bounds[2L], length.out = nGrid)
-  densityValues = pmax(0, as.numeric(densityFunction(shape)))
-  spacing = (bounds[2L] - bounds[1L]) / (nGrid - 1L)
-  weights = densityValues * spacing
-  weights[c(1L, nGrid)] = weights[c(1L, nGrid)] / 2
-
-  probabilities = modelProbabilities(
-    model = model,
-    parameters = list(shape = shape),
-    n = posteriorProbabilityIndices(x$type, nterms),
-    type = x$type
-  )
-
-  summariseZizProbabilities(
-    probabilities = probabilities,
-    weights = weights,
-    level = level,
-    posteriorMethod = posteriorEngineName(engine)
-  )
-}
-
-#' @rdname summariseNumericalPosteriorProbabilities
-#' @keywords internal
-#' @exportS3Method summariseNumericalPosteriorProbabilities zizModel
-#' @noRd
-summariseNumericalPosteriorProbabilities.zizModel = function(model,
-                                                              engine,
-                                                              representation,
-                                                              x,
-                                                              nterms,
-                                                              level = 0.95,
-                                                              ...) {
-  summariseZizGridProbabilities(
-    posteriorGrid = representation$value$posteriorGrid,
-    type = x$type,
-    nterms = nterms,
-    level = level
-  )
-}
-
 #' @rdname summarisePosteriorProbabilities
 #' @keywords internal
 #' @exportS3Method summarisePosteriorProbabilities numericalPosteriorEngine
@@ -351,32 +285,6 @@ establishedBayesianFitFields = function(model, representation) {
 establishedBayesianFitFields.psModel = function(model, representation) {
   list()
 }
-
-#' @rdname establishedBayesianFitFields
-#' @keywords internal
-#' @exportS3Method establishedBayesianFitFields zetaModel
-#' @noRd
-establishedBayesianFitFields.zetaModel = function(model, representation) {
-  validatePosteriorRepresentation(representation)
-
-  variance = unname(representation$value$variance["shape", "shape"])
-  result = list(var.shape = variance)
-
-  if (!is.null(representation$value$chain)) {
-    chain = representation$value$chain
-    densityEstimate = density(
-      chain,
-      from = representation$metadata$bounds[["lower"]]
-    )
-    result$chain = chain
-    result$pdf = splinefun(densityEstimate$x, densityEstimate$y)
-  } else if (is.function(representation$value$density)) {
-    result$pdf = representation$value$density
-  }
-
-  result
-}
-
 #' Finalise a Bayesian fit using the common posterior contract.
 #'
 #' @param model An internal `psModel` object.

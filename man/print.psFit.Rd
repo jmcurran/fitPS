@@ -7,14 +7,14 @@
 \method{print}{psFit}(x, nterms = NULL, ...)
 }
 \arguments{
-\item{x}{an object of class \code{psFit}, usually from \code{\link{fitDist}}
-or \code{\link{fitZIDist}}.}
+\item{x}{An object of class \code{psFit}, usually returned by [fit()] or one
+of the deprecated compatibility fitters.}
 
 \item{nterms}{Number of probability terms to print. If \code{NULL}, print
 the terms already stored in the fitted object, capped at 10 for posterior
 and bootstrap summaries.}
 
-\item{...}{other arguments passed to delegated print methods.}
+\item{...}{Other arguments passed to delegated print methods.}
 }
 \value{
 No return value, called for side effects.

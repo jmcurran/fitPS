@@ -1,16 +1,18 @@
 #' S3 summary method for an object of class \code{psFit}
 #'
-#' @param object an object of class \code{psFit}, usually from
-#'   \code{\link{fitDist}} or \code{\link{fitZIDist}}.
+#' @param object An object of class \code{psFit}, usually returned by [fit()] or
+#'   one of the deprecated compatibility fitters.
 #' @param nterms Optional number of leading posterior or bootstrap probability
 #'   summaries to include when an uncertainty object is attached.
-#' @param ... other arguments passed to delegated summary methods.
+#' @param ... Other arguments passed to delegated summary methods.
 #'
 #' @details
 #' Bayesian fits delegate to the attached \code{psPosterior} object. For
-#' maximum-likelihood fits, the existing parameter summary and zero-inflation
-#' likelihood-ratio test are preserved. If a \code{psBootstrap} object is
-#' attached, its parameter and probability summaries are printed afterwards.
+#' maximum-likelihood fits, built-in zeta, ZIZ, and logarithmic presentation is
+#' preserved. Other models use the public model contract to report their fitted
+#' natural-scale parameters and, when available, standard errors obtained from
+#' the fitted covariance matrix. If a \code{psBootstrap} object is attached,
+#' its parameter and probability summaries are printed afterwards.
 #'
 #' @importFrom stats pchisq printCoefmat
 #' @return For Bayesian fits, a \code{summary.psPosterior} object. For
@@ -47,7 +49,25 @@ summary.psFit = function(object, nterms = NULL, ...) {
     colnames(cmat) = c("Estimate", "Std.Err")
     rownames(cmat) = "pi"
   } else {
-    stop("summary is not currently implemented for this fitted model")
+    model = modelFromFit(object)
+    estimates = fitModelParameters(object, model)
+    standardErrors = rep(NA_real_, length(estimates))
+    names(standardErrors) = names(estimates)
+
+    covariance = object$var.cov
+    if (is.matrix(covariance) &&
+        all(names(estimates) %in% rownames(covariance)) &&
+        all(names(estimates) %in% colnames(covariance))) {
+      variances = diag(covariance[names(estimates), names(estimates), drop = FALSE])
+      valid = is.finite(variances) & variances >= 0
+      standardErrors[valid] = sqrt(variances[valid])
+    }
+
+    cmat = cbind(
+      Estimate = as.numeric(estimates),
+      Std.Err = as.numeric(standardErrors)
+    )
+    rownames(cmat) = names(estimates)
   }
 
   printCoefmat(cmat)

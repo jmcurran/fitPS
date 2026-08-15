@@ -4,6 +4,14 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.0.018
+
+- Completed the Stage 8 public model API audit and repaired the multi-parameter external-summary regression assertion.
+- Verified external Poisson and integral-based Poisson-normal models use only the public extension contract, including P/S support shifting without truncation.
+- Preserved deprecated compatibility fitters while keeping zeta, ZIZ, and logarithmic implementation consolidated in model-specific source files.
+- Documented that generic third-party fitting is MLE-only at this boundary; unsupported Bayesian external fitting fails explicitly.
+- Preserved generic print/summary presentation for external MLE models and validated with roxygen regeneration, strict tests, package check, source build, and installation.
+
 ## fitPS 1.1.0.015
 
 - Deprecated fitDist(), fitZIDist(), and fitlogDist() as compatibility entry points and direct users to the generic fit() interface.

@@ -7,13 +7,13 @@
 \method{summary}{psFit}(object, nterms = NULL, ...)
 }
 \arguments{
-\item{object}{an object of class \code{psFit}, usually from
-\code{\link{fitDist}} or \code{\link{fitZIDist}}.}
+\item{object}{An object of class \code{psFit}, usually returned by [fit()] or
+one of the deprecated compatibility fitters.}
 
 \item{nterms}{Optional number of leading posterior or bootstrap probability
 summaries to include when an uncertainty object is attached.}
 
-\item{...}{other arguments passed to delegated summary methods.}
+\item{...}{Other arguments passed to delegated summary methods.}
 }
 \value{
 For Bayesian fits, a \code{summary.psPosterior} object. For
@@ -24,7 +24,9 @@ S3 summary method for an object of class \code{psFit}
 }
 \details{
 Bayesian fits delegate to the attached \code{psPosterior} object. For
-maximum-likelihood fits, the existing parameter summary and zero-inflation
-likelihood-ratio test are preserved. If a \code{psBootstrap} object is
-attached, its parameter and probability summaries are printed afterwards.
+maximum-likelihood fits, built-in zeta, ZIZ, and logarithmic presentation is
+preserved. Other models use the public model contract to report their fitted
+natural-scale parameters and, when available, standard errors obtained from
+the fitted covariance matrix. If a \code{psBootstrap} object is attached,
+its parameter and probability summaries are printed afterwards.
 }

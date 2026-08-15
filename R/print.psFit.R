@@ -1,11 +1,11 @@
 #' S3 print method for an object of class \code{psFit}
 #'
-#' @param x an object of class \code{psFit}, usually from \code{\link{fitDist}}
-#'   or \code{\link{fitZIDist}}.
+#' @param x An object of class \code{psFit}, usually returned by [fit()] or one
+#'   of the deprecated compatibility fitters.
 #' @param nterms Number of probability terms to print. If \code{NULL}, print
 #'   the terms already stored in the fitted object, capped at 10 for posterior
 #'   and bootstrap summaries.
-#' @param ... other arguments passed to delegated print methods.
+#' @param ... Other arguments passed to delegated print methods.
 #'
 #' @return No return value, called for side effects.
 #' @export
@@ -37,19 +37,24 @@ print.psFit = function(x, nterms = NULL, ...) {
     )
   }
 
-  if (x$model %in% c("zeta", "ziz", "log", "logarithmic")) {
-    if (is.null(nterms)) {
-      nterms = length(x$fitted)
-    }
-    if (!is.numeric(nterms) || length(nterms) != 1L || !is.finite(nterms) ||
-        nterms < 1 || nterms != floor(nterms)) {
-      stop("nterms must be one positive integer")
-    }
-
-    fittedValues = fitted(x, n = as.integer(nterms), type = "plugIn")
-    cat("The first", nterms, "fitted values are:\n")
-    print(fittedValues)
+  if (!x$model %in% c("zeta", "ziz", "log", "logarithmic")) {
+    model = modelFromFit(x)
+    parameters = fitModelParameters(x, model)
+    cat("Estimated model parameters:\n")
+    print(parameters)
   }
+
+  if (is.null(nterms)) {
+    nterms = length(x$fitted)
+  }
+  if (!is.numeric(nterms) || length(nterms) != 1L || !is.finite(nterms) ||
+      nterms < 1 || nterms != floor(nterms)) {
+    stop("nterms must be one positive integer")
+  }
+
+  fittedValues = fitted(x, n = as.integer(nterms), type = "plugIn")
+  cat("The first", nterms, "fitted values are:\n")
+  print(fittedValues)
 
   if (inherits(x$bootstrap, "psBootstrap")) {
     diagnostics = x$bootstrap$diagnostics

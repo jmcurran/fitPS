@@ -11,7 +11,7 @@ externalPoissonModel = function() {
     model = "poisson",
     parameterNames = "lambda",
     subclass = "externalPoissonModel",
-    supportedEngines = "mcmc",
+    supportedEngines = c("numerical", "mcmc"),
     mleStart = c(lambda = 1),
     mleLower = c(lambda = sqrt(.Machine$double.eps))
   )
@@ -93,7 +93,11 @@ modelBayesControl.externalPoissonModel = function(model, x, engine, prior, ...) 
   if (!is.finite(start) || start <= 0) {
     start = 1
   }
-  list(start = c(lambda = start))
+  list(
+    start = c(lambda = start),
+    lower = c(lambda = 0),
+    upper = c(lambda = Inf)
+  )
 }
 
 modelToWorking.externalPoissonModel = function(model, parameters, ...) {

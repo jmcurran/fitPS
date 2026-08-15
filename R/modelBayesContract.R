@@ -44,7 +44,8 @@ modelLogPrior.psModel = function(model, parameters, prior, ...) {
 #'   do not use this argument.
 #' @param ... Additional model-specific control inputs.
 #' @return A named list containing model-specific Bayesian controls. Generic
-#'   engines may require a named numeric `start` component.
+#'   engines may require a named numeric `start` component. One-dimensional
+#'   numerical fitting also uses named numeric `lower` and `upper` components.
 #' @export
 modelBayesControl = function(model, x, engine, prior, ...) {
   UseMethod("modelBayesControl")
@@ -160,7 +161,11 @@ modelBayesControl.zetaModel = function(model, x, engine, prior, ...) {
     start = mean(prior$range)
   }
 
-  list(start = c(shape = start))
+  list(
+    start = c(shape = start),
+    lower = c(shape = prior$range[1L]),
+    upper = c(shape = prior$range[2L])
+  )
 }
 
 #' @rdname modelToWorking
@@ -204,7 +209,11 @@ modelBayesControl.logarithmicModel = function(model, x, engine, prior, ...) {
     start = mean(prior$range)
   }
 
-  list(start = c(pi = start))
+  list(
+    start = c(pi = start),
+    lower = c(pi = prior$range[1L]),
+    upper = c(pi = prior$range[2L])
+  )
 }
 
 #' @rdname modelToWorking

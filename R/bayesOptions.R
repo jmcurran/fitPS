@@ -252,8 +252,9 @@ normaliseBayesMethod = function(method, bayesOptions = NULL) {
 #'
 #' External models own their prior representation, so this helper deliberately
 #' does not impose the legacy `psPrior` structure. Stage 9 currently exposes
-#' MCMC as the primary generic Bayesian engine; other engines remain available
-#' to built-in models through the established Bayesian option path.
+#' MCMC remains the primary generic Bayesian engine. One-dimensional external
+#' models may also opt into the generic numerical engine; Laplace and importance
+#' remain secondary built-in capabilities.
 #'
 #' @param bayesOptions Optional list containing `posteriorMethod` and/or `prior`.
 #' @param prior Optional model-specific prior supplied directly to [fit()].
@@ -284,7 +285,7 @@ normaliseExternalBayesOptions = function(bayesOptions = NULL, prior) {
   if (is.null(posteriorMethod)) {
     posteriorMethod = "mcmc"
   }
-  posteriorMethod = match.arg(posteriorMethod, "mcmc")
+  posteriorMethod = match.arg(posteriorMethod, c("mcmc", "numerical"))
 
   if (!is.null(bayesOptions$prior) && !missing(prior)) {
     stop("Specify the Bayesian prior either as prior or bayesOptions$prior, not both", call. = FALSE)

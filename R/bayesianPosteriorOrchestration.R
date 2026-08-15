@@ -137,12 +137,63 @@ summariseNumericalPosteriorProbabilities.psModel = function(model,
                                                              x,
                                                              nterms,
                                                              level = 0.95,
+                                                             nGrid = 2001L,
                                                              ...) {
-  stop(
-    "Numerical posterior probability summaries are not implemented for model '",
-    model$model,
-    "'",
-    call. = FALSE
+  parameterNames = modelParameterNames(model)
+  if (length(parameterNames) != 1L) {
+    stop(
+      "generic numerical posterior probability summaries require a one-parameter model",
+      call. = FALSE
+    )
+  }
+
+  bounds = representation$metadata$bounds
+  densityFunction = representation$value$density
+  posteriorMean = unname(representation$value$mean[[1L]])
+  posteriorSd = sqrt(max(0, unname(representation$value$variance[1L, 1L])))
+  if (!is.numeric(bounds) || length(bounds) != 2L ||
+      any(is.na(bounds)) || !is.function(densityFunction)) {
+    stop("Numerical posterior representation is incomplete", call. = FALSE)
+  }
+
+  nGrid = as.integer(nGrid)
+  if (!is.finite(nGrid) || nGrid < 101L) {
+    stop("nGrid must be at least 101", call. = FALSE)
+  }
+
+  lower = bounds[["lower"]]
+  upper = bounds[["upper"]]
+  spread = max(posteriorSd, sqrt(.Machine$double.eps))
+  if (!is.finite(lower)) {
+    lower = posteriorMean - 8 * spread
+  }
+  if (!is.finite(upper)) {
+    upper = posteriorMean + 8 * spread
+  }
+  if (!is.finite(lower) || !is.finite(upper) || lower >= upper) {
+    stop("Unable to construct a finite numerical posterior grid", call. = FALSE)
+  }
+
+  parameterValues = seq(lower, upper, length.out = nGrid)
+  densityValues = pmax(0, as.numeric(densityFunction(parameterValues)))
+  spacing = (upper - lower) / (nGrid - 1L)
+  weights = densityValues * spacing
+  weights[c(1L, nGrid)] = weights[c(1L, nGrid)] / 2
+
+  parameters = list(parameterValues)
+  names(parameters) = parameterNames
+  probabilities = modelProbabilities(
+    model = model,
+    parameters = parameters,
+    n = posteriorProbabilityIndices(x$type, nterms),
+    type = x$type
+  )
+
+  summariseZizProbabilities(
+    probabilities = probabilities,
+    weights = weights,
+    level = level,
+    posteriorMethod = posteriorEngineName(engine)
   )
 }
 #' @rdname summarisePosteriorProbabilities

@@ -153,9 +153,17 @@ posteriorExpectedDeviance.numericalPosteriorRepresentation = function(representa
     bounds = representation$metadata$bounds
     integral = integrate(function(parameterValue) {
       vapply(parameterValue, function(value) {
+        densityValue = densityFunction(value)
+        if (!is.finite(densityValue) || densityValue <= 0) {
+          return(0)
+        }
         parameters = value
         names(parameters) = parameterName
-        modelDeviance(model, parameters, data) * densityFunction(value)
+        devianceValue = modelDeviance(model, parameters, data)
+        if (!is.finite(devianceValue)) {
+          return(0)
+        }
+        devianceValue * densityValue
       }, numeric(1L))
     }, lower = bounds[["lower"]], upper = bounds[["upper"]])
     return(integral$value)

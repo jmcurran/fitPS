@@ -35,7 +35,8 @@ do not use this argument.}
 }
 \value{
 A named list containing model-specific Bayesian controls. Generic
-  engines may require a named numeric `start` component.
+  engines may require a named numeric `start` component. One-dimensional
+  numerical fitting also uses named numeric `lower` and `upper` components.
 }
 \description{
 This generic exposes model-owned Bayesian controls such as natural-scale

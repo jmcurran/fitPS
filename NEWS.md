@@ -4,6 +4,16 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.1.011
+
+- Made one-dimensional numerical posterior fitting generic through the public model likelihood, prior, and Bayesian-control contract.
+- Migrated zeta and logarithmic numerical fitting and probability summaries onto the shared numerical engine while preserving their model mathematics.
+- Added external Poisson numerical fitting with infinite natural-scale support and conjugate posterior regression checks.
+- Updated the external-model regression contract to recognise both numerical and MCMC support for the Poisson proof model.
+- Added the explicit `stats::setNames` roxygen import required by the generic numerical engine.
+- Kept ZIZ numerical fitting model-specific because its established posterior representation is two-dimensional.
+- Validated through roxygen regeneration, strict tests, package check, source build, and installation.
+
 ## fitPS 1.1.1.008
 
 - Completed the multi-parameter external Bayesian proof using the Poisson-normal test model through the generic MCMC contract.

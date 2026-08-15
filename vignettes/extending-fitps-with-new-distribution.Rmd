@@ -154,26 +154,40 @@ S3method(modelProbabilities,externalPoissonModel)
 S3method(modelLogLikelihood,externalPoissonModel)
 ```
 
-When experimenting interactively, the equivalent registration can be performed with base R's `registerS3method()`:
+When experimenting interactively, the equivalent registration can be performed with base R's `registerS3method()`. For a self-contained script or vignette, a small helper avoids repeating the same registration boilerplate:
+
+```{r register-model-methods}
+registerModelMethods = function(className, methods) {
+  fitpsNamespace = asNamespace("fitPS")
+
+  for (methodName in methods) {
+    methodFunctionName = paste0(methodName, ".", className)
+    methodFunction = get(
+      methodFunctionName,
+      envir = parent.frame(),
+      inherits = TRUE
+    )
+
+    registerS3method(
+      methodName,
+      className,
+      methodFunction,
+      envir = fitpsNamespace
+    )
+  }
+}
+```
+
+The Poisson methods can then be registered in one call:
 
 ```{r poisson-register}
-registerS3method(
-  "modelObservationData",
+registerModelMethods(
   "externalPoissonModel",
-  modelObservationData.externalPoissonModel,
-  envir = asNamespace("fitPS")
-)
-registerS3method(
-  "modelProbabilities",
-  "externalPoissonModel",
-  modelProbabilities.externalPoissonModel,
-  envir = asNamespace("fitPS")
-)
-registerS3method(
-  "modelLogLikelihood",
-  "externalPoissonModel",
-  modelLogLikelihood.externalPoissonModel,
-  envir = asNamespace("fitPS")
+  c(
+    "modelObservationData",
+    "modelProbabilities",
+    "modelLogLikelihood"
+  )
 )
 ```
 
@@ -423,32 +437,17 @@ S3method(modelProbabilities,externalPoissonNormalModel)
 S3method(modelLogLikelihood,externalPoissonNormalModel)
 ```
 
-For this self-contained vignette we register them directly:
+For this self-contained vignette, the same `registerModelMethods()` helper used above keeps the registration concise:
 
 ```{r poisson-normal-register}
-registerS3method(
-  "modelObservationData",
+registerModelMethods(
   "externalPoissonNormalModel",
-  modelObservationData.externalPoissonNormalModel,
-  envir = asNamespace("fitPS")
-)
-registerS3method(
-  "modelMleControl",
-  "externalPoissonNormalModel",
-  modelMleControl.externalPoissonNormalModel,
-  envir = asNamespace("fitPS")
-)
-registerS3method(
-  "modelProbabilities",
-  "externalPoissonNormalModel",
-  modelProbabilities.externalPoissonNormalModel,
-  envir = asNamespace("fitPS")
-)
-registerS3method(
-  "modelLogLikelihood",
-  "externalPoissonNormalModel",
-  modelLogLikelihood.externalPoissonNormalModel,
-  envir = asNamespace("fitPS")
+  c(
+    "modelObservationData",
+    "modelMleControl",
+    "modelProbabilities",
+    "modelLogLikelihood"
+  )
 )
 ```
 

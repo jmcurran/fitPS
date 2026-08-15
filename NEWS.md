@@ -4,6 +4,14 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.0.010
+
+- Corrected the external Poisson-normal example to use a latent normal log-rate integrated out of the Poisson likelihood rather than the Hermite distribution.
+- Added the Poisson probability mass function, weighted likelihood, Poisson-normal marginal integral, marginal likelihood, and moment relationships to the public extension vignette.
+- Updated the external Poisson-normal tests to evaluate marginal probabilities by numerical integration while keeping all distribution-specific code outside R/.
+- Preserved the public mu and sigma parameterization for the latent normal distribution and the generic fitPS MLE, prediction, serialization, and model-comparison interfaces.
+- Validated with roxygen regeneration, strict tests, a strict package check, source build, and vignette build during package construction.
+
 ## fitPS 1.1.0.009
 
 - Corrected the external Poisson-normal example to use a latent normal log-rate integrated out of the Poisson likelihood rather than the Hermite distribution.

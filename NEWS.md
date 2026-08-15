@@ -25,6 +25,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.0.9.002
+
+- Added a shared model-comparison contract for likelihood, deviance, and parameter counting.
+- Enabled AIC and BIC for maximum-likelihood psFit objects through the common logLik interface.
+- Added DIC for numerical, MCMC, and importance Bayesian posterior representations; Laplace fits fail explicitly until a posterior deviance expectation is available.
+- Preserved the Bayesian-bootstrap proposal as future work under a non-stage-specific context and recorded the future direction toward a model-oriented fit interface.
+- Corrected the DIC contract test to compare the numeric criterion separately from its Dbar, Dhat, and pD attributes.
+- Validated by the strict fitPS stage workflow.
+
 ## fitPS 1.0.8.014
 
 - Completed the final Bayesian architecture and regression audit for the model/engine migration.

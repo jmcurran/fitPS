@@ -2,22 +2,25 @@
 % Please edit documentation in R/logLik.psFit.R
 \name{logLik.psFit}
 \alias{logLik.psFit}
-\title{Extract the log-likelihood from a zeta model fit}
+\title{Extract the maximised log-likelihood from a fitPS model fit}
 \usage{
 \method{logLik}{psFit}(object, ...)
 }
 \arguments{
-\item{object}{An object of class `"psFit"`.}
+\item{object}{An object of class `psFit`.}
 
-\item{...}{Additional arguments passed to methods. Currently ignored.}
+\item{...}{Additional arguments retained for S3 compatibility.}
 }
 \value{
-An object of class `"logLik"` with attributes `"df"` and `"nobs"`.
+An object of class `logLik` with `df` and `nobs` attributes.
 }
 \description{
-Returns the maximised log-likelihood for a fitted zeta model.
+Returns the model log-likelihood evaluated at the maximum-likelihood estimate.
+The returned `logLik` object includes the model parameter count and number of
+observations, allowing [stats::AIC()] and [stats::BIC()] to use the shared
+fitPS model-comparison contract.
 }
 \details{
-This method allows generic functions such as [stats::AIC()] and
-[stats::BIC()] to work with objects of class `"psFit"`.
+Bayesian fits are rejected because their stored representative parameter
+values are posterior summaries rather than maximum-likelihood estimates.
 }

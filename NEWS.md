@@ -4,6 +4,13 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.001.1.001.1.001
+
+- Audited the Bayesian architecture for external model extensibility and defined the minimum public model contract needed for fitPS-owned posterior engines.
+- Identified model-specific posterior fitting dispatch, scalar prior assumptions, and built-in parameter transformations as the main barriers to third-party Bayesian models.
+- Recorded a staged implementation path beginning with public prior, Bayesian-control, and parameter-transformation methods, followed by generic MCMC proof models.
+- No installed package behaviour changed; package validation was intentionally skipped because this stage changes only development audit documentation.
+
 ## fitPS 1.1.0.018
 
 - Completed the Stage 8 public model API audit and repaired the multi-parameter external-summary regression assertion.

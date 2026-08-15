@@ -7,6 +7,17 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.1.3.006
+
+- Added an internal Rubin Bayesian Bootstrap replicate engine using grouped Dirichlet category weights derived directly from observed survey counts.
+- Scaled grouped weight draws to the observed sample size and refitted built-in zeta, zero-inflated zeta, and logarithmic models through the Stage 11 weighted-MLE boundary.
+- Added the provisional psBayesianBootstrap object with parameter/probability replicates, equal-tail summaries, seed metadata, and explicit failed-fit diagnostics.
+- Kept failed weighted fits as missing replicate rows rather than redrawing or smoothing them, including genuinely singleton-support surveys.
+- Added deterministic tests for positive normalized weights, seeded reproducibility, grouped-Dirichlet mean behaviour, replicate dimensions, failure retention, and built-in model coverage.
+- No exported Bayesian Bootstrap user-facing function is introduced yet; public API integration is deferred to the next stage.
+- Validated with the strict fitPS documentation, test, and package-check workflow.
+
 ## fitPS 1.1.3.004
 
 - Added an internal weighted-MLE fitting boundary for zeta, zero-inflated zeta, and logarithmic models using arbitrary positive real category weights.

@@ -2,16 +2,18 @@
 #'
 #' Fits a `psModel` object to forensic P- or S-survey data. Built-in models
 #' retain their established fitting implementations. External models may use
-#' the public model contract and fitPS-owned generic maximum-likelihood
-#' optimisation without modifying or rebuilding fitPS.
+#' the public model contract for fitPS-owned maximum-likelihood optimisation and
+#' generic MCMC Bayesian fitting without modifying or rebuilding fitPS.
 #'
 #' @param x An object of class `psData`.
 #' @param model A model descriptor inheriting from `psModel`, such as an object
 #'   returned by `zetaModel()`, `zizModel()`, or `logarithmicModel()`.
 #' @param nterms Number of fitted P/S probability terms to retain.
-#' @param method Fitting method. Built-in models currently preserve the methods
-#'   accepted by their established fitting functions.
-#' @param prior Optional prior used for Bayesian fitting.
+#' @param method Fitting method. External models support `"mle"` and generic
+#'   `"bayes"` fitting when they advertise the MCMC posterior engine. Legacy
+#'   `"mcmc"` selection remains accepted and is normalised to Bayesian fitting.
+#' @param prior Optional prior used for Bayesian fitting. For external Bayesian
+#'   models this may be any model-specific object understood by `modelLogPrior()`.
 #' @param bayesOptions Optional Bayesian fitting controls.
 #' @param ... Additional controls passed to the model-specific fitting path.
 #' @return An object of class `psFit` retaining the originating model descriptor
@@ -79,14 +81,36 @@ fitModel.psModel = function(model,
                              x,
                              nterms = 10,
                              method = "mle",
+                             prior,
                              bayesOptions = NULL,
                              ...) {
-  if (!identical(method, "mle")) {
-    stop(
-      "generic external-model fitting currently supports method = 'mle'; ",
-      "Bayesian support requires an explicit compatible posterior-engine contract",
-      call. = FALSE
+  methodInfo = normaliseBayesMethod(method, bayesOptions = bayesOptions)
+  method = methodInfo$method
+  bayesOptions = methodInfo$bayesOptions
+
+  if (identical(method, "bayes")) {
+    options = if (missing(prior)) {
+      normaliseExternalBayesOptions(bayesOptions = bayesOptions)
+    } else {
+      normaliseExternalBayesOptions(
+        bayesOptions = bayesOptions,
+        prior = prior
+      )
+    }
+
+    engine = posteriorEngine(options$posteriorMethod)
+    validateEngineModelPair(engine, model)
+
+    result = fitBayesianModel(
+      model = model,
+      posteriorMethod = options$posteriorMethod,
+      x = x,
+      prior = options$prior,
+      nterms = nterms,
+      ...
     )
+    result$bayesOptions = options
+    return(result)
   }
 
   control = modelMleControl(model, x, ...)

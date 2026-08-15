@@ -91,7 +91,7 @@ test_that("external Poisson model fits through the public generic interface", {
   expect_identical(object$model, "poisson")
   expect_equal(object$lambda, expectedLambda, tolerance = 1e-5)
   expect_identical(modelParameterNames(model), "lambda")
-  expect_identical(supportedPosteriorEngines(model), character())
+  expect_identical(supportedPosteriorEngines(model), "mcmc")
 })
 
 

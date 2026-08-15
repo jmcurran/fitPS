@@ -1,14 +1,21 @@
 #' Fit an MCMC posterior for a model.
 #'
 #' This secondary model dispatch keeps the MCMC engine independent of concrete
-#' model names. Models opt into the engine by implementing a method that
-#' returns an MCMC posterior representation.
+#' model names. Built-in models may preserve specialised samplers, while the
+#' `psModel` fallback provides a model-neutral random-walk Metropolis sampler
+#' for external models implementing the public Bayesian model contract.
 #'
-#' @param model An internal `psModel` object.
+#' @param model A `psModel` object.
 #' @param engine An `mcmcPosteriorEngine` object.
 #' @param x An object of class `psData`.
-#' @param prior A prior object created by `makePrior()`.
-#' @param ... Model-specific MCMC controls.
+#' @param prior A model-specific prior specification.
+#' @param nIter Number of retained MCMC iterations.
+#' @param nBurnIn Number of burn-in iterations.
+#' @param proposalScale Positive random-walk proposal standard deviation on the
+#'   working scale. Supply one value or a named value for every model parameter.
+#' @param seed Optional integer random seed.
+#' @param ... Model-specific Bayesian controls passed to the public model
+#'   contract.
 #' @return An `mcmcPosteriorRepresentation` object.
 #' @keywords internal
 #' @noRd
@@ -16,24 +23,204 @@ fitMcmcPosteriorModel = function(model, engine, x, prior, ...) {
   UseMethod("fitMcmcPosteriorModel")
 }
 
+validateGenericMcmcIterations = function(value, name) {
+  if (!is.numeric(value) || length(value) != 1L || !is.finite(value) ||
+      value <= 0 || value != floor(value)) {
+    stop(name, " must be one positive integer", call. = FALSE)
+  }
+  as.integer(value)
+}
+
+normaliseGenericProposalScale = function(model, proposalScale) {
+  parameterNames = modelParameterNames(model)
+
+  if (!is.numeric(proposalScale) || any(!is.finite(proposalScale)) ||
+      any(proposalScale <= 0)) {
+    stop("proposalScale must contain positive finite numeric values", call. = FALSE)
+  }
+
+  if (length(proposalScale) == 1L) {
+    proposalScale = rep(proposalScale, length(parameterNames))
+    names(proposalScale) = parameterNames
+    return(proposalScale)
+  }
+
+  if (length(proposalScale) != length(parameterNames) ||
+      is.null(names(proposalScale)) ||
+      !setequal(names(proposalScale), parameterNames)) {
+    stop(
+      "proposalScale must be one value or a named numeric vector matching model parameters",
+      call. = FALSE
+    )
+  }
+
+  proposalScale[parameterNames]
+}
+
 #' @rdname fitMcmcPosteriorModel
 #' @keywords internal
 #' @exportS3Method fitMcmcPosteriorModel psModel
 #' @noRd
-fitMcmcPosteriorModel.psModel = function(model, engine, x, prior, ...) {
-  stop(
-    "MCMC posterior fitting is not yet implemented for model '",
-    model$model,
-    "'",
-    call. = FALSE
+#' @importFrom stats cov rnorm runif
+fitMcmcPosteriorModel.psModel = function(model,
+                                         engine,
+                                         x,
+                                         prior,
+                                         nIter = 2000L,
+                                         nBurnIn = 500L,
+                                         proposalScale = 0.25,
+                                         seed = NULL,
+                                         ...) {
+  if (!is(x, "psData")) {
+    stop("x must be an object of class psData", call. = FALSE)
+  }
+
+  nIter = validateGenericMcmcIterations(nIter, "nIter")
+  nBurnIn = validateGenericMcmcIterations(nBurnIn, "nBurnIn")
+  proposalScale = normaliseGenericProposalScale(model, proposalScale)
+
+  if (!is.null(seed)) {
+    if (!is.numeric(seed) || length(seed) != 1L || !is.finite(seed)) {
+      stop("seed must be NULL or one finite numeric value", call. = FALSE)
+    }
+    set.seed(as.integer(seed))
+  }
+
+  controls = modelBayesControl(
+    model = model,
+    x = x,
+    engine = engine,
+    prior = prior,
+    ...
+  )
+  if (!is.list(controls) || is.null(controls$start)) {
+    stop("modelBayesControl() must return a list containing start", call. = FALSE)
+  }
+
+  currentNatural = validateModelParameterVector(model, controls$start, "start")
+  currentWorking = modelToWorking(model, currentNatural)
+  currentWorking = validateModelParameterVector(model, currentWorking, "working start")
+  parameterNames = modelParameterNames(model)
+
+  logWorkingPosterior = function(working) {
+    names(working) = parameterNames
+
+    natural = tryCatch(
+      modelFromWorking(model, working),
+      error = function(error) NULL
+    )
+    if (is.null(natural)) {
+      return(-Inf)
+    }
+
+    natural = tryCatch(
+      validateModelParameterVector(model, natural, "natural parameters"),
+      error = function(error) NULL
+    )
+    if (is.null(natural)) {
+      return(-Inf)
+    }
+
+    logLikelihood = modelLogLikelihood(
+      model = model,
+      parameters = natural,
+      data = x
+    )
+    logPrior = modelLogPrior(
+      model = model,
+      parameters = natural,
+      prior = prior,
+      ...
+    )
+    logJacobian = modelWorkingLogJacobian(model, working)
+
+    values = c(logLikelihood, logPrior, logJacobian)
+    if (!is.numeric(values) || length(values) != 3L || any(is.na(values))) {
+      return(-Inf)
+    }
+    if (any(values == -Inf)) {
+      return(-Inf)
+    }
+    if (any(!is.finite(values))) {
+      return(-Inf)
+    }
+
+    sum(values)
+  }
+
+  currentLogPosterior = logWorkingPosterior(currentWorking)
+  if (!is.finite(currentLogPosterior)) {
+    stop("posterior is not finite at the model-supplied starting values", call. = FALSE)
+  }
+
+  nTotal = nIter + nBurnIn
+  chain = matrix(
+    NA_real_,
+    nrow = nIter,
+    ncol = length(parameterNames),
+    dimnames = list(NULL, parameterNames)
+  )
+  accepted = 0L
+
+  for (iteration in seq_len(nTotal)) {
+    proposedWorking = currentWorking + rnorm(
+      length(parameterNames),
+      mean = 0,
+      sd = proposalScale
+    )
+    names(proposedWorking) = parameterNames
+    proposedLogPosterior = logWorkingPosterior(proposedWorking)
+
+    if (is.finite(proposedLogPosterior) &&
+        (proposedLogPosterior >= currentLogPosterior ||
+          log(runif(1L)) < proposedLogPosterior - currentLogPosterior)) {
+      currentWorking = proposedWorking
+      currentLogPosterior = proposedLogPosterior
+      accepted = accepted + 1L
+    }
+
+    if (iteration > nBurnIn) {
+      chain[iteration - nBurnIn, ] = modelFromWorking(model, currentWorking)
+    }
+  }
+
+  chain = as.data.frame(chain)
+  posteriorMean = vapply(chain, mean, numeric(1L))
+  posteriorVariance = if (length(parameterNames) == 1L) {
+    matrix(
+      var(chain[[1L]]),
+      nrow = 1L,
+      dimnames = list(parameterNames, parameterNames)
+    )
+  } else {
+    cov(chain)
+  }
+
+  newPsPosteriorRepresentation(
+    engine = engine,
+    value = list(
+      chain = chain,
+      mean = posteriorMean,
+      variance = posteriorVariance
+    ),
+    metadata = list(
+      model = model$model,
+      nIter = nIter,
+      nBurnIn = nBurnIn,
+      proposalScale = proposalScale,
+      acceptance = accepted / nTotal,
+      seed = seed,
+      generic = TRUE
+    )
   )
 }
+
 #' Fit through the MCMC posterior engine.
 #'
 #' @param engine An MCMC posterior engine.
-#' @param model An internal `psModel` object.
+#' @param model A `psModel` object.
 #' @param x An object of class `psData`.
-#' @param prior A prior object created by `makePrior()`.
+#' @param prior A model-specific prior specification.
 #' @param ... Model-specific MCMC controls.
 #' @return An `mcmcPosteriorRepresentation` object.
 #' @keywords internal
@@ -49,7 +236,6 @@ fitPosterior.mcmcPosteriorEngine = function(engine, model, x, prior, ...) {
     ...
   )
 }
-
 #' Summarise an MCMC posterior representation.
 #'
 #' @param engine An MCMC posterior engine.

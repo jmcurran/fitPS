@@ -247,3 +247,62 @@ normaliseBayesMethod = function(method, bayesOptions = NULL) {
 
   list(method = "bayes", bayesOptions = bayesOptions)
 }
+
+#' Normalise Bayesian options for an externally defined model.
+#'
+#' External models own their prior representation, so this helper deliberately
+#' does not impose the legacy `psPrior` structure. Stage 9 currently exposes
+#' MCMC as the primary generic Bayesian engine; other engines remain available
+#' to built-in models through the established Bayesian option path.
+#'
+#' @param bayesOptions Optional list containing `posteriorMethod` and/or `prior`.
+#' @param prior Optional model-specific prior supplied directly to [fit()].
+#' @return A list containing `posteriorMethod` and `prior`.
+#' @keywords internal
+#' @noRd
+normaliseExternalBayesOptions = function(bayesOptions = NULL, prior) {
+  if (is.null(bayesOptions)) {
+    bayesOptions = list()
+  }
+  if (!is.list(bayesOptions)) {
+    stop("bayesOptions must be a list", call. = FALSE)
+  }
+  if ("method" %in% names(bayesOptions)) {
+    stop("Use bayesOptions$posteriorMethod rather than bayesOptions$method", call. = FALSE)
+  }
+
+  unexpectedNames = setdiff(names(bayesOptions), c("posteriorMethod", "prior"))
+  if (length(unexpectedNames) > 0L) {
+    stop(
+      "Unsupported bayesOptions element(s): ",
+      paste(unexpectedNames, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  posteriorMethod = bayesOptions$posteriorMethod
+  if (is.null(posteriorMethod)) {
+    posteriorMethod = "mcmc"
+  }
+  posteriorMethod = match.arg(posteriorMethod, "mcmc")
+
+  if (!is.null(bayesOptions$prior) && !missing(prior)) {
+    stop("Specify the Bayesian prior either as prior or bayesOptions$prior, not both", call. = FALSE)
+  }
+
+  priorObject = if (!is.null(bayesOptions$prior)) {
+    bayesOptions$prior
+  } else if (!missing(prior)) {
+    prior
+  } else {
+    stop(
+      "external Bayesian models require an explicit model-specific prior",
+      call. = FALSE
+    )
+  }
+
+  list(
+    posteriorMethod = posteriorMethod,
+    prior = priorObject
+  )
+}

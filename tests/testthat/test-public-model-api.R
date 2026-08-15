@@ -42,12 +42,12 @@ test_that("multi-parameter external fits use the same generic summary contract",
 })
 
 
-test_that("external models reject Bayesian fitting until they declare a supported path", {
+test_that("external Bayesian models require an explicit model-specific prior", {
   pData = makePSData(n = 0:2, count = c(20, 5, 1), type = "P")
 
   expect_error(
     fit(pData, model = externalPoissonModel(), method = "bayes"),
-    "generic external-model fitting currently supports method = 'mle'"
+    "external Bayesian models require an explicit model-specific prior"
   )
 })
 

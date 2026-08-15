@@ -11,6 +11,7 @@ externalPoissonModel = function() {
     model = "poisson",
     parameterNames = "lambda",
     subclass = "externalPoissonModel",
+    supportedEngines = "mcmc",
     mleStart = c(lambda = 1),
     mleLower = c(lambda = sqrt(.Machine$double.eps))
   )
@@ -73,3 +74,72 @@ registerExternalPoissonMethods = function() {
 }
 
 registerExternalPoissonMethods()
+
+
+modelLogPrior.externalPoissonModel = function(model, parameters, prior, ...) {
+  lambda = parameters[["lambda"]]
+  if (!is.list(prior) ||
+      !all(c("shape", "rate") %in% names(prior)) ||
+      any(!is.finite(c(prior$shape, prior$rate))) ||
+      prior$shape <= 0 || prior$rate <= 0) {
+    stop("Poisson prior must contain positive finite shape and rate values")
+  }
+  dgamma(lambda, shape = prior$shape, rate = prior$rate, log = TRUE)
+}
+
+modelBayesControl.externalPoissonModel = function(model, x, engine, prior, ...) {
+  observations = modelObservationData(model, x)
+  start = weighted.mean(observations, x$data$rn)
+  if (!is.finite(start) || start <= 0) {
+    start = 1
+  }
+  list(start = c(lambda = start))
+}
+
+modelToWorking.externalPoissonModel = function(model, parameters, ...) {
+  parameters = validateExternalPoissonParameters(model, parameters)
+  c(lambda = log(parameters[["lambda"]]))
+}
+
+modelFromWorking.externalPoissonModel = function(model, working, ...) {
+  working = validateExternalPoissonParameters(model, working, positive = FALSE)
+  c(lambda = exp(working[["lambda"]]))
+}
+
+modelWorkingLogJacobian.externalPoissonModel = function(model, working, ...) {
+  working = validateExternalPoissonParameters(model, working, positive = FALSE)
+  unname(working[["lambda"]])
+}
+
+validateExternalPoissonParameters = function(model, value, positive = TRUE) {
+  if (!is.numeric(value) || length(value) != 1L ||
+      is.null(names(value)) || !identical(names(value), "lambda") ||
+      !is.finite(value[["lambda"]])) {
+    stop("value must contain one finite named lambda parameter")
+  }
+  if (positive && value[["lambda"]] <= 0) {
+    stop("lambda must be positive")
+  }
+  value
+}
+
+registerExternalPoissonBayesMethods = function() {
+  namespace = asNamespace("fitPS")
+  methods = c(
+    modelLogPrior = "modelLogPrior.externalPoissonModel",
+    modelBayesControl = "modelBayesControl.externalPoissonModel",
+    modelToWorking = "modelToWorking.externalPoissonModel",
+    modelFromWorking = "modelFromWorking.externalPoissonModel",
+    modelWorkingLogJacobian = "modelWorkingLogJacobian.externalPoissonModel"
+  )
+  for (generic in names(methods)) {
+    registerS3method(
+      generic,
+      "externalPoissonModel",
+      get(methods[[generic]], mode = "function"),
+      envir = namespace
+    )
+  }
+}
+
+registerExternalPoissonBayesMethods()

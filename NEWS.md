@@ -4,6 +4,15 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.1.007
+
+- Added a model-neutral random-walk Metropolis fallback so external psModel classes can use fitPS-owned MCMC posterior orchestration.
+- Let external Bayesian models supply model-specific prior objects through modelLogPrior() rather than requiring the legacy one-dimensional psPrior representation.
+- Proved the generic Bayesian path with deterministic external Poisson and two-parameter Poisson-normal models, including transformed positive parameters.
+- Updated the public-model regression expectation so missing external priors now fail with the new explicit model-specific-prior contract rather than the retired MLE-only error.
+- Preserved the specialised zeta, ZIZ, and logarithmic MCMC implementations and kept Laplace and importance as secondary existing capabilities.
+- Validated through roxygen regeneration, strict tests, package check, source build, and installation.
+
 ## fitPS 1.1.1.005
 
 - Added a public Bayesian model contract for complete prior evaluation, model-owned Bayesian controls, parameter transformations, and working-scale Jacobians.

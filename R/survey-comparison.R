@@ -141,3 +141,119 @@ compare.surveys = compareSurveys
 
 #' @describeIn compareSurveys Compare two surveys on the basis of their shape parameters
 comp.survs = compareSurveys
+#' Compare two or more surveys on the basis of their shape parameters using a Likelihood Ratio Test
+#'
+#' @param \ldots two or more objects of class \code{"psData"}---see \code{\link{readData}}.
+#'
+#' @details
+#' This function **only** works for the zeta distribution. The function carries out a likelihood ratio test (LRT) to test the null hypothesis
+#' \deqn{H_0: \alpha_1 = \alpha_2 = \ldots = \alpha_K}{H_0: alpha_1 = alpha_2 = \ldots = alpha_K} versus the alternative
+#' \deqn{H_1: \alpha_i \neq \alpha_j \mbox{ for some } i \neq j \in \left\{1, \ldots, K\right\},}{H_1: alpha_i != alpha_j for some  i != j in {1, \ldots, K},}
+#' where \eqn{\alpha_i}{alpha_i} is the shape parameter for the zeta distribution of the \eqn{i^\mathrm{th}}{ith} survey.
+#'
+#' @return The function returns a \code{list} of class \code{"htest"} with the following elements:
+#' \describe{
+#'  \item{\code{statistic}}{ -- the test statistic.}
+#'  \item{\code{parameter}}{ -- the degrees of freedom for the test}
+#'  \item{\code{p.value}}{ -- the P-value associated with the estimate.}
+#'  \item{\code{method}}{ -- a character string describing the method hypothesis.}
+#'  \item{\code{data.name}}{ -- the names of the data sets used in the test}
+#' }
+#'
+#' @examples
+#' data(Psurveys)
+#' lau = Psurveys$lau
+#' jackson = Psurveys$jackson
+#' compareSurveysLRT(lau, jackson)
+#'
+#' ## Example with three surveys
+#' roux = Psurveys$roux
+#' compareSurveysLRT(lau, jackson, roux)
+#'
+#' @importFrom stats pchisq
+#'
+#' @export
+compareSurveysLRT = function(...){
+  Surveys = list(...)
+
+  if(length(Surveys) < 2){
+    stop("You need to supply at least two surveys to carry out this test")
+  }
+
+  if(any(sapply(Surveys, function(x){
+    !is(x, "psData")
+  }))){
+    stop("All the arguments supplied to this function must be of class psData")
+  }
+
+  types = sapply(Surveys, function(x){
+    x$type
+  })
+
+  if(length(unique(types)) > 1){
+    stop("All the surveys must be of the same type - either P or S")
+  }
+
+  fits = lapply(Surveys, function(survey) {
+    fit(survey, model = zetaModel())
+  })
+
+  ll.mle = sum(sapply(fits, function(x){
+    -x$fit$value
+  }))
+
+  ll.H0 = -fit(combineSurveys(...), model = zetaModel())$fit$value
+
+  LRT.stat = 2 * (ll.mle - ll.H0)
+  names(LRT.stat) = "X-squared"
+  parameter = length(Surveys) - 1
+  names(parameter) = "df"
+
+  P = pchisq(LRT.stat, df = length(Surveys) - 1, lower.tail = FALSE)
+  dname = paste(unlist(match.call(expand.dots = FALSE)$...), collapse = ", ")
+
+  rval = list(statistic = LRT.stat,
+              parameter = length(Surveys) - 1,
+              p.value = P,
+              method = "Likelihood Ratio Test",
+              data.name = dname
+  )
+  class(rval) = "htest"
+  return(rval)
+}
+#' Fit zeta and zero-inflated zeta models for internal comparison.
+#'
+#' @param x An input object or numeric vector required by the helper.
+#' @param start Starting values for optimisation or fitting.
+#' @param ... Additional arguments passed to the underlying fitting or helper routine.
+#' @return An internal comparison object containing fitted candidate models.
+#' @keywords internal
+#' @noRd
+fitCompare = function(x, start = list(zeta = 1, ziz = c(0.5, 1)), ...){
+  fit.zeta = fit(x, model = zetaModel(), start = start$zeta, ...)
+  fit.ziz = fit(x, model = zizModel(), start = start$ziz, ...)
+  p.zeta = probfun(fit.zeta)
+  p.ziz = probfun(fit.ziz)
+  raw = x$data$rn / sum(x$data$rn)
+
+  nmax = max(x$data$n) + 1
+
+  if(x$type == "P"){
+    fitted = data.frame(raw = rep(0, nmax + 1),
+                        zeta = rep(0, nmax + 1),
+                        ziz = rep(0, nmax + 1))
+    fitted$raw[x$data$n + 1] = raw
+    fitted$zeta = p.zeta(0:nmax)
+    fitted$ziz = p.ziz(0:nmax)
+  }else{
+    fitted = data.frame(raw = rep(0, nmax),
+                        zeta = rep(0, nmax),
+                        ziz = rep(0, nmax))
+    fitted$raw[x$data$n] = raw
+    fitted$zeta = p.zeta(1:nmax)
+    fitted$ziz = p.ziz(1:nmax)
+  }
+
+  print(fitted)
+  invisible(list(raw = raw, fit.zeta = fit.zeta, fit.ziz = fit.ziz, fitted = fitted))
+}

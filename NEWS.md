@@ -4,6 +4,14 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.1.018
+
+- Consolidated fragmented `psData` methods and operations into `R/psData-methods.R` without changing their interfaces or calculations.
+- Consolidated small `psFit` fitted, log-likelihood, print, and summary methods into `R/psFit-methods.R`.
+- Grouped survey-comparison helpers and bootstrap inference wrappers into cohesive source files while preserving public behaviour.
+- Left the large zeta and ZIZ model files unchanged pending a separate decision about specialised versus generic MCMC implementations.
+- Regenerated documentation and validated the behaviour-preserving source-layout cleanup with the strict fitPS test and check workflow.
+
 ## fitPS 1.1.1.017
 
 - Extended generic numerical posterior fitting to two-parameter models with adaptive `cubature::hcubature()` integration over model-supplied natural-scale bounds.

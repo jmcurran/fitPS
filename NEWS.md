@@ -4,6 +4,14 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.0.007
+
+- Demonstrated the public model-extension contract with a second distribution defined entirely outside fitPS package code.
+- Added an external two-parameter Poisson-normal (Hermite) test model parameterized by `mu` and `sigma`, with model-specific mathematics and S3 registration confined to test helper code.
+- Confirmed the unchanged generic MLE path handles coupled parameter constraints, fitted probabilities, prediction, log likelihood, deviance, AIC, BIC, and serialization for a multi-parameter external model.
+- Added no distribution-specific implementation under `R/`; Stage 8.4 therefore tests the Stage 8.3 public API without extending fitPS internals.
+- Validated with roxygen regeneration, strict tests, and a strict package check.
+
 ## fitPS 1.1.0.006
 
 - Added a supported public `psModel()` constructor and exported the minimal S3 generics needed for third-party model extensions.

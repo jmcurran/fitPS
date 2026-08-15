@@ -1,8 +1,8 @@
 ---
-title: "Extending fitPS with a New Distribution"
+title: "Extending fitPS with External Models"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Extending fitPS with a New Distribution}
+  %\VignetteIndexEntry{Extending fitPS with External Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -19,296 +19,453 @@ suppressPackageStartupMessages(library(fitPS))
 
 ## Why this vignette exists
 
-`fitPS` separates the mathematics of a probability model from the algorithms used to fit it. A distribution is represented internally by a `psModel` object, while Bayesian algorithms are represented by posterior-engine objects. The logarithmic-series distribution was added after this architecture was introduced specifically to test whether a new distribution could reuse the common fitting, posterior, prediction, and model-comparison infrastructure.
+`fitPS` supports models defined outside the package. A downstream package or an ordinary R script can construct a `psModel` subclass, provide methods for a small public S3 contract, and pass that model directly to `fit()`.
 
-This vignette describes that extension contract using the logarithmic implementation as a worked example. It is aimed at developers of `fitPS`, rather than at downstream package authors. The model generics described below are currently internal interfaces, so adding a distribution still requires changes within the `fitPS` source tree. In practical terms, a new distribution currently has to be added by the fitPS maintainer or by someone working from a fork or modified copy of fitPS.
+The important architectural point is that the distribution-specific mathematics stays outside `fitPS`. The package supplies the generic fitting and fitted-object machinery; the external model supplies its parameter names, observation mapping, probabilities, likelihood, and any model-specific maximum-likelihood controls it needs.
 
-That is different from a public plug-in architecture. A downstream package cannot yet define its own `psModel` subclass and methods, register them with an installed copy of fitPS, and then use the ordinary fitPS fitting interface without modifying fitPS itself. The Stage 7.4 audit should therefore assess not only whether the internal extension contract is coherent, but also what would be required to make that contract safely available to third-party packages.
+This vignette develops two examples:
 
-The important design goal is that a new distribution should supply its own statistical mathematics and declare which engines it supports, while generic code continues to handle P/S indexing, fitted probabilities, posterior finalisation, summaries, diagnostics, and model comparison.
+1. an ordinary Poisson model, which demonstrates the smallest useful one-parameter extension; and
+2. a two-parameter Poisson-normal (Hermite) model parameterized by `mu` and `sigma`, which demonstrates that the same public API can handle a more demanding model with a coupled parameter constraint.
 
-## 1. Define a model descriptor
+Neither example requires editing or rebuilding `fitPS`.
 
-A model starts with a small descriptor that declares its name, natural parameters, and supported posterior engines. The logarithmic model has one parameter, `pi`, with support strictly inside `(0, 1)`.
+## The public model contract
 
-```{r model-descriptor, eval=FALSE}
-logarithmicModel = function() {
-  newPsModel(
-    model = "logarithmic",
-    parameterNames = "pi",
-    supportedEngines = c("numerical", "mcmc"),
-    subclass = "logarithmicModel"
+An external maximum-likelihood model normally needs the following public pieces:
+
+- `psModel()` to construct the model descriptor;
+- `modelObservationData()` to map a `psData` object to the values used by the distribution;
+- `modelProbabilities()` to calculate fitted or predicted probability terms;
+- `modelLogLikelihood()` to calculate the model log likelihood; and
+- optionally `modelMleControl()` when the defaults stored in the model descriptor are not sufficient.
+
+The descriptor also records parameter names. `supportedPosteriorEngines()` reports any Bayesian engines explicitly supported by the model. An external model does not need to advertise a Bayesian engine simply to participate in maximum-likelihood fitting.
+
+Once these pieces are supplied, `fit()` returns an ordinary `psFit`. Generic operations such as `fitted()`, `predict()`, `logLik()`, `deviance()`, `AIC()`, and `BIC()` continue to be handled by `fitPS`.
+
+## Example 1: an external Poisson model
+
+### Construct the model
+
+The model constructor contains only declarative information. The Poisson model has one parameter, `lambda`, and uses a positive lower bound for generic maximum-likelihood optimisation.
+
+```{r poisson-constructor}
+externalPoissonModel = function() {
+  psModel(
+    model = "poisson",
+    parameterNames = "lambda",
+    subclass = "externalPoissonModel",
+    mleStart = c(lambda = 1),
+    mleLower = c(lambda = sqrt(.Machine$double.eps))
   )
 }
 ```
 
-The descriptor is intentionally declarative. It does not contain fitting code. In particular, unsupported engine combinations should remain unsupported rather than being added merely to make the model/engine matrix symmetrical.
+The resulting object is a `psModel` subclass, but it is not a built-in `fitPS` distribution.
 
-For the logarithmic model, numerical integration and MCMC are supported. Laplace and importance sampling are not currently declared because they would require additional approximation machinery that is not justified simply for API symmetry.
+```{r poisson-descriptor}
+poissonModel = externalPoissonModel()
+class(poissonModel)
+modelParameterNames(poissonModel)
+supportedPosteriorEngines(poissonModel)
+```
 
-## 2. Declare and validate parameters
+An empty value from `supportedPosteriorEngines()` is intentional here: this example defines an external MLE model only.
 
-The model descriptor names the natural parameters, but the distribution-specific code is responsible for validating their mathematical domain. For the logarithmic-series parameter this is straightforward:
+### Supply the observation mapping
 
-```{r validate-parameter, eval=FALSE}
-validateLogarithmicPi = function(pi, name = "pi") {
-  if (!is.numeric(pi) || length(pi) != 1L || !is.finite(pi) ||
-      pi <= 0 || pi >= 1) {
-    stop(name, " must be one finite numeric value strictly between 0 and 1")
-  }
-  invisible(pi)
+For these P-survey data, the observed count value used by the Poisson mass function is stored in `x$data$n`.
+
+```{r poisson-observations}
+modelObservationData.externalPoissonModel = function(model, x, ...) {
+  x$data$n
 }
 ```
 
-Keeping the domain rule with the model prevents generic posterior engines from accumulating distribution-specific conditions.
+### Supply probabilities
 
-## 3. Define P/S probabilities
+`modelProbabilities()` receives named parameter values and the probability terms requested by the generic fitted/prediction machinery.
 
-The latent logarithmic-series probability mass function is
+```{r poisson-probabilities}
+modelProbabilities.externalPoissonModel = function(model,
+                                                     parameters,
+                                                     n,
+                                                     type,
+                                                     ...) {
+  lambda = parameters[["lambda"]]
+  values = vapply(
+    n,
+    function(value) {
+      dpois(value, lambda = lambda)
+    },
+    numeric(length(lambda))
+  )
+
+  if (length(lambda) == 1L) {
+    values = matrix(values, nrow = 1L)
+  }
+
+  colnames(values) = paste0(type, n)
+  values
+}
+```
+
+### Supply the log likelihood
+
+The likelihood is weighted by the survey frequencies stored in the `psData` object.
+
+```{r poisson-likelihood}
+modelLogLikelihood.externalPoissonModel = function(model,
+                                                    parameters,
+                                                    data,
+                                                    ...) {
+  lambda = parameters[["lambda"]]
+  observations = modelObservationData(model, data)
+  sum(data$data$rn * dpois(observations, lambda = lambda, log = TRUE))
+}
+```
+
+### Register the external S3 methods
+
+A downstream package should register these methods in its `NAMESPACE`, for example:
+
+```text
+S3method(modelObservationData,externalPoissonModel)
+S3method(modelProbabilities,externalPoissonModel)
+S3method(modelLogLikelihood,externalPoissonModel)
+```
+
+When experimenting interactively, the equivalent registration can be performed with base R's `registerS3method()`:
+
+```{r poisson-register}
+registerS3method(
+  "modelObservationData",
+  "externalPoissonModel",
+  modelObservationData.externalPoissonModel,
+  envir = asNamespace("fitPS")
+)
+registerS3method(
+  "modelProbabilities",
+  "externalPoissonModel",
+  modelProbabilities.externalPoissonModel,
+  envir = asNamespace("fitPS")
+)
+registerS3method(
+  "modelLogLikelihood",
+  "externalPoissonModel",
+  modelLogLikelihood.externalPoissonModel,
+  envir = asNamespace("fitPS")
+)
+```
+
+No `fitPS:::` access is required.
+
+### Fit and use the model
+
+Create a small P-survey data set and pass the external model directly to `fit()`.
+
+```{r poisson-fit}
+poissonData = makePSData(
+  n = c(0, 1, 2, 3),
+  count = c(30, 12, 5, 1),
+  type = "P"
+)
+
+poissonFit = fit(
+  poissonData,
+  model = externalPoissonModel(),
+  nterms = 5
+)
+
+poissonFit$lambda
+```
+
+The result is an ordinary `psFit`, and it retains the originating external model object.
+
+```{r poisson-fit-contract}
+class(poissonFit)
+class(poissonFit$modelObject)
+fitted(poissonFit)
+predict(poissonFit, newdata = 0:4, interval = "none")
+```
+
+The common model-comparison infrastructure also works without any Poisson-specific AIC or BIC implementation.
+
+```{r poisson-comparison}
+logLik(poissonFit)
+deviance(poissonFit)
+AIC(poissonFit)
+BIC(poissonFit)
+```
+
+## Example 2: a Poisson-normal model with `mu` and `sigma`
+
+The second example deliberately places more pressure on the public contract. It has two parameters and a valid region in which the two parameters are coupled.
+
+Here the Poisson-normal model is the Hermite count distribution represented as
 
 \[
-\Pr(X=k) = -\frac{\pi^k}{k\log(1-\pi)}, \qquad k=1,2,\ldots, \quad 0<\pi<1.
+X = X_1 + 2X_2,
 \]
 
-`fitPS` already knows how P- and S-survey indices map onto the latent positive-integer support. The new model therefore needs to supply only its distribution-specific probability calculation and a `modelProbabilities()` method.
+where `X1` and `X2` are independent Poisson random variables. We expose the distribution through the more familiar parameters
 
-A simplified form of the implementation is:
+\[
+\mu = E(X), \qquad \sigma = \sqrt{\operatorname{Var}(X)}.
+\]
 
-```{r probability-method, eval=FALSE}
-modelProbabilities.logarithmicModel = function(model,
-                                                parameters,
-                                                n,
-                                                type,
-                                                ...) {
-  logarithmicProbabilities(
-    pi = modelParameter(parameters, "pi"),
-    n = n,
-    type = type
+For this representation,
+
+\[
+\lambda_2 = \frac{\sigma^2 - \mu}{2},
+\qquad
+\lambda_1 = 2\mu - \sigma^2.
+\]
+
+Both component rates must be non-negative, so the valid parameter region is
+
+\[
+\mu \leq \sigma^2 \leq 2\mu.
+\]
+
+The public parameter names are therefore `mu` and `sigma`, analogous to the naming used by `dnorm()`.
+
+### Construct the two-parameter descriptor
+
+```{r poisson-normal-constructor}
+externalPoissonNormalModel = function() {
+  psModel(
+    model = "poissonNormal",
+    parameterNames = c("mu", "sigma"),
+    subclass = "externalPoissonNormalModel"
   )
 }
 ```
 
-The helper uses the shared P/S indexing functions before evaluating the logarithmic mass function. This is an important part of the extension contract: a new distribution should not reimplement P/S observation mapping or probability-term naming unless its support genuinely requires different behaviour.
+### Map the data and choose starting values
 
-The fitted public interface demonstrates that the shared machinery is being reused:
+The same observation mapping is appropriate. This model also supplies `modelMleControl()` because useful starting values depend on the observed data.
 
-```{r probability-example}
-data("Psurveys")
-roux = Psurveys$roux
+```{r poisson-normal-control}
+modelObservationData.externalPoissonNormalModel = function(model, x, ...) {
+  x$data$n
+}
 
-logFit = fitlogDist(roux, nterms = 6)
-fitted(logFit)
-predict(logFit, newdata = 0:5)
+modelMleControl.externalPoissonNormalModel = function(model, x, ...) {
+  observations = modelObservationData(model, x)
+  weights = x$data$rn
+  muStart = weighted.mean(observations, weights)
+  varianceStart = weighted.mean((observations - muStart)^2, weights)
+  lowerVariance = muStart * 1.05
+  upperVariance = muStart * 1.95
+  varianceStart = min(max(varianceStart, lowerVariance), upperVariance)
+
+  list(
+    start = c(mu = muStart, sigma = sqrt(varianceStart)),
+    lower = c(
+      mu = sqrt(.Machine$double.eps),
+      sigma = sqrt(.Machine$double.eps)
+    ),
+    upper = c(mu = Inf, sigma = Inf)
+  )
+}
 ```
 
-## 4. Define the model likelihood
+### Implement the distribution mathematics externally
 
-Model comparison and all fitting engines need a common definition of the log likelihood. That calculation belongs to the model, not to an individual fitting algorithm.
+The helper below converts `mu` and `sigma` to the two Poisson rates. Returning `NULL` outside the legal region lets the likelihood reject invalid trial points without requiring a Poisson-normal special case inside `fitPS`.
 
-The logarithmic method is:
+```{r poisson-normal-rates}
+poissonNormalComponentRates = function(mu, sigma) {
+  variance = sigma^2
+  lambdaTwo = (variance - mu) / 2
+  lambdaOne = 2 * mu - variance
 
-```{r likelihood-method, eval=FALSE}
-modelLogLikelihood.logarithmicModel = function(model,
-                                                parameters,
-                                                data,
-                                                ...) {
-  if (!is(data, "psData")) {
-    stop("data must be an object of class psData")
+  if (!is.finite(mu) || !is.finite(sigma) || mu <= 0 || sigma <= 0 ||
+      lambdaOne < 0 || lambdaTwo < 0) {
+    return(NULL)
   }
 
-  pi = modelParameter(parameters, "pi")
-  validateLogarithmicPi(pi)
+  c(lambdaOne = lambdaOne, lambdaTwo = lambdaTwo)
+}
+```
 
+The probability mass at an integer `n` is obtained by summing over all possible values of `X2`.
+
+```{r poisson-normal-pmf}
+poissonNormalProbability = function(n, mu, sigma) {
+  rates = poissonNormalComponentRates(mu, sigma)
+
+  if (is.null(rates)) {
+    return(rep(NaN, length(n)))
+  }
+
+  vapply(n, function(value) {
+    if (!is.finite(value) || value < 0 || value != floor(value)) {
+      return(0)
+    }
+
+    doubleCount = 0:floor(value / 2)
+    singleCount = value - 2 * doubleCount
+
+    sum(
+      dpois(singleCount, lambda = rates[["lambdaOne"]]) *
+        dpois(doubleCount, lambda = rates[["lambdaTwo"]])
+    )
+  }, numeric(1L))
+}
+```
+
+The two model methods simply expose that external mathematics to the fitPS generics.
+
+```{r poisson-normal-methods}
+modelProbabilities.externalPoissonNormalModel = function(model,
+                                                          parameters,
+                                                          n,
+                                                          type,
+                                                          ...) {
+  mu = parameters[["mu"]]
+  sigma = parameters[["sigma"]]
+  values = poissonNormalProbability(n, mu = mu, sigma = sigma)
+  values = matrix(values, nrow = 1L)
+  colnames(values) = paste0(type, n)
+  values
+}
+
+modelLogLikelihood.externalPoissonNormalModel = function(model,
+                                                           parameters,
+                                                           data,
+                                                           ...) {
+  mu = parameters[["mu"]]
+  sigma = parameters[["sigma"]]
   observations = modelObservationData(model, data)
-  sum(data$data$rn * dlog(observations, shape = pi, log = TRUE))
-}
-```
-
-This single likelihood definition is reused by maximum-likelihood fitting, Bayesian posterior calculations, deviance, AIC, BIC, and DIC. A new distribution should therefore avoid copying likelihood expressions into separate engines.
-
-## 5. Declare supported posterior engines
-
-The descriptor tells the common posterior dispatcher which algorithms make sense for the model:
-
-```{r supported-engines, eval=FALSE}
-supportedEngines = c("numerical", "mcmc")
-```
-
-The engine itself remains generic at the outer dispatch level. Model-specific numerical or MCMC details are supplied through secondary S3 methods such as:
-
-```{r engine-methods, eval=FALSE}
-fitNumericalPosteriorModel.logarithmicModel = function(model,
-                                                        engine,
-                                                        x,
-                                                        prior,
-                                                        ...) {
-  # Construct the one-dimensional posterior representation.
-}
-
-fitMcmcPosteriorModel.logarithmicModel = function(model,
-                                                   engine,
-                                                   x,
-                                                   prior,
-                                                   ...) {
-  # Construct the MCMC posterior representation.
-}
-```
-
-These methods return the common posterior representation expected by `fitPS`. They do not implement their own user-facing fit objects, probability summaries, or diagnostics.
-
-The logarithmic extension did reveal some remaining one-parameter assumptions in the earlier architecture. Those were generalised during implementation: scalar MCMC chains now obtain their parameter name from the model descriptor, and numerical DIC works through the generic one-parameter contract rather than assuming a zeta `shape` parameter. This is the kind of architectural pressure that adding a new distribution is intended to expose.
-
-## 6. Fit the model
-
-A public fitting function can remain thin. `fitlogDist()` creates the model descriptor, performs user-facing argument validation, and delegates Bayesian work to the shared fitting infrastructure.
-
-The maximum-likelihood interface is:
-
-```{r mle-fit}
-logFit = fitlogDist(roux, method = "mle", nterms = 6)
-logFit
-```
-
-The same model can be fitted with the numerical posterior engine:
-
-```{r numerical-fit}
-logBayes = fitlogDist(
-  roux,
-  method = "bayes",
-  nterms = 6,
-  bayesOptions = list(posteriorMethod = "numerical")
-)
-logBayes$posterior
-```
-
-An MCMC fit uses the same public contract. It is not run while building this vignette so that vignette generation remains deterministic and quick.
-
-```{r mcmc-fit, eval=FALSE}
-logMcmc = fitlogDist(
-  roux,
-  method = "bayes",
-  nterms = 6,
-  bayesOptions = list(posteriorMethod = "mcmc"),
-  nIter = 5000,
-  nBurnIn = 1000
-)
-```
-
-Attempting to request an unsupported engine should fail explicitly rather than silently changing methods.
-
-```{r unsupported-engine, eval=FALSE}
-fitlogDist(
-  roux,
-  method = "bayes",
-  bayesOptions = list(posteriorMethod = "laplace")
-)
-```
-
-## 7. Reuse posterior summaries
-
-Once an engine method returns the common posterior representation, the new model participates in the same posterior interface as existing models.
-
-```{r posterior-summary}
-summary(logBayes)
-posteriorProbs(logBayes, n = 6)
-fitted(logBayes, n = 6, type = "posteriorMean")
-```
-
-The fitted probabilities above are posterior expectations of the probability terms. They are not simply probabilities evaluated at the posterior mean of `pi`.
-
-The posterior parameter can also be inspected through the shared plotting interface:
-
-```{r posterior-plot}
-plotPosterior(logBayes, parameter = "pi")
-```
-
-No logarithmic-specific plotting code is required.
-
-## 8. Participate in model comparison
-
-The shared model likelihood also makes model comparison available without adding criterion-specific formulas to the logarithmic model.
-
-For maximum-likelihood fits, `logLik()` supplies the maximised likelihood, parameter count, and sample size required by the standard AIC and BIC methods:
-
-```{r information-criteria}
-logLik(logFit)
-deviance(logFit)
-AIC(logFit)
-BIC(logFit)
-```
-
-For Bayesian fits, DIC uses the model deviance together with posterior information supplied by the posterior representation:
-
-```{r dic}
-DIC(logBayes)
-```
-
-AIC and BIC are deliberately restricted to maximum-likelihood `psFit` objects. DIC is deliberately restricted to Bayesian fits. A new model therefore gains these criteria by satisfying the shared likelihood and posterior contracts rather than by implementing separate AIC, BIC, or DIC functions.
-
-## 9. Test a new distribution
-
-A new model should be tested as a behavioural component, not as a development stage. Test filenames and `test_that()` descriptions should describe stable behaviour.
-
-At minimum, tests should cover:
-
-- parameter-domain validation;
-- probability calculations and P/S support mapping;
-- model likelihood values;
-- maximum-likelihood fitting;
-- each declared posterior engine;
-- rejection of unsupported engines;
-- fitted and predicted probabilities;
-- posterior summaries and diagnostics where applicable;
-- AIC, BIC, deviance, and DIC where applicable; and
-- both P- and S-survey data when the model claims to support both.
-
-A representative test shape is:
-
-```{r testing-contract, eval=FALSE}
-test_that("logarithmic MLE participates in common comparison APIs", {
-  fit = fitlogDist(pData)
-
-  expect_s3_class(logLik(fit), "logLik")
-  expect_true(is.finite(AIC(fit)))
-  expect_true(is.finite(BIC(fit)))
-  expect_true(is.finite(deviance(fit)))
-})
-
-test_that("logarithmic numerical posterior uses the common contract", {
-  fit = fitlogDist(
-    pData,
-    method = "bayes",
-    bayesOptions = list(posteriorMethod = "numerical")
+  probabilities = poissonNormalProbability(
+    observations,
+    mu = mu,
+    sigma = sigma
   )
 
-  expect_s3_class(fit$posterior, "psPosterior")
-  expect_true(is.finite(DIC(fit)))
-})
+  if (any(!is.finite(probabilities)) || any(probabilities <= 0)) {
+    return(-Inf)
+  }
+
+  sum(data$data$rn * log(probabilities))
+}
 ```
 
-Tests should not be named after stage numbers because the behaviour should remain meaningful after the development history is forgotten.
+### Register the Poisson-normal methods
 
-## What should require model-specific code?
+A downstream package would normally use these namespace registrations:
 
-The logarithmic exercise suggests a useful rule of thumb. A new distribution should normally need model-specific code for:
+```text
+S3method(modelObservationData,externalPoissonNormalModel)
+S3method(modelMleControl,externalPoissonNormalModel)
+S3method(modelProbabilities,externalPoissonNormalModel)
+S3method(modelLogLikelihood,externalPoissonNormalModel)
+```
 
-1. its descriptor and parameter declarations;
-2. parameter-domain validation;
-3. its probability mass or density calculation;
-4. its model likelihood;
-5. any genuinely model-specific support transformation; and
-6. model-specific posterior methods only where the generic engine still requires mathematical details that cannot be expressed through the existing contract.
+For this self-contained vignette we register them directly:
 
-It should not normally need separate implementations of fitted-value naming, posterior summaries, plotting, AIC, BIC, DIC, or generic P/S indexing.
+```{r poisson-normal-register}
+registerS3method(
+  "modelObservationData",
+  "externalPoissonNormalModel",
+  modelObservationData.externalPoissonNormalModel,
+  envir = asNamespace("fitPS")
+)
+registerS3method(
+  "modelMleControl",
+  "externalPoissonNormalModel",
+  modelMleControl.externalPoissonNormalModel,
+  envir = asNamespace("fitPS")
+)
+registerS3method(
+  "modelProbabilities",
+  "externalPoissonNormalModel",
+  modelProbabilities.externalPoissonNormalModel,
+  envir = asNamespace("fitPS")
+)
+registerS3method(
+  "modelLogLikelihood",
+  "externalPoissonNormalModel",
+  modelLogLikelihood.externalPoissonNormalModel,
+  envir = asNamespace("fitPS")
+)
+```
 
-The current architecture does not yet eliminate all duplication between one-parameter posterior methods. The logarithmic and zeta numerical/MCMC methods still share some mechanics. That is a candidate for later refactoring, but it is preferable to leave that duplication visible until there is enough evidence for the right abstraction rather than introduce model-name conditionals into generic engines.
+### Fit the two-parameter model
 
-## Where to go next
+```{r poisson-normal-fit}
+poissonNormalData = makePSData(
+  n = 0:9,
+  count = c(223, 223, 223, 149, 93, 48, 24, 10, 4, 2),
+  type = "P"
+)
 
-The Stage 7 audit confirms that the logarithmic model can be added coherently inside `fitPS` without copying the complete fitting stack. It also confirms that the current contract should **not** yet be advertised as a public plug-in API. Core constructors and model generics remain internal, fitted-model resolution is still based on built-in model names, and the public fitters construct their own model descriptors rather than accepting external model objects.
+poissonNormalFit = fit(
+  poissonNormalData,
+  model = externalPoissonNormalModel(),
+  nterms = 10
+)
 
-Simply exporting those internals would not solve the whole problem and would prematurely make evolving implementation details part of the supported API. Third-party extensibility is therefore best treated as a later, deliberate API project rather than as a final Stage 7 export exercise.
+c(mu = poissonNormalFit$mu, sigma = poissonNormalFit$sigma)
+```
 
-A natural future design is a thin model-oriented entry point such as `fit(data, model = ...)`, while retaining `fitDist()` and `fitZIDist()` as convenient compatibility interfaces. Such a function could accept a model object directly and route through the same model/engine contracts used here. Before that becomes public, `fitPS` would need to define stable model construction and validation, exported model generics, model reconstruction or registration, and the subset of posterior-engine interfaces that downstream packages are allowed to depend on.
+The fitted values should satisfy the model's legal region.
 
-The Stage 7.4 audit also leaves one small internal refactoring question open. The zeta and logarithmic one-parameter numerical/MCMC methods share some mechanics, but two examples are not yet enough evidence for the right reusable helper. Keeping that duplication at the model-dispatch boundary is preferable to introducing a premature abstraction; it can be reconsidered when another distribution exercises the same pathway.
+```{r poisson-normal-region}
+poissonNormalFit$mu <= poissonNormalFit$sigma^2
+poissonNormalFit$sigma^2 <= 2 * poissonNormalFit$mu
+```
+
+The same common fitted-object and model-comparison APIs remain available.
+
+```{r poisson-normal-generic-apis}
+fitted(poissonNormalFit)
+predict(poissonNormalFit, newdata = 0:9, interval = "none")
+logLik(poissonNormalFit)
+deviance(poissonNormalFit)
+AIC(poissonNormalFit)
+BIC(poissonNormalFit)
+```
+
+## Serialization and retained model objects
+
+New `psFit` objects retain their originating model descriptor. That avoids reconstructing third-party models from a hard-coded list of model names.
+
+```{r retained-model}
+class(poissonFit$modelObject)
+class(poissonNormalFit$modelObject)
+```
+
+This also means a fitted object can survive ordinary R serialization, provided the corresponding S3 methods are available when the object is used again.
+
+```{r serialization}
+path = tempfile(fileext = ".rds")
+saveRDS(poissonNormalFit, path)
+restoredFit = readRDS(path)
+logLik(restoredFit)
+```
+
+A downstream package therefore needs to remain installed and loadable when its fitted objects are restored, just as with other S3-based extension systems.
+
+## What an extension package should contain
+
+A real external package does not need to copy fitPS fitting code. Its distribution layer can remain small:
+
+1. a constructor returning `psModel(...)` with a unique subclass;
+2. S3 methods for the required public fitPS generics;
+3. any private helpers used to evaluate probabilities or parameter transformations;
+4. `S3method(...)` entries in its `NAMESPACE`; and
+5. behavioural tests showing that `fit()`, fitted probabilities, prediction, and relevant model-comparison criteria work.
+
+For an MLE-only model, there is no requirement to implement a posterior engine. Bayesian support should be declared only when the model supplies the corresponding engine-specific contract.
+
+## Design lessons from the two examples
+
+The Poisson example shows that a simple distribution can be added without another public fitting function and without any fitPS source modification.
+
+The Poisson-normal example demonstrates something stronger. Its distribution mathematics, parameter transformation, starting-value logic, and legal parameter region all remain external, while fitPS still provides the optimizer orchestration and the standard `psFit` interface. No Poisson-normal branch is needed in `fit()`, `predict()`, `logLik()`, AIC, BIC, or deviance.
+
+That is the intended extension boundary: **new statistical models supply model mathematics; fitPS supplies common fitting and fitted-object infrastructure.**

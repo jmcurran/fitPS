@@ -4,6 +4,14 @@
 
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
+## fitPS 1.1.0.008
+
+- Replaced the earlier maintainer-facing extension vignette with a public guide for defining models outside fitPS.
+- Added worked external Poisson and Poisson-normal examples using only the exported psModel contract and generic fit() interface.
+- Documented downstream S3 registration, model-specific MLE controls, retained model objects, prediction, serialization, and likelihood-based model comparison.
+- Kept all Poisson and Poisson-normal distribution mathematics outside fitPS package implementation code.
+- Validated with roxygen regeneration, strict tests, a strict package check, source build, and vignette build during package construction.
+
 ## fitPS 1.1.0.007
 
 - Demonstrated the public model-extension contract with a second distribution defined entirely outside fitPS package code.

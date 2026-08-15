@@ -5,6 +5,16 @@
 This file records user-facing and developer-facing changes for fitPS. It is a release-note summary, not a commit-by-commit history.
 
 
+
+## fitPS 1.1.3.001
+
+- Audited Bayesian Bootstrap weighted fitting before introducing any public Bayesian Bootstrap API.
+- Confirmed that zeta, zero-inflated zeta, and logarithmic core log likelihoods already accept arbitrary positive real weights mathematically.
+- Identified public psData construction and legacy rep()-based expansion paths as integer-count boundaries that should remain separate from Bayesian-Bootstrap weights.
+- Established grouped Dirichlet draws with parameters equal to observed category counts as the efficient observation-level-equivalent representation.
+- Recommended a small internal weighted-MLE layer for the next stage while keeping psBootstrap, psPosterior, and the future psBayesianBootstrap statistically distinct.
+- Package validation was intentionally skipped because this stage changes only development audit documentation.
+
 ## fitPS 1.1.2.008
 
 - Repaired Stage 10.4 source-package completion after verbose `devtools::build()` output obscured the returned archive path.

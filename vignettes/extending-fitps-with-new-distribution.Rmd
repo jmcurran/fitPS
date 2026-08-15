@@ -236,7 +236,7 @@ registerModelMethods(
 )
 ```
 
-No `fitPS:::` access is required.
+No access to unexported fitPS functions is required.
 
 ### Fit and use the model
 

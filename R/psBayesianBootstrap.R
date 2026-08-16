@@ -360,3 +360,154 @@ bayesianBootstrapModel = function(x,
     model = model$model
   )
 }
+
+#' Run Rubin's Bayesian Bootstrap for a fitPS model
+#'
+#' Generates Rubin Bayesian Bootstrap draws for an observed P- or S-survey,
+#' refits a supported model using grouped random observation weights, and
+#' summarises the resulting model parameters and fitted P/S probabilities.
+#'
+#' @param x An object of class `psData`.
+#' @param model A built-in model descriptor returned by [zetaModel()],
+#'   [zizModel()], or [logarithmicModel()].
+#' @param B Number of Bayesian Bootstrap replicates.
+#' @param seed Optional finite random-number seed for reproducible draws.
+#' @param nterms Number of fitted P/S probability terms to retain.
+#' @param level Probability level used for equal-tail Bayesian Bootstrap
+#'   intervals.
+#' @return An object of class `psBayesianBootstrap` containing parameter and
+#'   probability summaries, raw successful and failed replicate rows,
+#'   diagnostics, the requested level, seed, and fitted model identifier.
+#'
+#' @details
+#' Rubin's Bayesian Bootstrap is distinct from fitPS parametric Bayesian
+#' fitting. It places uncertainty on the empirical distribution through random
+#' observation weights rather than placing a prior directly on model
+#' parameters. For occupied categories with observed counts `n_j`, fitPS draws
+#' grouped weights from `Dirichlet(n_1, ..., n_k)`, which is equivalent to
+#' drawing `Dirichlet(1, ..., 1)` weights on individual observations and then
+#' summing weights within categories.
+#'
+#' Each draw retains the observed support, refits the requested model by
+#' weighted maximum likelihood, and evaluates model-implied P/S probabilities
+#' at that weighted fit. A failed weighted fit remains represented by a row of
+#' missing replicate values and is recorded in `diagnostics`; fitPS does not
+#' redraw or smooth failed replicates.
+#'
+#' @examples
+#' if (interactive()) {
+#'   data(Psurveys)
+#'   result = bayesianBootstrap(
+#'     Psurveys$roux,
+#'     model = zetaModel(),
+#'     B = 20,
+#'     seed = 123,
+#'     nterms = 4
+#'   )
+#'   summary(result)
+#' }
+#'
+#' @export
+bayesianBootstrap = function(x,
+                              model,
+                              B = 2000,
+                              seed = NULL,
+                              nterms = 10,
+                              level = 0.95) {
+  bayesianBootstrapModel(
+    x = x,
+    model = model,
+    B = B,
+    seed = seed,
+    nterms = nterms,
+    level = level
+  )
+}
+
+#' Print a fitPS Bayesian Bootstrap object
+#'
+#' @param x An object of class `psBayesianBootstrap`.
+#' @param nterms Optional number of leading probability summaries to print.
+#'   By default, at most the first 10 are shown.
+#' @param ... Additional arguments passed to `print.data.frame()`.
+#' @return The Bayesian Bootstrap object, invisibly.
+#' @export
+print.psBayesianBootstrap = function(x, nterms = NULL, ...) {
+  if (is.null(nterms)) {
+    nterms = min(10L, nrow(x$probabilities))
+  }
+  if (!is.numeric(nterms) || length(nterms) != 1L || !is.finite(nterms) ||
+      nterms < 1 || nterms != floor(nterms)) {
+    stop("nterms must be one positive integer")
+  }
+  nterms = min(as.integer(nterms), nrow(x$probabilities))
+
+  cat("fitPS Rubin Bayesian Bootstrap\n")
+  cat("Model:", x$model, "\n")
+  cat("Replicates:", x$diagnostics$nRequested, "\n")
+  cat("Successful:", x$diagnostics$nSuccessful, "\n")
+  cat("Failed:", x$diagnostics$nFailed, "\n\n")
+  cat("Parameter summaries:\n")
+  print(x$parameters, row.names = FALSE, ...)
+  cat("\nModel-implied probability summaries:\n")
+  probabilities = x$probabilities[seq_len(nterms), , drop = FALSE]
+  print(probabilities, row.names = FALSE, ...)
+  if (nterms < nrow(x$probabilities)) {
+    cat(
+      "\nShowing", nterms, "of", nrow(x$probabilities),
+      "stored probability summaries.\n"
+    )
+  }
+
+  invisible(x)
+}
+
+#' Summarise a fitPS Bayesian Bootstrap object
+#'
+#' @param object An object of class `psBayesianBootstrap`.
+#' @param nterms Optional number of leading probability summaries to include.
+#'   If `NULL`, all stored summaries are included.
+#' @param ... Additional arguments retained for S3 compatibility.
+#' @return An object of class `summary.psBayesianBootstrap`.
+#' @export
+summary.psBayesianBootstrap = function(object, nterms = NULL, ...) {
+  if (is.null(nterms)) {
+    probabilities = object$probabilities
+  } else {
+    if (!is.numeric(nterms) || length(nterms) != 1L || !is.finite(nterms) ||
+        nterms < 1 || nterms != floor(nterms)) {
+      stop("nterms must be one positive integer")
+    }
+    nterms = min(as.integer(nterms), nrow(object$probabilities))
+    probabilities = object$probabilities[seq_len(nterms), , drop = FALSE]
+  }
+
+  result = list(
+    method = object$method,
+    model = object$model,
+    parameters = object$parameters,
+    probabilities = probabilities,
+    level = object$level,
+    seed = object$seed,
+    diagnostics = object$diagnostics
+  )
+  class(result) = "summary.psBayesianBootstrap"
+  result
+}
+
+#' @describeIn summary.psBayesianBootstrap Print a summarized fitPS Bayesian Bootstrap object.
+#' @param x An object of class `summary.psBayesianBootstrap`.
+#' @export
+print.summary.psBayesianBootstrap = function(x, ...) {
+  cat("Summary of fitPS Rubin Bayesian Bootstrap\n")
+  cat("Model:", x$model, "\n")
+  cat("Replicates:", x$diagnostics$nRequested, "\n")
+  cat("Successful:", x$diagnostics$nSuccessful, "\n")
+  cat("Failed:", x$diagnostics$nFailed, "\n\n")
+  cat("Parameter summaries:\n")
+  print(x$parameters, row.names = FALSE, ...)
+  cat("\nModel-implied probability summaries:\n")
+  print(x$probabilities, row.names = FALSE, ...)
+
+  invisible(x)
+}

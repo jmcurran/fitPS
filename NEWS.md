@@ -8,6 +8,16 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.1.3.007
+
+- Added the public bayesianBootstrap() interface for Rubin Bayesian Bootstrap inference with built-in zeta, zero-inflated zeta, and logarithmic models.
+- Added print() and summary() methods for psBayesianBootstrap while keeping raw parameter/probability replicates and failed-fit diagnostics available on the object.
+- Documented that Rubin Bayesian Bootstrap uncertainty is over empirical observation weights and is distinct from the parametric Bayesian psPosterior architecture.
+- Added deterministic public-API tests covering object identity, summaries, printing, validation, and separation from psPosterior and psBootstrap.
+- Recorded future work on likelihood-matched conjugate zeta priors, including effective-sample-size and prior-geometric-mean interpretations, without expanding Stage 11 scope.
+- Validated with the strict fitPS documentation, test, and package-check workflow.
+
 ## fitPS 1.1.3.006
 
 - Added an internal Rubin Bayesian Bootstrap replicate engine using grouped Dirichlet category weights derived directly from observed survey counts.

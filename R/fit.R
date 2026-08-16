@@ -35,6 +35,13 @@
 #'   For `method = "bootstrap"`, a maximum-likelihood `psFit` with a
 #'   `psBootstrap` object attached as `bootstrap`. For
 #'   `method = "bayesianBootstrap"`, a `psBayesianBootstrap` object.
+#' @references
+#' \insertRef{curran2024}{fitPS}
+#'
+#' \insertRef{efron1979}{fitPS}
+#'
+#' \insertRef{rubin1981}{fitPS}
+#'
 #' @export
 #'
 #' @examples

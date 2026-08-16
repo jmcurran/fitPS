@@ -29,6 +29,8 @@ roux
 
 The zero-inflated zeta model has two parameters: the inflation probability `pi` and the standard fitPS zeta `shape` parameter, which is greater than 1.
 
+The uncertainty calculations in this vignette build directly on Curran, Buzzini, and Trejos (2024), who extend the P/S methodology for background glass probabilities, derive frequentist uncertainty for the fitted probability terms, introduce more flexible treatment of excess zeros and ones, and demonstrate the fitPS package. Their paper identifies Bayesian estimation as future work; the parametric Bayesian and Rubin Bayesian Bootstrap methods below are later fitPS extensions beyond that published frequentist analysis. These uncertainty procedures answer different inferential questions and should not be interpreted as interchangeable.
+
 ## Plug-in probabilities
 
 The conventional maximum-likelihood fit evaluates each P term at the fitted parameter values.
@@ -242,11 +244,13 @@ E_{BB}\{P_k(\widehat{\theta}_W)\}.
 
 `probfun()` remains the plug-in probability interface. Use `posteriorProbs()` for Bayesian posterior probability summaries and `bootstrapProbs()` for bootstrap probability summaries.
 
-## Reference
+## References
+
+Curran, J. M., Buzzini, P., and Trejos, T. (2024). Estimating probability terms for the background presence of glass when considering activity in forensic casework. *Forensic Science International*, 364, 112221. https://doi.org/10.1016/j.forsciint.2024.112221
+
+Efron, B. (1979). Bootstrap methods: Another look at the jackknife. *The Annals of Statistics*, 7(1), 1-26.
 
 Efron, B. (2003). Second thoughts on the bootstrap. *Statistical Science*, 18(2), 135-140.
-
-Efron, B. (2012). Bayesian inference and the parametric bootstrap. *The Annals of Applied Statistics*, 6(4), 1971-1997.
 
 Rubin, D. B. (1981). The Bayesian bootstrap. *The Annals of Statistics*, 9(1), 130-134.
 

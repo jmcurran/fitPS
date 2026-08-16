@@ -10,6 +10,17 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.1.3.012
+
+- Rewrote README.md around fit() as the canonical interface for MLE, parametric Bayes, the ordinary bootstrap, and Rubin's Bayesian Bootstrap.
+- Audited the user-facing vignettes for stale API language and added foundational references for forensic P/S modelling, model-comparison criteria, and uncertainty methods.
+- Added Curran, Buzzini and Trejos (2024), Estimating probability terms for the background presence of glass when considering activity in forensic casework, as the forensic sampling-uncertainty reference and retained Rubin (1981) for the Bayesian Bootstrap.
+- Modernized the package title, description, and CITATION entry and made the cited package version follow DESCRIPTION automatically.
+- Corrected the Coulson et al. bibliography year typo and normalized stored DOI fields.
+- Kept the extension vignette focused on the fitPS public model contract rather than adding unnecessary external citations.
+- Validated with the strict fitPS documentation, test, and package-check workflow.
+
 ## fitPS 1.1.3.011
 
 - Made fit() the canonical public entry point for maximum likelihood, parametric Bayesian inference, the ordinary nonparametric bootstrap, and Rubin's Bayesian Bootstrap.

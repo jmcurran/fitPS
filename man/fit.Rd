@@ -98,3 +98,10 @@ if (interactive()) {
   )
 }
 }
+\references{
+\insertRef{curran2024}{fitPS}
+
+\insertRef{efron1979}{fitPS}
+
+\insertRef{rubin1981}{fitPS}
+}

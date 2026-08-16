@@ -23,7 +23,7 @@ suppressWarnings(suppressPackageStartupMessages(library(fitPS)))
 
 ## Fitting a zeta distribution
 
-Let us consider again the data from Roux et al. (2001). This data set is built into the package and can be accessed from the `Psurveys` object. That is, we can type:
+Let us consider again the data from Roux et al. (2001). This data set is built into the package and can be accessed from the `Psurveys` object. P and S probability terms arise in the activity-level interpretation of trace evidence; Evett and Buckleton (1990) give the foundational glass-evidence formulation, while Coulson et al. (2001) describe the clothing-survey setting in which zeta modelling became useful. That is, we can type:
 
 ```{r load-roux}
 data("Psurveys")
@@ -188,6 +188,12 @@ compareSurveys(lau, jackson)
 The P-value is `r round(compareSurveys(lau, jackson)$p.value, 2)` (2 d.p.). This is significantly larger than either 0.05 or 0.01. Based on this, we would conclude that there is insufficient evidence to reject the null hypothesis of a common value of $\alpha$, and therefore it may be sensible to combine data from these two surveys. We could have also used the theory of likelihood ratio tests to test this hypothesis, but that is beyond the scope of this article. We note, however, that the `fitPS` package contains a function called `compareSurveysLRT` which can compare two or more surveys simultaneously using a likelihood ratio test.
 
 ## References
+
+Curran, J. M., Buzzini, P., and Trejos, T. (2024). Estimating probability terms for the background presence of glass when considering activity in forensic casework. *Forensic Science International*, 364, 112221. https://doi.org/10.1016/j.forsciint.2024.112221
+
+Coulson, S. A., Buckleton, J. S., Gummer, A. B., and Triggs, C. M. (2001). Glass on clothing and shoes of members of the general population and people suspected of breaking crimes. *Science & Justice*, 41(1), 39-48. https://doi.org/10.1016/S1355-0306(01)71847-3
+
+Evett, I. W., and Buckleton, J. S. (1990). The interpretation of glass evidence. A practical approach. *Journal of the Forensic Science Society*, 30(4), 215-223.
 
 Jackson, F., Maynard, P., Cavanagh-Steer, K., Dusting, T., and Roux, C. (2013). A survey of glass found on the headwear and head hair of a random population vs. people working with glass. *Forensic Science International*, 226(1), 125-131.
 

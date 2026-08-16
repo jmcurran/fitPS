@@ -1,14 +1,18 @@
 Package: fitPS
 Type: Package
-Title: Fit Zeta Distributions to Forensic Data
-Version: 1.1.3.011
+Title: Fit Probability Models to Forensic Survey Data
+Version: 1.1.3.012
 Authors@R: 
     person("James", "Curran", , "j.curran@auckland.ac.nz", role = c("aut", "cre"))
-Description: Fits Zeta distributions (discrete power laws) to data that arises
-    from forensic surveys of clothing on the presence of glass and paint in
-    various populations. The general method is described to some extent in
-    Coulson, S.A., Buckleton, J.S., Gummer, A.B., and Triggs, C.M. (2001) 
-    <doi:10.1016/S1355-0306(01)71847-3>, although the implementation differs.
+Description: Fits probability models to P- and S-type count data arising
+    from forensic surveys of clothing for the background presence of glass,
+    paint, and related trace material. Built-in models include zeta,
+    zero-inflated zeta, and logarithmic distributions, with a public extension
+    interface for additional models. Inference is available by maximum
+    likelihood, parametric Bayesian methods, the ordinary nonparametric
+    bootstrap, and Rubin's Bayesian Bootstrap. The clothing-survey setting is
+    described by Coulson, Buckleton, Gummer, and Triggs (2001)
+    <doi:10.1016/S1355-0306(01)71847-3>.
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true

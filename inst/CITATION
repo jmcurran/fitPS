@@ -1,14 +1,15 @@
 citHeader("To cite fitPS in publications use:")
 
 bibentry(
-  bibtype    = "manual",
-  title    = "fitPS: Fit Zeta Distributions to Forensic Data",
-  author   = "J. M. Curran",
-  year     = "2024",
-  note    = "R package version 1.0.0",
-  url      = "https://github.com/jmcurran/fitPS",
+  bibtype = "manual",
+  title = "fitPS: Probability Models for Forensic Survey Data",
+  author = "J. M. Curran",
+  year = "2026",
+  note = paste("R package version", meta$Version),
+  url = "https://github.com/jmcurran/fitPS",
   textVersion = paste(
-    "Curran, J. M. (2024) fitPS: Fit Zeta Distributions to Forensic Data.\n
-    R package version 1.0.0. https://github.com/jmcurran/fitPS"
+    "Curran, J. M. (2026) fitPS: Probability Models for Forensic Survey Data.",
+    paste("R package version", meta$Version),
+    "https://github.com/jmcurran/fitPS"
   )
 )

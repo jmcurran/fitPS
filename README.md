@@ -1,17 +1,13 @@
 # fitPS
 
-`fitPS` fits zeta-distribution models to forensic survey data, especially count data from clothing surveys involving glass or paint transfer.
+`fitPS` fits probability models to forensic P- and S-survey data, especially clothing-survey data describing the background presence of glass and similar trace material. The package provides a common model-fitting interface for maximum likelihood, parametric Bayesian inference, the ordinary nonparametric bootstrap, and Rubin's Bayesian Bootstrap.
 
-The package supports two related survey data types:
+The two survey types are:
 
-- `P` data: counts of the number of groups or sources found on clothing.
-- `S` data: counts of group sizes.
+- `P` data: counts of the number of groups or sources found on an item;
+- `S` data: counts of the sizes of those groups.
 
-The main workflow is:
-
-1. Create or read a `psData` object.
-2. Fit a model with `fitDist()` or `fitZIDist()`.
-3. Inspect, predict, or compare fitted `psFit` objects.
+These probability terms arise in activity-level interpretation of trace evidence. The package is intended to make the fitted models, uncertainty calculations, and their assumptions explicit rather than treating estimated P/S probabilities as known constants.
 
 ## Installation
 
@@ -21,20 +17,53 @@ Install from the repository root during development:
 devtools::install()
 ```
 
-or from GitHub when the repository is available:
+or from GitHub:
 
 ```r
 remotes::install_github("jmcurran/fitPS")
 ```
 
+## A common fitting interface
+
+The canonical public entry point is `fit()`:
+
+```r
+library(fitPS)
+data("Psurveys")
+roux = Psurveys$roux
+
+mleFit = fit(
+  roux,
+  model = zetaModel(),
+  method = "mle"
+)
+```
+
+The model and inferential method are chosen separately. Built-in model descriptors include:
+
+- `zetaModel()`;
+- `zizModel()` for the zero-inflated zeta model;
+- `logarithmicModel()`.
+
+The main inferential methods are:
+
+```r
+fit(roux, model = zetaModel(), method = "mle")
+fit(roux, model = zetaModel(), method = "bayes")
+fit(roux, model = zetaModel(), method = "bootstrap")
+fit(roux, model = zetaModel(), method = "bayesianBootstrap")
+```
+
+They answer related but distinct questions. Maximum likelihood gives a fitted parametric model. Parametric Bayesian inference propagates uncertainty in model parameters under an explicit prior. The ordinary bootstrap resamples surveyed observational units and refits the model. Rubin's Bayesian Bootstrap keeps the observed empirical support fixed and places Dirichlet uncertainty on its weights before weighted refitting.
+
 ## Data format
 
-Input files for `readData()` must contain exactly two columns:
+Input files for `readData()` contain two columns:
 
 - one column named `P` or `S`;
 - one column named `count`.
 
-For `P` data, the `P` column contains counts such as `0`, `1`, `2`, and so on. For `S` data, the `S` column contains group sizes such as `1`, `2`, `3`, and so on.
+For `P` data, the `P` column contains values such as `0`, `1`, `2`, and so on. For `S` data, the `S` column contains group sizes such as `1`, `2`, `3`, and so on.
 
 Example CSV:
 
@@ -45,125 +74,50 @@ P,count
 2,1
 ```
 
-## Creating data manually
+Data can also be constructed directly:
 
 ```r
-library(fitPS)
-
 pData = makePSData(
   n = c(0, 1, 2),
   count = c(98, 1, 1),
   type = "P"
 )
 
-pData
-```
-
-For `S` data:
-
-```r
 sData = makePSData(
   n = 1:3,
   count = c(1, 1, 1),
   type = "S"
 )
-
-sData
 ```
 
-## Reading data from a file
+or read from a file:
 
 ```r
 pData = readData(system.file("extdata", "p.xlsx", package = "fitPS"))
 sData = readData(system.file("extdata", "s.xlsx", package = "fitPS"))
 ```
 
-CSV files with the same two-column layout can also be read:
+## Fitted probabilities
+
+A fitted `psFit` can be printed, plotted, predicted from, or converted to a probability function:
 
 ```r
-pData = readData("survey.csv")
-```
+mleFit = fit(roux, model = zizModel())
 
-
-## Zeta shape parameterisation
-
-fitPS uses `shape` for the zeta distribution shape parameter, with `shape > 1`.
-Users should supply, inspect, compare, and report `shape` on this scale.
-
-## Fitting a zeta model
-
-```r
-fit = fitDist(pData)
-fit
-```
-
-`fitDist()` returns a `psFit` object. Standard methods include printing, plotting, prediction, fitted values, confidence intervals, and log-likelihood extraction.
-
-```r
-logLik(fit)
-predict(fit)
-```
-
-## Fitting a zero-inflated zeta model
-
-```r
-ziFit = fitZIDist(pData)
-ziFit
-predict(ziFit)
-```
-
-## Probability functions
-
-Use `probfun()` to create a function for computing fitted `P` or `S` probabilities.
-
-```r
-pFun = probfun(fit)
+mleFit
+fitted(mleFit)
+predict(mleFit)
+pFun = probfun(mleFit)
 pFun(0:5)
 ```
 
-## Comparing surveys
+For zeta-based models, `shape` is the zeta shape parameter on the standard `shape > 1` scale.
 
-The package includes survey-comparison helpers:
+## Parametric Bayesian inference
 
-```r
-compareSurveys(fit1, fit2)
-compareSurveysLRT(data1, data2)
-```
-
-See the function documentation and vignettes for details.
-
-## Vignettes
-
-The `vignettes/` directory contains worked examples for simple fitting and confidence-region workflows. During staged package checks, built vignette artifacts are excluded so strict checks remain focused on package code, documentation, and tests.
-
-## Development checks
-
-The stage 1 stabilization work added baseline `testthat` coverage and strict package checks. During development, use:
+Bayesian fitting is selected with `method = "bayes"`. The posterior engine is selected separately through `bayesOptions`.
 
 ```r
-devtools::document()
-devtools::test(stop_on_failure = TRUE, stop_on_warning = TRUE)
-devtools::check(
-  build_args = c("--no-build-vignettes"),
-  args = c("--no-manual", "--ignore-vignettes", "--no-tests"),
-  error_on = "note"
-)
-```
-
-## License
-
-GPL (>= 2).
-
-## Bayesian and bootstrap probability summaries
-
-For zero-inflated zeta models, `fitPS` can distinguish probabilities evaluated at fitted parameter values from probability summaries obtained by propagating parameter uncertainty. The built-in Roux et al. (2001) footwear survey provides a real-data example.
-
-```r
-data("Psurveys")
-roux = Psurveys$roux
-
-mleFit = fit(roux, model = zizModel(), nterms = 6)
-
 bayesFit = fit(
   roux,
   model = zizModel(),
@@ -177,9 +131,11 @@ fitted(bayesFit, n = 6, type = "posteriorMean")
 plot(bayesFit$posterior, n = 6)
 ```
 
-The Bayesian estimate is the posterior mean of each probability, `E[P_k(theta) | x]`, rather than the probability evaluated at posterior mean parameters. The available posterior engines are `numerical`, `mcmc`, `laplace`, and `importance`.
+Posterior probability summaries average the model-implied probabilities over the posterior distribution of the parameters. They are not, in general, equal to probabilities evaluated at posterior mean parameters.
 
-The corresponding frequentist uncertainty calculation is requested through the same `fit()` interface:
+## Ordinary nonparametric bootstrap
+
+The frequentist bootstrap is also requested through `fit()`:
 
 ```r
 bootFit = fit(
@@ -197,7 +153,13 @@ fitted(bootFit, n = 6, type = "bootstrapMean")
 plot(bootFit$bootstrap, n = 6)
 ```
 
-Rubin's Bayesian Bootstrap is also available through `fit()`:
+The ordinary bootstrap resamples observational units with replacement. A replicate can therefore lose occupied support values and, in sparse data, may occasionally produce a sample for which the requested MLE does not exist. Such failures are part of the uncertainty behaviour of the estimator rather than being repaired by smoothing or redraws.
+
+`bootstrapFit()` is retained only as a deprecated compatibility wrapper. New code should use `fit(..., method = "bootstrap")`.
+
+## Rubin's Bayesian Bootstrap
+
+Rubin's Bayesian Bootstrap is requested with `method = "bayesianBootstrap"`:
 
 ```r
 bayesBoot = fit(
@@ -212,8 +174,49 @@ bayesBoot = fit(
 summary(bayesBoot, nterms = 6)
 ```
 
-`bootstrapFit()` remains temporarily available as a deprecated compatibility wrapper, but new code should use `fit(..., method = "bootstrap")`.
+At the individual-observation level, Rubin's Bayesian Bootstrap assigns `Dirichlet(1, ..., 1)` weights. For aggregated fitPS survey data, equivalent category weights are drawn from `Dirichlet(n1, ..., nk)`, where the `nj` are the observed category counts. All originally occupied categories therefore retain positive weight with probability one. This differs from both the ordinary bootstrap and a parametric Bayesian posterior.
 
-This gives the bootstrap mean `E*[P_k(thetaHat*)]` and percentile confidence intervals. Ordinary `fitted(fit)` and `probfun(fit)` remain plug-in interfaces for backward compatibility.
+## Model comparison
 
-See the vignette **Bayesian and bootstrap probability estimates with fitPS** for a complete worked example using the Roux survey.
+Fitted models can be compared with AIC and BIC, and Bayesian fits can also provide DIC where the posterior representation supports it. These criteria address model comparison; they are conceptually separate from bootstrap or posterior probability uncertainty.
+
+See the model-comparison vignette for worked examples.
+
+## Extending fitPS
+
+New probability models can be supplied through the public `psModel` contract rather than by adding another specialised fitting function. The extension vignette demonstrates both a simple external Poisson model and a two-parameter Poisson-normal model using the common likelihood, probability, parameter-transformation, and Bayesian-engine interfaces.
+
+## Vignettes
+
+The package contains four main vignettes:
+
+- **fitPS basics**: survey data, zeta/ZIZ fitting, P/S probabilities, and survey comparison;
+- **Probability uncertainty with fitPS**: plug-in estimates, parametric Bayes, ordinary bootstrap, and Rubin's Bayesian Bootstrap;
+- **Model comparison with fitPS**: AIC, BIC, DIC, and fitted-probability comparisons;
+- **Extending fitPS with new distributions**: the public model-extension contract.
+
+Use:
+
+```r
+browseVignettes("fitPS")
+```
+
+## Backward compatibility
+
+Older functions such as `fitDist()`, `fitZIDist()`, and `bootstrapFit()` remain only where needed for compatibility and issue deprecation guidance. New analyses should use `fit()` with an explicit model descriptor and inferential method.
+
+## References
+
+Coulson, S. A., Buckleton, J. S., Gummer, A. B., and Triggs, C. M. (2001). Glass on clothing and shoes of members of the general population and people suspected of breaking crimes. *Science & Justice*, 41(1), 39-48. https://doi.org/10.1016/S1355-0306(01)71847-3
+
+Curran, J. M., Buzzini, P., and Trejos, T. (2024). Estimating probability terms for the background presence of glass when considering activity in forensic casework. *Forensic Science International*, 364, 112221. https://doi.org/10.1016/j.forsciint.2024.112221
+
+Evett, I. W., and Buckleton, J. S. (1990). The interpretation of glass evidence. A practical approach. *Journal of the Forensic Science Society*, 30(4), 215-223.
+
+Efron, B. (1979). Bootstrap methods: Another look at the jackknife. *The Annals of Statistics*, 7(1), 1-26.
+
+Rubin, D. B. (1981). The Bayesian bootstrap. *The Annals of Statistics*, 9(1), 130-134.
+
+## License
+
+GPL (>= 2).

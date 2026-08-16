@@ -250,7 +250,7 @@ plotUncertainty(bayesBoot, level = c(0.80, 0.95))
 knitr::include_graphics(file.path("figures", "uncertainty-comparison.png"))
 ```
 
-The comparison image is regenerated from fixed seeds by `dev/regenerate-uncertainty-comparison.R`. As part of that regeneration, the ordinary-bootstrap contour coordinates produced by `plotUncertainty()` are checked directly against the historical `bootCI()` construction: `Hscv()` bandwidth selection, `kde(..., positive = TRUE)`, `contourLevels()`, and `contourLines()`. The regeneration stops if those geometries diverge.
+The comparison image is regenerated from fixed seeds by `dev/regenerate-uncertainty-comparison.R`. As part of that regeneration, the ordinary-bootstrap contour coordinates produced by `plotUncertainty()` are checked directly against an independent unconstrained `Hscv()`/`kde()`/`contourLevels()`/`contourLines()` construction from the same 1,000 bootstrap realizations. The regeneration stops if those geometries diverge.
 
 The contours are defined from the smoothed KDE rather than by selecting an exact fraction of the realized points. The table below reports the actual fraction of the 1,000 parameter realizations lying inside each displayed contour. These empirical containment values should be reasonably close to the nominal probability content, but they need not be identical because the regions are probability regions of the fitted KDE.
 
@@ -268,7 +268,7 @@ knitr::kable(
 
 The common appearance should not be read as a claim that the regions have the same meaning. The MLE display is a profile-likelihood confidence region. The ordinary bootstrap display is a smoothed KDE confidence region based on the sampling distribution of the fitted estimator. The parametric Bayesian display is a posterior credible region. The Rubin Bayesian Bootstrap display is a KDE region for the distribution of weighted maximum-likelihood fits induced by random empirical weights.
 
-The ZIZ bootstrap KDE uses the same basic construction as the original `bootCI()` display: a smoothed bivariate KDE based on `Hscv()` with positivity enforced for the `(pi, shape)` parameterization. The modern route differs mainly in that it reuses the bootstrap realizations already stored by `fit(..., method = "bootstrap")` rather than rerunning the bootstrap merely to make the plot.
+The ZIZ bootstrap KDE uses the same `Hscv()` bandwidth-selection and probability-content contour construction as the original `bootCI()` display, but deliberately does **not** request `positive = TRUE` from `ks::kde()`. Diagnostic comparison with the realized `(pi, shape)` bootstrap cloud showed that the positive-support transformation could rotate and over-smooth the joint density even though the replicates lie well inside the relevant parameter bounds. The unconstrained KDE follows the observed bootstrap geometry substantially more closely. The modern route also reuses the bootstrap realizations already stored by `fit(..., method = "bootstrap")` rather than rerunning the bootstrap merely to make the plot.
 
 For models with more than two parameters, select one or two parameters explicitly with `parameters = c(...)`. A later extension could provide a pairs-style display for higher-dimensional posterior or replicate representations; `plotUncertainty()` does not pretend that an ordinary contour is a useful representation of a three- or higher-dimensional region.
 

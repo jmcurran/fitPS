@@ -248,13 +248,12 @@ test_that("sample uncertainty regions retain empirical containment diagnostics",
   expect_true(all(region$containment$containment <= 1))
 })
 
-test_that("sample uncertainty preserves historical smoothed-bootstrap contour geometry", {
-  set.seed(81186)
+test_that("bootstrap sample uncertainty uses unconstrained KDE geometry", {
+  set.seed(81188)
   values = data.frame(
-    pi = pmin(pmax(rnorm(250, mean = 0.82, sd = 0.045), 0.55), 0.97),
-    shape = NA_real_
+    pi = rnorm(400, mean = 0.84, sd = 0.045)
   )
-  values$shape = 3.0 - 4.5 * (values$pi - 0.82) + rnorm(250, sd = 0.18)
+  values$shape = 3.0 - 7.5 * (values$pi - 0.84) + rnorm(400, sd = 0.10)
 
   modern = makeSampleUncertaintyRegion(
     values = values,
@@ -266,34 +265,70 @@ test_that("sample uncertainty preserves historical smoothed-bootstrap contour ge
   bandwidth = ks::Hscv(matrixValues)
   densityEstimate = ks::kde(
     x = matrixValues,
-    H = bandwidth,
-    positive = TRUE
+    H = bandwidth
   )
   contourHeights = ks::contourLevels(
     densityEstimate,
     cont = sort(100 * c(0.80, 0.95)),
     approx = TRUE
   )
-  historical = grDevices::contourLines(
+  expected = grDevices::contourLines(
     x = densityEstimate$eval.points[[1L]],
     y = densityEstimate$eval.points[[2L]],
     z = densityEstimate$estimate,
     levels = contourHeights
   )
 
-  expect_equal(length(modern$contours), length(historical))
+  expect_equal(length(modern$contours), length(expected))
   expect_equal(
     sort(vapply(modern$contours, `[[`, numeric(1L), "densityLevel")),
-    sort(vapply(historical, `[[`, numeric(1L), "level")),
+    sort(vapply(expected, `[[`, numeric(1L), "level")),
     tolerance = 1e-12
   )
 
   modernOrder = order(vapply(modern$contours, `[[`, numeric(1L), "densityLevel"))
-  historicalOrder = order(vapply(historical, `[[`, numeric(1L), "level"))
+  expectedOrder = order(vapply(expected, `[[`, numeric(1L), "level"))
   for (index in seq_along(modernOrder)) {
     modernContour = modern$contours[[modernOrder[[index]]]]
-    historicalContour = historical[[historicalOrder[[index]]]]
-    expect_equal(modernContour$x, historicalContour$x, tolerance = 1e-12)
-    expect_equal(modernContour$y, historicalContour$y, tolerance = 1e-12)
+    expectedContour = expected[[expectedOrder[[index]]]]
+    expect_equal(modernContour$x, expectedContour$x, tolerance = 1e-12)
+    expect_equal(modernContour$y, expectedContour$y, tolerance = 1e-12)
   }
+})
+
+test_that("bootstrap KDE contour orientation follows the replicate cloud", {
+  set.seed(81189)
+  values = data.frame(
+    pi = rnorm(600, mean = 0.84, sd = 0.045)
+  )
+  values$shape = 3.0 - 8.0 * (values$pi - 0.84) + rnorm(600, sd = 0.08)
+
+  region = makeSampleUncertaintyRegion(
+    values = values,
+    parameters = c("pi", "shape"),
+    level = 0.95
+  )
+
+  axisAngle = function(x, y) {
+    covariance = stats::cov(cbind(x, y))
+    vectors = eigen(covariance, symmetric = TRUE)$vectors
+    angle = atan2(vectors[2L, 1L], vectors[1L, 1L]) * 180 / pi
+    angle %% 180
+  }
+  angleDifference = function(first, second) {
+    difference = abs(first - second) %% 180
+    min(difference, 180 - difference)
+  }
+
+  cloudAngle = axisAngle(values$pi, values$shape)
+  matchingContours = Filter(
+    function(contour) isTRUE(all.equal(contour$level, 0.95)),
+    region$contours
+  )
+  expect_true(length(matchingContours) >= 1L)
+  contourSizes = vapply(matchingContours, function(contour) length(contour$x), integer(1L))
+  contour = matchingContours[[which.max(contourSizes)]]
+  contourAngle = axisAngle(contour$x, contour$y)
+
+  expect_lt(angleDifference(cloudAngle, contourAngle), 10)
 })

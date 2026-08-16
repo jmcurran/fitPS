@@ -94,8 +94,10 @@ posterior summary grid. Probability-content contours are obtained by ordering th
 by posterior density and cumulatively summing their stored quadrature mass;
 plotting therefore does not rerun adaptive cubature. For MCMC and bootstrap
 representations, contours are obtained from the stored parameter draws using
-kernel density estimation. Importance-sampling posteriors retain their sample
-weights for weighted KDE contours, while Laplace fits use Gaussian contours
+kernel density estimation. Ordinary and Rubin Bayesian Bootstrap contours use
+an unconstrained bivariate KDE so that boundary transformations do not distort
+the observed joint replicate geometry. Importance-sampling posteriors retain
+their sample weights for weighted KDE contours, while Laplace fits use Gaussian contours
 implied by the stored local covariance approximation.
 }
 \examples{

@@ -106,7 +106,11 @@ This compatibility function uses bootstrapping to compute a confidence interval 
  the case of the zero-inflated zeta model. A smoothed bootstrap approach is
  taken rather than a simple percentile method. The kernel density estimation
  is performed by the \code{ks} package using a smoothed cross-validated
- bandwidth selection procedure.
+ bandwidth selection procedure. Two-dimensional bootstrap regions use an
+ unconstrained KDE. Earlier fitPS releases requested \code{positive = TRUE}
+ from \code{ks::kde()}, but that boundary transformation can materially
+ distort the orientation of the joint bootstrap replicate density even when
+ the fitted parameter cloud lies well inside its parameter bounds.
 }
 \section{Methods (by class)}{
 \itemize{

@@ -162,7 +162,12 @@ extractParametricBayesianCredibleUncertainty = function(object,
   chain = representation$value$chain
   if (!is.null(chain)) {
     values = as.data.frame(chain)[, parameterNames, drop = FALSE]
-    region = makeSampleUncertaintyRegion(values, parameterNames, level)
+    region = makeSampleUncertaintyRegion(
+      values = values,
+      parameters = parameterNames,
+      level = level,
+      positive = TRUE
+    )
     return(list(
       dimension = 2L,
       parameters = parameterNames,
@@ -180,7 +185,8 @@ extractParametricBayesianCredibleUncertainty = function(object,
       values = values,
       parameters = parameterNames,
       level = level,
-      weights = approximation$samples$weight
+      weights = approximation$samples$weight,
+      positive = TRUE
     )
     return(list(
       dimension = 2L,

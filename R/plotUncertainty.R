@@ -40,8 +40,10 @@
 #' by posterior density and cumulatively summing their stored quadrature mass;
 #' plotting therefore does not rerun adaptive cubature. For MCMC and bootstrap
 #' representations, contours are obtained from the stored parameter draws using
-#' kernel density estimation. Importance-sampling posteriors retain their sample
-#' weights for weighted KDE contours, while Laplace fits use Gaussian contours
+#' kernel density estimation. Ordinary and Rubin Bayesian Bootstrap contours use
+#' an unconstrained bivariate KDE so that boundary transformations do not distort
+#' the observed joint replicate geometry. Importance-sampling posteriors retain
+#' their sample weights for weighted KDE contours, while Laplace fits use Gaussian contours
 #' implied by the stored local covariance approximation.
 #'
 #' @examples
@@ -290,6 +292,7 @@ plotUncertaintyReplicates = function(replicates,
                                       xlab,
                                       ylab,
                                       main,
+                                      positiveKde = FALSE,
                                       ...) {
   level = validateUncertaintyLevels(level)
   values = as.data.frame(replicates)[, parameters, drop = FALSE]
@@ -347,7 +350,12 @@ plotUncertaintyReplicates = function(replicates,
     )))
   }
 
-  region = makeSampleUncertaintyRegion(values, parameters, level)
+  region = makeSampleUncertaintyRegion(
+    values = values,
+    parameters = parameters,
+    level = level,
+    positive = positiveKde
+  )
   if (is.null(xlab)) {
     xlab = parameters[[1L]]
   }
@@ -388,7 +396,11 @@ plotUncertaintyReplicates = function(replicates,
 #'
 #' @keywords internal
 #' @noRd
-makeSampleUncertaintyRegion = function(values, parameters, level, weights = NULL) {
+makeSampleUncertaintyRegion = function(values,
+                                        parameters,
+                                        level,
+                                        weights = NULL,
+                                        positive = FALSE) {
   matrixValues = as.matrix(values[, parameters, drop = FALSE])
   bandwidth = Hscv(matrixValues)
   densityArguments = list(x = matrixValues, H = bandwidth)
@@ -400,9 +412,10 @@ makeSampleUncertaintyRegion = function(values, parameters, level, weights = NULL
     }
     densityArguments$w = weights / sum(weights) * nrow(matrixValues)
   }
-  if (identical(parameters, c("pi", "shape"))) {
-    densityArguments$positive = TRUE
-  } else if (all(matrixValues > 0)) {
+  if (!is.logical(positive) || length(positive) != 1L || is.na(positive)) {
+    stop("positive must be TRUE or FALSE", call. = FALSE)
+  }
+  if (positive) {
     densityArguments$positive = TRUE
   }
   densityEstimate = do.call(kde, densityArguments)
@@ -834,6 +847,7 @@ plotUncertaintyBayes = function(object,
       xlab = xlab,
       ylab = ylab,
       main = main,
+      positiveKde = TRUE,
       ...
     ))
   }
@@ -847,7 +861,8 @@ plotUncertaintyBayes = function(object,
       values = values,
       parameters = parameters,
       level = level,
-      weights = approximation$samples$weight
+      weights = approximation$samples$weight,
+      positive = TRUE
     )
     if (is.null(xlab)) {
       xlab = parameters[[1L]]

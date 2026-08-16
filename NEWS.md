@@ -12,6 +12,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.025
+
+- Repaired two-dimensional ordinary and Rubin Bayesian Bootstrap uncertainty regions to use an unconstrained bivariate KDE rather than the ks positive-support transformation.
+- Preserved Hscv bandwidth selection and probability-content contour extraction while removing a boundary transformation that rotated and over-smoothed the observed joint replicate density.
+- Updated the deprecated bootCI compatibility path to use the same corrected unconstrained ZIZ bootstrap KDE.
+- Added regression checks for unconstrained KDE coordinates and contour orientation relative to the bootstrap replicate cloud.
+- Regenerated the fixed-seed 1,000-replicate cached uncertainty comparison and empirical-containment assets used by the vignette.
+- Preserved profile-likelihood and parametric-Bayesian uncertainty calculations unchanged and validated through the strict fitPS documentation, test, package-check, vignette-build, build, and installation workflow.
+
 ## fitPS 1.1.3.024
 
 - Carried forward the verified Stage 11.8.6 bootstrap-geometry and cached-vignette asset work after its changed-path audit stopped on a collapsed untracked directory entry.

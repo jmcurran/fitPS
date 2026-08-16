@@ -247,3 +247,53 @@ test_that("sample uncertainty regions retain empirical containment diagnostics",
   expect_true(all(region$containment$containment >= 0))
   expect_true(all(region$containment$containment <= 1))
 })
+
+test_that("sample uncertainty preserves historical smoothed-bootstrap contour geometry", {
+  set.seed(81186)
+  values = data.frame(
+    pi = pmin(pmax(rnorm(250, mean = 0.82, sd = 0.045), 0.55), 0.97),
+    shape = NA_real_
+  )
+  values$shape = 3.0 - 4.5 * (values$pi - 0.82) + rnorm(250, sd = 0.18)
+
+  modern = makeSampleUncertaintyRegion(
+    values = values,
+    parameters = c("pi", "shape"),
+    level = c(0.80, 0.95)
+  )
+
+  matrixValues = as.matrix(values[, c("pi", "shape"), drop = FALSE])
+  bandwidth = ks::Hscv(matrixValues)
+  densityEstimate = ks::kde(
+    x = matrixValues,
+    H = bandwidth,
+    positive = TRUE
+  )
+  contourHeights = ks::contourLevels(
+    densityEstimate,
+    cont = sort(100 * c(0.80, 0.95)),
+    approx = TRUE
+  )
+  historical = grDevices::contourLines(
+    x = densityEstimate$eval.points[[1L]],
+    y = densityEstimate$eval.points[[2L]],
+    z = densityEstimate$estimate,
+    levels = contourHeights
+  )
+
+  expect_equal(length(modern$contours), length(historical))
+  expect_equal(
+    sort(vapply(modern$contours, `[[`, numeric(1L), "densityLevel")),
+    sort(vapply(historical, `[[`, numeric(1L), "level")),
+    tolerance = 1e-12
+  )
+
+  modernOrder = order(vapply(modern$contours, `[[`, numeric(1L), "densityLevel"))
+  historicalOrder = order(vapply(historical, `[[`, numeric(1L), "level"))
+  for (index in seq_along(modernOrder)) {
+    modernContour = modern$contours[[modernOrder[[index]]]]
+    historicalContour = historical[[historicalOrder[[index]]]]
+    expect_equal(modernContour$x, historicalContour$x, tolerance = 1e-12)
+    expect_equal(modernContour$y, historicalContour$y, tolerance = 1e-12)
+  }
+})

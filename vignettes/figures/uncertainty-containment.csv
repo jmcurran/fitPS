@@ -1,0 +1,5 @@
+"method","nominal","empirical"
+"Ordinary bootstrap",0.8,0.799000000000001
+"Ordinary bootstrap",0.95,0.949000000000001
+"Bayesian Bootstrap",0.8,0.79939516129032
+"Bayesian Bootstrap",0.95,0.949596774193542

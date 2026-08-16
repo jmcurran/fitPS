@@ -12,6 +12,21 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.024
+
+- Carried forward the verified Stage 11.8.6 bootstrap-geometry and cached-vignette asset work after its changed-path audit stopped on a collapsed untracked directory entry.
+- Made the stage audit enumerate untracked files individually so generated files under vignettes/figures are checked and staged by their exact package-relative paths.
+- Preserved the historical bootCI geometry regression, 1,000-replicate cached bootstrap assets, shared-scale four-panel comparison, and containment diagnostics unchanged.
+- Validated through the strict fitPS documentation, test, package-check, vignette-build, build, and installation workflow.
+
+## fitPS 1.1.3.023
+
+- Verified that ordinary-bootstrap plotUncertainty() contours reproduce the historical bootCI() Hscv/KDE/contourLines geometry from identical parameter replicates.
+- Added deterministic regression coverage that locks the modern sample-region coordinates to the historical smoothed-bootstrap construction.
+- Precomputed the 1,000-replicate ordinary- and Rubin Bayesian-Bootstrap vignette assets with fixed seeds so routine vignette builds no longer rerun the expensive bootstrap fits.
+- Stored the four-panel shared-scale uncertainty comparison and empirical containment table as reproducible vignette assets, with a development regeneration script retained in the source repository.
+- Validated through the strict fitPS documentation, test, package-check, vignette-build, build, and installation workflow.
+
 ## fitPS 1.1.3.022
 
 - Restored the uncertainty vignette's single four-panel ZIZ comparison by retaining only the final base-graphics device state from the shared-scale plotting chunk.

@@ -27,7 +27,7 @@ roux = Psurveys$roux
 roux
 ```
 
-The zero-inflated zeta model has two parameters: the inflation probability `pi` and the standard fitPS zeta `shape` parameter, which is greater than 1.
+We use the zero-inflated zeta (ZIZ) model as the worked example throughout this vignette. This is a deliberately rich example: it accommodates additional probability at zero and lets us show uncertainty in both an inflation probability, `pi`, and the standard fitPS zeta `shape` parameter, which is greater than 1. The uncertainty methods described below are not specific to ZIZ; the same `fit()` interface applies to other supported models. Choosing among plausible models is a separate task, discussed in the model-comparison vignette.
 
 The uncertainty calculations in this vignette build directly on Curran, Buzzini, and Trejos (2024), who extend the P/S methodology for background glass probabilities, derive frequentist uncertainty for the fitted probability terms, introduce more flexible treatment of excess zeros and ones, and demonstrate the fitPS package. Their paper identifies Bayesian estimation as future work; the parametric Bayesian and Rubin Bayesian Bootstrap methods below are later fitPS extensions beyond that published frequentist analysis. These uncertainty procedures answer different inferential questions and should not be interpreted as interchangeable.
 

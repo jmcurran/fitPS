@@ -18,8 +18,8 @@ plotPosterior(
 )
 }
 \arguments{
-\item{object}{an object of class \code{psFit}, usually from \code{\link{fitDist}}
-or \code{\link{fitZIDist}}.}
+\item{object}{an object of class \code{psFit}, usually returned by
+\code{\link{fit}} with \code{method = "bayes"}.}
 
 \item{parameter}{character; the posterior parameter to plot. The default is
 \code{"shape"}. Zero-inflated Bayesian fits also support \code{"pi"}.}
@@ -53,16 +53,17 @@ posterior density function is evaluated on a grid.
 \details{
 This function intentionally does not overload \code{\link{plot.psFit}}, which
 continues to plot fitted probabilities. For MCMC fits, the density is
-estimated from \code{object$chain}. For numerical integration fits from
-\code{fitDist(..., method = "integrate")}, the stored posterior density function
-in \code{object$pdf} is evaluated on an automatically chosen grid.
+estimated from stored posterior samples. For numerical Bayesian fits, the
+stored marginal posterior density is evaluated on an automatically chosen
+grid. The hatched credible region follows the posterior density between the
+equal-tail interval endpoints.
 }
 \examples{
-\dontrun{
-data(Psurveys)
-roux = Psurveys$roux
-fit = fitDist(roux, method = "bayes")
-plotPosterior(fit)
+if (interactive()) {
+  data(Psurveys)
+  roux = Psurveys$roux
+  bayesFit = fit(roux, model = zizModel(), method = "bayes")
+  plotPosterior(bayesFit, parameter = "pi")
 }
 
 }

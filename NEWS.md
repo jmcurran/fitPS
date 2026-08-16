@@ -11,6 +11,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.1.3.013
+
+- Corrected plotPosterior() credible-region hatching so the shaded polygon follows the posterior density curve rather than joining only the interval endpoint heights.
+- Added deterministic regression coverage for the posterior interval polygon geometry.
+- Modernized plotPosterior() documentation and examples around the fit() Bayesian interface.
+- Clarified why the uncertainty vignette uses the zero-inflated zeta model as a rich worked example and stated that model choice is a separate task.
+- Validated with the strict fitPS documentation, test, and package-check workflow.
+
 ## fitPS 1.1.3.012
 
 - Rewrote README.md around fit() as the canonical interface for MLE, parametric Bayes, the ordinary bootstrap, and Rubin's Bayesian Bootstrap.

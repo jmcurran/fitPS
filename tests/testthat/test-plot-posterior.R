@@ -84,3 +84,28 @@ test_that("plotPosterior rejects non-Bayesian fits and unavailable parameters", 
   bayesFit$method = "bayes"
   expect_error(plotPosterior(bayesFit, parameter = "pi"), "parameter must be one of: shape")
 })
+
+test_that("posterior interval polygon follows the posterior density", {
+  posterior = list(
+    x = seq(0, 1, by = 0.1),
+    density = c(0, 0.2, 0.8, 1.8, 3.2, 4.0, 3.2, 1.8, 0.8, 0.2, 0),
+    interval = c(0.25, 0.75)
+  )
+
+  intervalPolygon = makePosteriorIntervalPolygon(posterior)
+  interior = posterior$x > posterior$interval[1] &
+    posterior$x < posterior$interval[2]
+
+  expect_equal(intervalPolygon$x[c(1, length(intervalPolygon$x))], c(0.25, 0.75))
+  expect_equal(intervalPolygon$y[c(1, length(intervalPolygon$y))], c(0, 0))
+  expect_equal(
+    intervalPolygon$x[3:(length(intervalPolygon$x) - 2)],
+    posterior$x[interior]
+  )
+  expect_equal(
+    intervalPolygon$y[3:(length(intervalPolygon$y) - 2)],
+    posterior$density[interior]
+  )
+  expect_gt(max(intervalPolygon$y), 3)
+})
+

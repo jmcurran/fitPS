@@ -5,8 +5,8 @@
 #' samples when they are available. For numerical integration fits, the stored
 #' posterior density function is evaluated on a grid.
 #'
-#' @param object an object of class \code{psFit}, usually from \code{\link{fitDist}}
-#'   or \code{\link{fitZIDist}}.
+#' @param object an object of class \code{psFit}, usually returned by
+#'   \code{\link{fit}} with \code{method = "bayes"}.
 #' @param parameter character; the posterior parameter to plot. The default is
 #'   \code{"shape"}. Zero-inflated Bayesian fits also support \code{"pi"}.
 #' @param level numeric; credible level for the interval, if displayed.
@@ -26,16 +26,17 @@
 #' @details
 #' This function intentionally does not overload \code{\link{plot.psFit}}, which
 #' continues to plot fitted probabilities. For MCMC fits, the density is
-#' estimated from \code{object$chain}. For numerical integration fits from
-#' \code{fitDist(..., method = "integrate")}, the stored posterior density function
-#' in \code{object$pdf} is evaluated on an automatically chosen grid.
+#' estimated from stored posterior samples. For numerical Bayesian fits, the
+#' stored marginal posterior density is evaluated on an automatically chosen
+#' grid. The hatched credible region follows the posterior density between the
+#' equal-tail interval endpoints.
 #'
 #' @examples
-#' \dontrun{
-#' data(Psurveys)
-#' roux = Psurveys$roux
-#' fit = fitDist(roux, method = "bayes")
-#' plotPosterior(fit)
+#' if (interactive()) {
+#'   data(Psurveys)
+#'   roux = Psurveys$roux
+#'   bayesFit = fit(roux, model = zizModel(), method = "bayes")
+#'   plotPosterior(bayesFit, parameter = "pi")
 #' }
 #'
 #' @importFrom graphics abline lines plot polygon
@@ -74,11 +75,11 @@ plotPosterior = function(object,
     ...
   )
 
-  if(showInterval && !any(is.na(posterior$interval))){
-    intervalHeight = approxPosteriorHeight(posterior, posterior$interval)
+  if (showInterval && !any(is.na(posterior$interval))) {
+    intervalPolygon = makePosteriorIntervalPolygon(posterior)
     polygon(
-      c(posterior$interval[1], posterior$interval[1], posterior$interval[2], posterior$interval[2]),
-      c(0, intervalHeight[1], intervalHeight[2], 0),
+      intervalPolygon$x,
+      intervalPolygon$y,
       border = NA,
       density = 20
     )
@@ -465,15 +466,36 @@ posteriorGridQuantile = function(cdfFun, xRange, probs){
   )
 }
 
-#' Interpolate the posterior density height at a supplied parameter value.
+#' Construct the polygon for a posterior credible region.
 #'
-#' @param posterior Posterior density or posterior object.
-#' @param x An input object or numeric vector required by the helper.
-#' @return A numeric interpolated density height.
+#' @param posterior Posterior density information containing \code{x},
+#'   \code{density}, and a two-element \code{interval}.
+#' @return A list with \code{x} and \code{y} polygon coordinates that follow
+#'   the posterior density between the interval endpoints and close at zero.
 #' @keywords internal
 #' @noRd
-approxPosteriorHeight = function(posterior, x){
-  approx(posterior$x, posterior$density, xout = x, rule = 2)$y
+makePosteriorIntervalPolygon = function(posterior) {
+  lower = posterior$interval[1]
+  upper = posterior$interval[2]
+  interior = posterior$x > lower & posterior$x < upper
+  densityAtBounds = approx(
+    posterior$x,
+    posterior$density,
+    xout = c(lower, upper),
+    rule = 2
+  )$y
+
+  intervalX = c(lower, posterior$x[interior], upper)
+  intervalDensity = c(
+    densityAtBounds[1],
+    posterior$density[interior],
+    densityAtBounds[2]
+  )
+
+  list(
+    x = c(lower, intervalX, upper),
+    y = c(0, intervalDensity, 0)
+  )
 }
 
 #' Create the invisible structured return value from posterior plotting.

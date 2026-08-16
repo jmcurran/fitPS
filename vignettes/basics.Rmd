@@ -104,7 +104,7 @@ ci$prof
 
 ### Profile-likelihood and bootstrap confidence regions for the zero-inflated zeta
 
-For a two-parameter zero-inflated zeta fit, `plotUncertainty()` provides the common parameter-uncertainty display used throughout fitPS. For an MLE fit it draws the established likelihood-ratio confidence region. The numerical contour coordinates remain available from `confint()` when they are needed for downstream calculations rather than plotting.
+For a two-parameter zero-inflated zeta fit, `plotUncertainty()` provides the common parameter-uncertainty display used throughout fitPS. For an MLE fit it draws the established profile-likelihood confidence region. The numerical contour coordinates remain available from `confint()` when they are needed for downstream calculations rather than plotting.
 
 ```{r confidence-region, eval=FALSE}
 plotUncertainty(fit.zi, level = c(0.80, 0.95))

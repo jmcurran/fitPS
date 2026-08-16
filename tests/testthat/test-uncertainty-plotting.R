@@ -139,6 +139,15 @@ test_that("Bayesian Bootstrap uncertainty uses stored parameter replicates", {
   }, logical(1L))))
 })
 
+
+test_that("bootstrap uncertainty displays show stored realizations by default", {
+  expect_true(resolveUncertaintyShowPoints(NULL, default = TRUE))
+  expect_false(resolveUncertaintyShowPoints(NULL, default = FALSE))
+  expect_false(resolveUncertaintyShowPoints(FALSE, default = TRUE))
+  expect_true(resolveUncertaintyShowPoints(TRUE, default = FALSE))
+  expect_error(resolveUncertaintyShowPoints(NA, default = TRUE), "TRUE, FALSE, or NULL")
+})
+
 test_that("plotUncertainty validates higher-dimensional parameter selection", {
   expect_error(
     resolveUncertaintyParameters(c("a", "b", "c")),

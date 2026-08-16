@@ -2,7 +2,7 @@
 #'
 #' Draw a common one- or two-parameter uncertainty display while preserving the
 #' statistical interpretation of the fitted method. Maximum-likelihood fits use
-#' likelihood-ratio confidence intervals or regions, ordinary bootstrap fits use
+#' profile-likelihood confidence intervals or regions, ordinary bootstrap fits use
 #' the stored bootstrap parameter distribution, parametric Bayesian fits use the
 #' stored posterior representation, and Rubin Bayesian Bootstrap fits use the
 #' stored weighted-fit parameter distribution.
@@ -12,8 +12,10 @@
 #' @param parameters Optional character vector naming one or two parameters to
 #'   display. By default all available parameters are used when there are at
 #'   most two.
-#' @param showPoints Logical; for sample-based two-dimensional displays, show
-#'   the stored parameter replicates behind the contours.
+#' @param showPoints Logical or `NULL`; for sample-based two-dimensional displays,
+#'   show the stored parameter replicates behind the contours. When `NULL`,
+#'   ordinary and Rubin Bayesian Bootstrap displays show their realizations by
+#'   default, while parametric Bayesian displays do not.
 #' @param nGrid Number of points used for one-dimensional likelihood/density
 #'   displays.
 #' @param xlab,ylab,main Optional plot labels.
@@ -25,7 +27,7 @@
 #'
 #' @details
 #' The visual grammar is deliberately consistent across inferential methods,
-#' but the regions are not interchangeable. MLE regions are likelihood-ratio
+#' but the regions are not interchangeable. MLE regions are profile-likelihood
 #' confidence regions. Ordinary bootstrap regions are smoothed confidence
 #' regions based on the bootstrap estimator distribution. Parametric Bayesian
 #' regions are posterior credible regions. Rubin Bayesian Bootstrap regions
@@ -72,7 +74,7 @@ plotUncertainty = function(object, ...) {
 plotUncertainty.psFit = function(object,
                                   level = c(0.80, 0.95),
                                   parameters = NULL,
-                                  showPoints = FALSE,
+                                  showPoints = NULL,
                                   nGrid = 401,
                                   xlab = NULL,
                                   ylab = NULL,
@@ -88,6 +90,7 @@ plotUncertainty.psFit = function(object,
   )
 
   if (identical(object$method, "bootstrap")) {
+    showPoints = resolveUncertaintyShowPoints(showPoints, default = TRUE)
     if (!inherits(object$bootstrap, "psBootstrap")) {
       stop("bootstrap psFit object does not contain a psBootstrap distribution", call. = FALSE)
     }
@@ -105,6 +108,7 @@ plotUncertainty.psFit = function(object,
   }
 
   if (identical(object$method, "bayes")) {
+    showPoints = resolveUncertaintyShowPoints(showPoints, default = FALSE)
     return(plotUncertaintyBayes(
       object = object,
       level = level,
@@ -140,7 +144,7 @@ plotUncertainty.psFit = function(object,
 plotUncertainty.psBootstrap = function(object,
                                         level = c(0.80, 0.95),
                                         parameters = NULL,
-                                        showPoints = FALSE,
+                                        showPoints = TRUE,
                                         nGrid = 401,
                                         xlab = NULL,
                                         ylab = NULL,
@@ -149,6 +153,7 @@ plotUncertainty.psBootstrap = function(object,
   validateUncertaintyLevels(level)
   validateUncertaintyGridSize(nGrid)
   parameterNames = resolveUncertaintyParameters(names(object$replicates), parameters)
+  showPoints = resolveUncertaintyShowPoints(showPoints, default = TRUE)
 
   plotUncertaintyReplicates(
     replicates = object$replicates,
@@ -168,7 +173,7 @@ plotUncertainty.psBootstrap = function(object,
 plotUncertainty.psBayesianBootstrap = function(object,
                                                 level = c(0.80, 0.95),
                                                 parameters = NULL,
-                                                showPoints = FALSE,
+                                                showPoints = TRUE,
                                                 nGrid = 401,
                                                 xlab = NULL,
                                                 ylab = NULL,
@@ -178,6 +183,7 @@ plotUncertainty.psBayesianBootstrap = function(object,
   validateUncertaintyGridSize(nGrid)
   replicates = object$replicates$parameters
   parameterNames = resolveUncertaintyParameters(names(replicates), parameters)
+  showPoints = resolveUncertaintyShowPoints(showPoints, default = TRUE)
 
   plotUncertaintyReplicates(
     replicates = replicates,
@@ -218,6 +224,23 @@ validateUncertaintyGridSize = function(nGrid) {
     stop("nGrid must be one integer greater than or equal to 51", call. = FALSE)
   }
   as.integer(nGrid)
+}
+
+#' Resolve whether sample realizations should be shown.
+#'
+#' @param showPoints User-supplied logical value or `NULL`.
+#' @param default Method-specific default.
+#' @return One logical value.
+#' @keywords internal
+#' @noRd
+resolveUncertaintyShowPoints = function(showPoints, default) {
+  if (is.null(showPoints)) {
+    return(isTRUE(default))
+  }
+  if (!is.logical(showPoints) || length(showPoints) != 1L || is.na(showPoints)) {
+    stop("showPoints must be TRUE, FALSE, or NULL", call. = FALSE)
+  }
+  showPoints
 }
 
 #' Resolve one or two parameter names for an uncertainty display.
@@ -375,7 +398,9 @@ makeSampleUncertaintyRegion = function(values, parameters, level, weights = NULL
     }
     densityArguments$w = weights / sum(weights) * nrow(matrixValues)
   }
-  if (all(matrixValues > 0)) {
+  if (identical(parameters, c("pi", "shape"))) {
+    densityArguments$positive = TRUE
+  } else if (all(matrixValues > 0)) {
     densityArguments$positive = TRUE
   }
   densityEstimate = do.call(kde, densityArguments)
@@ -451,7 +476,7 @@ plotUncertaintyMle = function(object,
     if (!identical(object$model, "ziz") ||
         !identical(parameters, c("pi", "shape"))) {
       stop(
-        "two-parameter MLE uncertainty plotting currently uses the established ZIZ likelihood-ratio region",
+        "two-parameter MLE uncertainty plotting currently uses the established ZIZ profile-likelihood region",
         call. = FALSE
       )
     }
@@ -463,7 +488,7 @@ plotUncertaintyMle = function(object,
       ylab = "shape"
     }
     if (is.null(main)) {
-      main = "Likelihood-ratio confidence region"
+      main = "Profile-likelihood confidence region"
     }
 
     allPi = unlist(lapply(regions, `[[`, "pi"))
@@ -482,7 +507,7 @@ plotUncertaintyMle = function(object,
     }
 
     return(invisible(list(
-      method = "Likelihood-ratio confidence",
+      method = "Profile-likelihood confidence",
       dimension = 2L,
       parameters = parameters,
       level = level,
@@ -504,7 +529,7 @@ plotUncertaintyMle = function(object,
     ylab = "Relative likelihood"
   }
   if (is.null(main)) {
-    main = "Likelihood-ratio confidence interval"
+    main = "Profile-likelihood confidence interval"
   }
 
   plot(
@@ -521,7 +546,7 @@ plotUncertaintyMle = function(object,
   }
 
   invisible(list(
-    method = "Likelihood-ratio confidence",
+    method = "Profile-likelihood confidence",
     dimension = 1L,
     parameters = parameters,
     level = level,

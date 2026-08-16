@@ -12,6 +12,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.018
+
+- Made the uncertainty vignette compare MLE, ordinary bootstrap, parametric Bayes, and Rubin Bayesian Bootstrap ZIZ regions in a single 2 by 2 panel with shared parameter axes.
+- Showed ordinary- and Bayesian-Bootstrap parameter realizations beneath their KDE contours by default while leaving parametric Bayesian point displays opt-in.
+- Preserved the original ZIZ smoothed-bootstrap construction by using Hscv() KDE smoothing with positivity enforced for the pi/shape parameterization.
+- Standardized user-facing terminology on profile-likelihood confidence intervals and regions while retaining the likelihood-ratio cutoff as their mathematical construction.
+- Added regression coverage for method-specific bootstrap realization defaults and validated through the strict fitPS package workflow.
+
 ## fitPS 1.1.3.017
 
 - Made plotUncertainty() the documented parameter-uncertainty plotting interface across MLE, ordinary bootstrap, parametric Bayes, and Rubin Bayesian Bootstrap fits.

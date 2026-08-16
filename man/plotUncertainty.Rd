@@ -13,7 +13,7 @@ plotUncertainty(object, ...)
   object,
   level = c(0.8, 0.95),
   parameters = NULL,
-  showPoints = FALSE,
+  showPoints = NULL,
   nGrid = 401,
   xlab = NULL,
   ylab = NULL,
@@ -25,7 +25,7 @@ plotUncertainty(object, ...)
   object,
   level = c(0.8, 0.95),
   parameters = NULL,
-  showPoints = FALSE,
+  showPoints = TRUE,
   nGrid = 401,
   xlab = NULL,
   ylab = NULL,
@@ -37,7 +37,7 @@ plotUncertainty(object, ...)
   object,
   level = c(0.8, 0.95),
   parameters = NULL,
-  showPoints = FALSE,
+  showPoints = TRUE,
   nGrid = 401,
   xlab = NULL,
   ylab = NULL,
@@ -56,8 +56,10 @@ plotUncertainty(object, ...)
 display. By default all available parameters are used when there are at
 most two.}
 
-\item{showPoints}{Logical; for sample-based two-dimensional displays, show
-the stored parameter replicates behind the contours.}
+\item{showPoints}{Logical or `NULL`; for sample-based two-dimensional displays,
+show the stored parameter replicates behind the contours. When `NULL`,
+ordinary and Rubin Bayesian Bootstrap displays show their realizations by
+default, while parametric Bayesian displays do not.}
 
 \item{nGrid}{Number of points used for one-dimensional likelihood/density
 displays.}
@@ -72,14 +74,14 @@ Invisibly returns a list describing the plotted uncertainty
 \description{
 Draw a common one- or two-parameter uncertainty display while preserving the
 statistical interpretation of the fitted method. Maximum-likelihood fits use
-likelihood-ratio confidence intervals or regions, ordinary bootstrap fits use
+profile-likelihood confidence intervals or regions, ordinary bootstrap fits use
 the stored bootstrap parameter distribution, parametric Bayesian fits use the
 stored posterior representation, and Rubin Bayesian Bootstrap fits use the
 stored weighted-fit parameter distribution.
 }
 \details{
 The visual grammar is deliberately consistent across inferential methods,
-but the regions are not interchangeable. MLE regions are likelihood-ratio
+but the regions are not interchangeable. MLE regions are profile-likelihood
 confidence regions. Ordinary bootstrap regions are smoothed confidence
 regions based on the bootstrap estimator distribution. Parametric Bayesian
 regions are posterior credible regions. Rubin Bayesian Bootstrap regions

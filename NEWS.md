@@ -12,6 +12,20 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.030
+
+- Replace the two xtable-based tables in the getting-started vignette with native knitr tables that render cleanly in PDF output.
+- Generate the probability-comparison table label from its knitr chunk so the Table 1 cross-reference resolves in PDF output.
+- Keep clear mathematical probability headings, explicit Lau-Jackson survey headings, and captions without exposing LaTeX generator comments.
+- Preserve package behaviour and validate the rendered getting-started PDF plus all four vignette sources.
+
+## fitPS 1.1.3.028
+
+- Replace the two xtable-based tables in the getting-started vignette with native knitr tables that render cleanly in PDF output.
+- Restore clear mathematical probability headings in the raw, zeta, and ZIZ comparison table without exposing LaTeX generator comments.
+- Give the Lau-Jackson survey comparison table explicit column headings and keep its caption with the table.
+- Preserve package behaviour and validate the rendered getting-started PDF plus all four vignette sources.
+
 ## fitPS 1.1.3.027
 
 - Refocus the uncertainty vignette on confidence and credible regions as statistical methods rather than on numerical extractor terminology.

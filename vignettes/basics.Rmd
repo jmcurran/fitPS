@@ -79,15 +79,24 @@ The same generic fitting interface is used for both zeta and ZIZ models.
 
 In the example above we fit a zero-inflated model to Roux et al.'s data and print the resulting fit. We get estimates of the parameters and a default set of fitted values. The output is interesting because the value of $\hat{\pi}$ shows that the zero part of the zero-inflated model is picking up about `r round(100 * fit.zi$pi)`% of the zeros. It is interesting to compare the estimates from the raw frequencies, the zeta model, and the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
 
-```{r zero-inflated-table, echo=FALSE, results='asis'}
-library(xtable)
+```{r ex1, echo=FALSE, results='asis'}
 raw = c(roux$data$rn / sum(roux$data$rn), 0)
-tbl = cbind(0:5, raw, fitted(fit, 6), fitted(fit.zi, 6))
-colnames(tbl) = c("$k$", "$P_k^{raw}$", "$P_k^{zeta}$", "$P_k^{ZIZ}$")
-tbl = xtable(tbl, align = "ccccc", digits = c(0, 0, 4, 4, 4))
-caption(tbl) = "Estimated probability that k groups of glass would be found in shoes of a random member of the population based on the data of Roux et al. (2001), the raw frequencies, and those produced from the zeta and ZIZ models respectively."
-label(tbl) = "tab:ex1"
-print(tbl, type = "latex", include.rownames = FALSE, sanitize.text.function = function(x) { x })
+tbl = data.frame(
+  k = 0:5,
+  raw = raw,
+  zeta = fitted(fit, 6),
+  ziz = fitted(fit.zi, 6)
+)
+knitr::kable(
+  tbl,
+  format = "latex",
+  digits = c(0, 4, 4, 4),
+  align = c("c", "r", "r", "r"),
+  col.names = c("$k$", "$P_k^{raw}$", "$P_k^{zeta}$", "$P_k^{ZIZ}$"),
+  caption = "Estimated probability that k groups of glass would be found in shoes of a random member of the population based on the data of Roux et al. (2001), the raw frequencies, and those produced from the zeta and ZIZ models respectively.",
+  booktabs = FALSE,
+  escape = FALSE
+)
 ```
 
 We can see from Table \ref{tab:ex1} that we now have a non-zero estimate for $P_5$, but this comes at the cost of smaller probabilities for the preceding terms $P_0$--$P_4$, which is not necessarily a negative. The survey data is dominated by zeros. However, we think it likely that the raw sample estimates for $P_0$--$P_4$ are overestimates. The model reduces the estimated value, which is in line with our thinking. Interestingly, the effect of including the zero-inflation factor is to increase nearly all of the probabilities, with the exception of $P_1$. A natural question to ask is "Which model is correct?" The answer, unhelpfully, is "Neither", because these are simply models. They can still help us without us having to believe that they are true.
@@ -134,12 +143,21 @@ We can use the methodology that has been demonstrated so far to compare surveys.
 ```{r compare-data-table, echo=FALSE, results='asis'}
 lau = Psurveys$lau
 jackson = Psurveys$jackson
-tbl = cbind(0:1, lau$data$rn, jackson$data$rn)
-library(xtable)
-tbl = xtable(tbl, digits = 0)
-align(tbl) = "cr|r|r"
-caption(tbl) = "Survey results from Lau et al. (1997) and Jackson et al. (2013)."
-print(tbl, include.rownames = FALSE, include.colnames = FALSE)
+tbl = data.frame(
+  k = 0:1,
+  lau = lau$data$rn,
+  jackson = jackson$data$rn
+)
+knitr::kable(
+  tbl,
+  format = "latex",
+  digits = 0,
+  align = c("c", "r", "r"),
+  col.names = c("$k$", "Lau et al. (1997)", "Jackson et al. (2013)"),
+  caption = "Survey results from Lau et al. (1997) and Jackson et al. (2013).",
+  booktabs = FALSE,
+  escape = FALSE
+)
 ```
 
 Visual inspection of these surveys would suggest that they are fairly similar. We can fit a zeta distribution to each survey, and then compute a confidence interval for each survey. Again, these data sets are included in the `fitPS` package.

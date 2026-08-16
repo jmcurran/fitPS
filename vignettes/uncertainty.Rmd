@@ -150,7 +150,7 @@ bootFit = fit(
   model = zizModel(),
   method = "bootstrap",
   nterms = 6,
-  B = 100,
+  B = 1000,
   seed = 1234,
   silent = TRUE,
   parallel = FALSE
@@ -183,7 +183,7 @@ The bootstrap probability object reports percentile confidence intervals and can
 plot(bootFit$bootstrap, n = 6)
 ```
 
-For applied work, substantially more than 100 bootstrap replicates would normally be used. The smaller value here keeps vignette building practical while demonstrating the complete workflow on the real Roux data.
+The vignette uses 1,000 ordinary-bootstrap replicates so that the two-dimensional KDE confidence regions are based on a reasonably stable realization cloud while remaining practical to rebuild.
 
 ## Rubin's Bayesian Bootstrap
 
@@ -201,7 +201,7 @@ bayesBoot = fit(
   model = zizModel(),
   method = "bayesianBootstrap",
   nterms = 6,
-  B = 100,
+  B = 1000,
   seed = 1234
 )
 
@@ -332,7 +332,7 @@ plotUncertainty(
   ylim = sharedYlim,
   main = "Profile likelihood"
 )
-plotUncertainty(
+bootstrapPlotInfo = plotUncertainty(
   bootFit,
   level = uncertaintyLevels,
   xlim = sharedXlim,
@@ -346,7 +346,7 @@ plotUncertainty(
   ylim = sharedYlim,
   main = "Parametric Bayes"
 )
-plotUncertainty(
+bayesianBootstrapPlotInfo = plotUncertainty(
   bayesBoot,
   level = uncertaintyLevels,
   xlim = sharedXlim,
@@ -357,6 +357,29 @@ plotUncertainty(
 
 ```{r uncertainty-region-comparison-restore, include=FALSE}
 par(oldPar)
+
+containmentTable = rbind(
+  data.frame(
+    method = "Ordinary bootstrap",
+    nominal = bootstrapPlotInfo$containment$level,
+    empirical = bootstrapPlotInfo$containment$containment
+  ),
+  data.frame(
+    method = "Bayesian Bootstrap",
+    nominal = bayesianBootstrapPlotInfo$containment$level,
+    empirical = bayesianBootstrapPlotInfo$containment$containment
+  )
+)
+```
+
+The contours are defined from the smoothed KDE rather than by selecting an exact fraction of the realized points. As a diagnostic, the table below reports the actual fraction of the 1,000 parameter realizations lying inside each displayed contour. These empirical containment values should be reasonably close to the nominal probability content, but they need not be identical because the regions are probability regions of the fitted KDE. A substantial discrepancy is therefore a useful diagnostic that the KDE contour-level convention or its labeling needs further investigation.
+
+```{r uncertainty-region-containment, echo=FALSE}
+knitr::kable(
+  containmentTable,
+  digits = 3,
+  col.names = c("Method", "Nominal region", "Empirical containment")
+)
 ```
 
 The common appearance should not be read as a claim that the regions have the same meaning. The MLE display is a profile-likelihood confidence region. The ordinary bootstrap display is a smoothed KDE confidence region based on the sampling distribution of the fitted estimator. The parametric Bayesian display is a posterior credible region. The Rubin Bayesian Bootstrap display is a KDE region for the distribution of weighted maximum-likelihood fits induced by random empirical weights.

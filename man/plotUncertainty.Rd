@@ -69,7 +69,8 @@ displays.}
 \value{
 Invisibly returns a list describing the plotted uncertainty
   representation, including its inferential interpretation and interval or
-  contour coordinates.
+  contour coordinates. Sample-based two-dimensional results also include
+  empirical containment of the stored realizations for each contour.
 }
 \description{
 Draw a common one- or two-parameter uncertainty display while preserving the

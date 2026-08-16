@@ -23,7 +23,8 @@
 #'
 #' @return Invisibly returns a list describing the plotted uncertainty
 #'   representation, including its inferential interpretation and interval or
-#'   contour coordinates.
+#'   contour coordinates. Sample-based two-dimensional results also include
+#'   empirical containment of the stored realizations for each contour.
 #'
 #' @details
 #' The visual grammar is deliberately consistent across inferential methods,
@@ -378,6 +379,7 @@ plotUncertaintyReplicates = function(replicates,
     level = level,
     density = region$density,
     contours = region$contours,
+    containment = region$containment,
     replicates = values
   ))
 }
@@ -416,8 +418,127 @@ makeSampleUncertaintyRegion = function(values, parameters, level, weights = NULL
     levels = contourHeights
   )
   contours = labelUncertaintyContours(contours, contourHeights, level, parameters)
+  containment = uncertaintyContourContainment(
+    values = matrixValues,
+    contours = contours,
+    weights = weights
+  )
 
-  list(density = densityEstimate, contours = contours)
+  list(
+    density = densityEstimate,
+    contours = contours,
+    containment = containment
+  )
+}
+
+#' Calculate empirical containment of sample-based uncertainty contours.
+#'
+#' @param values Matrix of two-dimensional parameter realizations.
+#' @param contours Labeled contour coordinates.
+#' @param weights Optional non-negative realization weights.
+#' @return A data frame with nominal level and empirical containment.
+#' @keywords internal
+#' @noRd
+uncertaintyContourContainment = function(values, contours, weights = NULL) {
+  values = as.matrix(values)
+  if (ncol(values) != 2L || nrow(values) < 1L) {
+    stop("values must contain at least one two-dimensional realization", call. = FALSE)
+  }
+  if (length(contours) == 0L) {
+    return(data.frame(level = numeric(0), containment = numeric(0)))
+  }
+
+  if (is.null(weights)) {
+    weights = rep(1, nrow(values))
+  } else {
+    weights = as.numeric(weights)
+    if (length(weights) != nrow(values) || any(!is.finite(weights)) ||
+        any(weights < 0) || sum(weights) <= 0) {
+      stop("sample weights must be finite, non-negative, and match parameter realizations", call. = FALSE)
+    }
+  }
+  weights = weights / sum(weights)
+
+  levels = sort(unique(vapply(contours, `[[`, numeric(1L), "level")))
+  containment = vapply(levels, function(probabilityLevel) {
+    levelContours = contours[vapply(contours, function(contour) {
+      isTRUE(all.equal(contour$level, probabilityLevel))
+    }, logical(1L))]
+    inside = rep(FALSE, nrow(values))
+    for (contour in levelContours) {
+      inside = inside | pointsInsidePolygon(
+        x = values[, 1L],
+        y = values[, 2L],
+        polygonX = contour$x,
+        polygonY = contour$y
+      )
+    }
+    sum(weights[inside])
+  }, numeric(1L))
+
+  data.frame(level = levels, containment = containment)
+}
+
+#' Determine whether points lie inside a polygon.
+#'
+#' Uses the standard ray-crossing rule and treats points on polygon edges as
+#' inside. This keeps contour-containment diagnostics self-contained without
+#' adding a spatial package dependency.
+#'
+#' @param x Point x coordinates.
+#' @param y Point y coordinates.
+#' @param polygonX Polygon x coordinates.
+#' @param polygonY Polygon y coordinates.
+#' @return Logical vector indicating polygon membership.
+#' @keywords internal
+#' @noRd
+pointsInsidePolygon = function(x, y, polygonX, polygonY) {
+  x = as.numeric(x)
+  y = as.numeric(y)
+  polygonX = as.numeric(polygonX)
+  polygonY = as.numeric(polygonY)
+  if (length(x) != length(y)) {
+    stop("x and y must have the same length", call. = FALSE)
+  }
+  if (length(polygonX) != length(polygonY) || length(polygonX) < 3L) {
+    stop("polygon coordinates must have equal lengths of at least three", call. = FALSE)
+  }
+
+  if (!isTRUE(all.equal(polygonX[[1L]], polygonX[[length(polygonX)]])) ||
+      !isTRUE(all.equal(polygonY[[1L]], polygonY[[length(polygonY)]]))) {
+    polygonX = c(polygonX, polygonX[[1L]])
+    polygonY = c(polygonY, polygonY[[1L]])
+  }
+
+  inside = rep(FALSE, length(x))
+  onBoundary = rep(FALSE, length(x))
+  tolerance = sqrt(.Machine$double.eps)
+
+  for (edgeIndex in seq_len(length(polygonX) - 1L)) {
+    x1 = polygonX[[edgeIndex]]
+    y1 = polygonY[[edgeIndex]]
+    x2 = polygonX[[edgeIndex + 1L]]
+    y2 = polygonY[[edgeIndex + 1L]]
+
+    crossProduct = (x - x1) * (y2 - y1) - (y - y1) * (x2 - x1)
+    edgeScale = max(abs(c(x1, y1, x2, y2)), 1)
+    withinX = x >= min(x1, x2) - tolerance * edgeScale &
+      x <= max(x1, x2) + tolerance * edgeScale
+    withinY = y >= min(y1, y2) - tolerance * edgeScale &
+      y <= max(y1, y2) + tolerance * edgeScale
+    onBoundary = onBoundary |
+      (abs(crossProduct) <= tolerance * edgeScale & withinX & withinY)
+
+    crosses = (y1 > y) != (y2 > y)
+    crossingX = rep(Inf, length(x))
+    if (y2 != y1 && any(crosses)) {
+      crossingX[crosses] = x1 +
+        (y[crosses] - y1) * (x2 - x1) / (y2 - y1)
+    }
+    inside = xor(inside, crosses & x < crossingX)
+  }
+
+  inside | onBoundary
 }
 
 #' Label contour-line output with probability content and parameter names.

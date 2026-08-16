@@ -190,3 +190,60 @@ test_that("weighted sample uncertainty accepts stored importance weights", {
 
   expect_true(length(region$contours) >= 1L)
 })
+
+
+test_that("point-in-polygon containment includes boundaries", {
+  inside = pointsInsidePolygon(
+    x = c(0.5, 1.5, 0, 1),
+    y = c(0.5, 0.5, 0.5, 1),
+    polygonX = c(0, 1, 1, 0, 0),
+    polygonY = c(0, 0, 1, 1, 0)
+  )
+
+  expect_identical(inside, c(TRUE, FALSE, TRUE, TRUE))
+})
+
+test_that("sample contour containment reports empirical probability by level", {
+  values = data.frame(
+    pi = c(0.2, 0.4, 0.8, 1.2),
+    shape = c(0.2, 0.4, 0.8, 0.5)
+  )
+  contours = list(
+    list(
+      level = 0.80,
+      x = c(0, 0.6, 0.6, 0, 0),
+      y = c(0, 0, 0.6, 0.6, 0)
+    ),
+    list(
+      level = 0.95,
+      x = c(0, 1, 1, 0, 0),
+      y = c(0, 0, 1, 1, 0)
+    )
+  )
+
+  containment = uncertaintyContourContainment(
+    values = values,
+    contours = contours
+  )
+
+  expect_equal(containment$level, c(0.80, 0.95))
+  expect_equal(containment$containment, c(0.50, 0.75))
+})
+
+test_that("sample uncertainty regions retain empirical containment diagnostics", {
+  set.seed(1183)
+  values = data.frame(
+    pi = stats::rbeta(500, 4, 12),
+    shape = stats::rgamma(500, shape = 12, rate = 5)
+  )
+
+  region = makeSampleUncertaintyRegion(
+    values = values,
+    parameters = c("pi", "shape"),
+    level = c(0.80, 0.95)
+  )
+
+  expect_equal(region$containment$level, c(0.80, 0.95))
+  expect_true(all(region$containment$containment >= 0))
+  expect_true(all(region$containment$containment <= 1))
+})

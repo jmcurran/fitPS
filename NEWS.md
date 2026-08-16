@@ -12,6 +12,16 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.021
+
+- Increased ordinary and Rubin Bayesian Bootstrap vignette runs from 100 to 1,000 realizations for more stable two-dimensional KDE uncertainty regions.
+- Added empirical point-in-contour containment diagnostics for sample-based uncertainty regions without adding a spatial-package dependency.
+- Reported nominal 80% and 95% region content beside the observed fraction of bootstrap realizations enclosed by each displayed contour.
+- Preserved the historical ks contour-level convention for this diagnostic stage so containment results can determine whether a later semantic correction is required.
+- Added deterministic tests for polygon membership, containment calculation, and stored sample-region diagnostics.
+- Repaired the stage audit to accept and commit the roxygen-generated plotUncertainty help file.
+- Validated through the strict fitPS documentation, test, package-check, vignette-build, build, and installation workflow.
+
 ## fitPS 1.1.3.019
 
 - Corrected the four-panel uncertainty vignette so shared axes include the final bootstrap KDE contour coordinates as well as the realization clouds, preventing contour clipping.

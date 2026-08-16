@@ -81,21 +81,31 @@ In the example above we fit a zero-inflated model to Roux et al.'s data and prin
 
 ```{r ex1, echo=FALSE, results='asis'}
 raw = c(roux$data$rn / sum(roux$data$rn), 0)
-tbl = data.frame(
-  k = 0:5,
-  raw = raw,
-  zeta = fitted(fit, 6),
-  ziz = fitted(fit.zi, 6)
+tableData = cbind(
+  0:5,
+  raw,
+  fitted(fit, 6),
+  fitted(fit.zi, 6)
 )
-knitr::kable(
-  tbl,
-  format = "latex",
-  digits = c(0, 4, 4, 4),
-  align = c("c", "r", "r", "r"),
-  col.names = c("$k$", "$P_k^{raw}$", "$P_k^{zeta}$", "$P_k^{ZIZ}$"),
+colnames(tableData) = c(
+  "$k$",
+  "$P_k^{raw}$",
+  "$P_k^{zeta}$",
+  "$P_k^{ZIZ}$"
+)
+probabilityTable = xtable::xtable(
+  tableData,
+  align = "ccccc",
+  digits = c(0, 0, 4, 4, 4),
   caption = "Estimated probability that k groups of glass would be found in shoes of a random member of the population based on the data of Roux et al. (2001), the raw frequencies, and those produced from the zeta and ZIZ models respectively.",
-  booktabs = FALSE,
-  escape = FALSE
+  label = "tab:ex1"
+)
+print(
+  probabilityTable,
+  type = "latex",
+  include.rownames = FALSE,
+  sanitize.text.function = identity,
+  comment = FALSE
 )
 ```
 
@@ -143,20 +153,29 @@ We can use the methodology that has been demonstrated so far to compare surveys.
 ```{r compare-data-table, echo=FALSE, results='asis'}
 lau = Psurveys$lau
 jackson = Psurveys$jackson
-tbl = data.frame(
-  k = 0:1,
-  lau = lau$data$rn,
-  jackson = jackson$data$rn
+surveyTableData = cbind(
+  0:1,
+  lau$data$rn,
+  jackson$data$rn
 )
-knitr::kable(
-  tbl,
-  format = "latex",
+colnames(surveyTableData) = c(
+  "$k$",
+  "Lau et al. (1997)",
+  "Jackson et al. (2013)"
+)
+surveyTable = xtable::xtable(
+  surveyTableData,
+  align = "ccrr",
   digits = 0,
-  align = c("c", "r", "r"),
-  col.names = c("$k$", "Lau et al. (1997)", "Jackson et al. (2013)"),
   caption = "Survey results from Lau et al. (1997) and Jackson et al. (2013).",
-  booktabs = FALSE,
-  escape = FALSE
+  label = "tab:survey-comparison"
+)
+print(
+  surveyTable,
+  type = "latex",
+  include.rownames = FALSE,
+  sanitize.text.function = identity,
+  comment = FALSE
 )
 ```
 

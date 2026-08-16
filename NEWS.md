@@ -12,11 +12,11 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
-## fitPS 1.1.3.030
+## fitPS 1.1.3.031
 
-- Replace the two xtable-based tables in the getting-started vignette with native knitr tables that render cleanly in PDF output.
-- Generate the probability-comparison table label from its knitr chunk so the Table 1 cross-reference resolves in PDF output.
-- Keep clear mathematical probability headings, explicit Lau-Jackson survey headings, and captions without exposing LaTeX generator comments.
+- Restore xtable for the two getting-started vignette tables to recover the cleaner LaTeX presentation.
+- Suppress xtable generator comments while retaining explicit captions, mathematical probability headings, and stable LaTeX labels.
+- Keep the probability table to four meaningful columns and retain clear Lau-Jackson survey headings.
 - Preserve package behaviour and validate the rendered getting-started PDF plus all four vignette sources.
 
 ## fitPS 1.1.3.028

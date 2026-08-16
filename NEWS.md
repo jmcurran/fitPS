@@ -12,6 +12,15 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.017
+
+- Made plotUncertainty() the documented parameter-uncertainty plotting interface across MLE, ordinary bootstrap, parametric Bayes, and Rubin Bayesian Bootstrap fits.
+- Kept credint()/credInt() as the canonical Bayesian credible-interval and credible-region extractor, extending it across stored posterior representations and Rubin Bayesian Bootstrap results.
+- Kept confint() as the frequentist numerical confidence-interval and likelihood-ratio contour extractor, with credint() as its Bayesian counterpart and plotUncertainty() as the common visual layer.
+- Updated the basics, uncertainty, and README documentation so plotUncertainty() examples are rendered and the numerical-versus-visual uncertainty interfaces are explicit.
+- Deprecated only the redundant bootCI() compatibility path and added regression coverage that credint() remains an active Bayesian extractor.
+- Validated with the strict fitPS documentation, test, package-check, build, and installation workflow.
+
 ## fitPS 1.1.3.016
 
 - Repaired the cumulative posterior integration helper to use direct vector indexing instead of unqualified head() and tail() calls.

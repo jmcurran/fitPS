@@ -1,169 +1,315 @@
 #' Bayesian credible intervals or regions
 #'
-#' Use kernel density estimation to generate credible intervals, or credible
-#' regions in the case of the zero-inflated model.
+#' Extract one-dimensional credible intervals or two-dimensional credible
+#' regions from a fitted Bayesian uncertainty representation. Parametric
+#' Bayesian fits reuse the posterior representation stored by [fit()], while
+#' Rubin Bayesian Bootstrap objects reuse their stored weighted-fit parameter
+#' replicates.
 #'
-#' @param psFit a object of class \code{psFit}.
-#' @param level the credible level required---restricted to [0.75, 1). This may
-#'  be a vector, in which case multiple intervals, or credible regions will be
-#'  returned.
-#' @param plot if \code{TRUE} and \code{model == "ziz"}, then a plot of the
-#'  bootstrapped values will be produced and confidence contour lines will be
-#'  drawn for each value in level.
-#' @param silent if \code{TRUE}, then no output will be displayed whilst the the
-#'  kernel density estimation is being undertaken.
-#' @param ... other arguments fed to plot. If \code{plot == FALSE}, then these
-#'  will be ignored
+#' @param psFit A Bayesian `psFit` object or a `psBayesianBootstrap` object.
+#' @param level One or more credible probability levels strictly between zero
+#'   and one.
+#' @param plot Logical; if `TRUE`, draw the corresponding uncertainty display
+#'   with [plotUncertainty()] after extracting the interval or region.
+#' @param silent Logical; retained for backward compatibility. If `FALSE`, a
+#'   short progress message is printed for two-dimensional regions.
+#' @param parameters Optional character vector naming one or two parameters.
+#'   By default all model parameters are used when there are at most two.
+#' @param nGrid Number of grid points used when a one-dimensional posterior
+#'   density must be evaluated for interval extraction.
+#' @param ... Additional graphical arguments passed to [plotUncertainty()] when
+#'   `plot = TRUE`.
 #'
 #' @aliases credInt
-#' @details This function uses kernel density estimation to compute a Bayesian
-#'  credible interval for the shape parameter in the case of the zeta model and
-#'  a credible region in the case of the zero-inflated zeta model. A smoothing
-#'  approach is taken rather than a simple percentile method. The
-#'  kernel density estimation is performed by the \code{ks} package using a
-#'  smoothed cross-validated bandwidth selection procedure.
 #'
-#' @returns
-#'  If \code{psData$model == "zeta"}, then either a \code{vector} or a \code{data.frame}
-#'  with elements/columns named \code{"lower"} and \code{"upper"} representing
-#'  the lower and upper bounds of the confidence interval(s). Multiple bounds
-#'  are returned in a \code{data.frame} when \code{level} has more than one
-#'  value. If \code{psData$model == "ziz"}, then a list with length equal to the
-#'  length of \code{level} is returned. The name of each element in the list is
-#'  the level with % attached. For example if \code{level == 0.95}, then the
-#'  list has a single element named \code{"95\%"}. It is possible for there to
-#'  be multiple contours for the confidence region for a given \code{level}. If
-#'  there is only one contour for each value of \code{level}, then each element
-#'  of the list consists of a \code{list} with elements named \code{pi} and
-#'  \code{shape} which specify the coordinates of the contour(s) for that level.
-#'  There is a third element named \code{level} which gives the height of the
-#'  kernel density estimate at that contour. If there are multiple contours for
-#'  a given value of \code{level} then each list element is a list of lists with
-#'  the structure given above (\code{level}, \code{pi}, and \code{shape}). NOTE:
-#'  it is quite possible that there are multiple contours for a given height. If
-#'  you want a way of thinking about this consider a mountain range with two
-#'  mountains of equal height. If you draw the contours for (almost) any
-#'  elevation, then you would expect to capture a region from each mountain.
+#' @details
+#' `credint()` is the Bayesian numerical extractor corresponding to the visual
+#' [plotUncertainty()] interface. It does not rerun posterior fitting merely to
+#' obtain an interval or region.
+#'
+#' For one-dimensional numerical posteriors, credible limits are interpolated
+#' from the stored cumulative posterior representation. For MCMC posteriors,
+#' stored draws are used. Importance-sampling regions preserve their stored
+#' importance weights, Laplace regions use the stored Gaussian covariance
+#' approximation, and two-dimensional numerical posteriors use the stored
+#' posterior grid and quadrature mass. Rubin Bayesian Bootstrap regions are
+#' derived from the stored weighted-fit parameter replicates.
+#'
+#' The returned intervals are equal-tailed in one dimension. Sample-based
+#' two-dimensional regions use probability-content KDE contours; numerical
+#' posterior grids use highest-density probability-content contours; Laplace
+#' regions use the corresponding Gaussian probability ellipse.
+#'
+#' @return For one parameter, a named numeric vector for one requested level or
+#'   a data frame of lower and upper limits for multiple levels. For two
+#'   parameters, a named list of credible-region contour coordinates. Each
+#'   contour records its probability content and density threshold where one is
+#'   available.
 #'
 #' @examples
-#' \dontrun{
-#' data(Psurveys)
-#' roux = Psurveys$roux
-#' fit = fitzidist(roux, method == "bayes")
-#' credRegion = credint(roux, plot = TRUE)
-#'
-#' ## This will not work unless you have the sp package installed
-#' ## Count how many of the points lie within the 95% confidence region
-#' lapply(credRegion, function(cr){
-#'   table(sp::point.in.polygon(fit$pi,fit$shape, cr$pi, cr$shape))
-#'. })
+#' if (interactive()) {
+#'   data(Psurveys)
+#'   bayesFit = fit(
+#'     Psurveys$roux,
+#'     model = zizModel(),
+#'     method = "bayes",
+#'     bayesOptions = list(posteriorMethod = "numerical")
+#'   )
+#'   credint(bayesFit, level = c(0.80, 0.95))
+#'   plotUncertainty(bayesFit, level = c(0.80, 0.95))
 #' }
+#'
+#' @importFrom stats quantile
 #' @export
 credint = function(psFit,
                    level = 0.95,
                    plot = FALSE,
                    silent = FALSE,
-                   ...){
+                   parameters = NULL,
+                   nGrid = 401,
+                   ...) {
+  level = validateUncertaintyLevels(level)
+  validateUncertaintyGridSize(nGrid)
 
-  if(!is(psFit, "psFit")){
-    stop("This function only works with objects of class psFit.\nYou must run fitDist or fitZIDist first.")
+  if (!is.logical(plot) || length(plot) != 1L || is.na(plot)) {
+    stop("plot must be TRUE or FALSE", call. = FALSE)
   }
-  model = psFit$model
-  if(psFit$method != "bayes"){
-    stop("This method is for Bayesian estimation only.\nUse confint or bootCI instead.")
-  }
-
-  if(any(level < 0.75 | level >= 1)){
-    stop("The entries level must be values between 0.75 and 1 (not inclusive).")
-  }
-
-
-
-  if(!silent){
-    cat("Computing contours\n")
+  if (!is.logical(silent) || length(silent) != 1L || is.na(silent)) {
+    stop("silent must be TRUE or FALSE", call. = FALSE)
   }
 
-  chain = if (inherits(psFit$posterior, "psPosterior")) {
-    psFit$posterior$representation$value$chain
+  uncertainty = if (inherits(psFit, "psBayesianBootstrap")) {
+    extractBayesianBootstrapCredibleUncertainty(
+      object = psFit,
+      level = level,
+      parameters = parameters
+    )
   } else {
-    psFit$chain
+    if (!is(psFit, "psFit")) {
+      stop(
+        "credint() requires a Bayesian psFit or psBayesianBootstrap object",
+        call. = FALSE
+      )
+    }
+    if (!identical(psFit$method, "bayes")) {
+      stop(
+        "credint() reports Bayesian credible uncertainty; fit the model with method = \"bayes\" first",
+        call. = FALSE
+      )
+    }
+    extractParametricBayesianCredibleUncertainty(
+      object = psFit,
+      level = level,
+      parameters = parameters,
+      nGrid = nGrid,
+      silent = silent
+    )
   }
-  if (is.null(chain)) {
-    stop("credint() currently requires an MCMC posterior representation")
+
+  if (plot) {
+    plotUncertainty(
+      psFit,
+      level = level,
+      parameters = uncertainty$parameters,
+      nGrid = nGrid,
+      ...
+    )
   }
 
-  if(model == "zeta"){
-    ## estimate bandwidth
-    if(!silent){
-      cat("\t-- Estimating bandwidth\n")
-    }
-    h = ks::hscv(chain)
+  formatCredibleUncertainty(uncertainty)
+}
 
-    if(!silent){
-      cat("\t-- Computing KCDE\n")
-    }
-    fhat = ks::kcde(chain, h) ## computes the CDF based on the KDE
-    FxInv = approxfun(fhat$estimate, fhat$eval.points)
+#' Extract credible uncertainty from a parametric Bayesian fit.
+#'
+#' @keywords internal
+#' @noRd
+extractParametricBayesianCredibleUncertainty = function(object,
+                                                          level,
+                                                          parameters,
+                                                          nGrid,
+                                                          silent) {
+  model = modelFromFit(object)
+  parameterNames = resolveUncertaintyParameters(
+    modelParameterNames(model),
+    parameters
+  )
 
-    if(length(level) == 1){
-      alpha2 = 0.5 * (1 - level)
-      ci = c(FxInv(alpha2), FxInv(1 - alpha2))
-      names(ci) = c("lower", "upper")
-    }else{
-      level = sort(level)
-      alpha2 = 0.5 * (1 - level)
-      ci = data.frame(lower = FxInv(alpha2),
-                      upper = FxInv(1 - alpha2))
-    }
+  if (length(parameterNames) == 1L) {
+    intervals = t(vapply(level, function(probabilityLevel) {
+      getPosteriorPlotData(
+        object = object,
+        parameter = parameterNames[[1L]],
+        level = probabilityLevel,
+        nGrid = nGrid
+      )$interval
+    }, numeric(2L)))
+    colnames(intervals) = c("lower", "upper")
+    rownames(intervals) = as.character(level)
 
-    return(ci)
-  }else{
-    ## estimate bandwidth
-    if(!silent){
-      cat("\t-- Estimating bandwidth\n")
-    }
-    H = ks::Hscv(chain)
+    return(list(
+      dimension = 1L,
+      parameters = parameterNames,
+      level = level,
+      intervals = intervals
+    ))
+  }
 
-    if(!silent){
-      cat("\t-- Computing KDE\n")
-    }
-    fhat = ks::kde(chain, H, positive = TRUE)
-    cont = sort(100 * level)
-    levels = ks::contourLevels(fhat, cont = cont, approx = TRUE)
-    credRegion = contourLines(x = fhat$eval.points[[1]],
-                 y = fhat$eval.points[[2]],
-                 z = fhat$estimate,
-                 levels = levels)
+  if (!silent) {
+    cat("Computing credible regions\n")
+  }
 
-    credRegion = lapply(credRegion, function(l){
-      names(l)[2:3] = c("pi", "shape")
-      return(l)
+  representation = object$posterior$representation
+  chain = representation$value$chain
+  if (!is.null(chain)) {
+    values = as.data.frame(chain)[, parameterNames, drop = FALSE]
+    region = makeSampleUncertaintyRegion(values, parameterNames, level)
+    return(list(
+      dimension = 2L,
+      parameters = parameterNames,
+      level = level,
+      contours = region$contours
+    ))
+  }
+
+  approximation = representation$value$approximation
+  if (!is.null(approximation$samples) &&
+      is.data.frame(approximation$samples) &&
+      all(c(parameterNames, "weight") %in% names(approximation$samples))) {
+    values = approximation$samples[, parameterNames, drop = FALSE]
+    region = makeSampleUncertaintyRegion(
+      values = values,
+      parameters = parameterNames,
+      level = level,
+      weights = approximation$samples$weight
+    )
+    return(list(
+      dimension = 2L,
+      parameters = parameterNames,
+      level = level,
+      contours = region$contours
+    ))
+  }
+
+  if (!is.null(approximation$mode) && !is.null(approximation$varCov)) {
+    contours = makeGaussianUncertaintyContours(
+      centre = approximation$mode[parameterNames],
+      covariance = approximation$varCov[
+        parameterNames,
+        parameterNames,
+        drop = FALSE
+      ],
+      level = level,
+      parameters = parameterNames
+    )
+    return(list(
+      dimension = 2L,
+      parameters = parameterNames,
+      level = level,
+      contours = contours
+    ))
+  }
+
+  grid = representation$value$grid
+  if (!is.null(grid) && !is.null(grid$parameters) && !is.null(grid$weights)) {
+    region = makeGridUncertaintyRegion(grid, parameterNames, level)
+    return(list(
+      dimension = 2L,
+      parameters = parameterNames,
+      level = level,
+      contours = region$contours
+    ))
+  }
+
+  stop(
+    "credint() could not extract a supported two-dimensional posterior representation",
+    call. = FALSE
+  )
+}
+
+#' Extract credible uncertainty from Rubin Bayesian Bootstrap replicates.
+#'
+#' @keywords internal
+#' @noRd
+extractBayesianBootstrapCredibleUncertainty = function(object,
+                                                         level,
+                                                         parameters) {
+  replicates = object$replicates$parameters
+  parameterNames = resolveUncertaintyParameters(names(replicates), parameters)
+  values = replicates[, parameterNames, drop = FALSE]
+  values = values[complete.cases(values), , drop = FALSE]
+
+  if (nrow(values) < 2L) {
+    stop("at least two successful Bayesian Bootstrap replicates are required", call. = FALSE)
+  }
+
+  if (length(parameterNames) == 1L) {
+    intervals = t(vapply(level, function(probabilityLevel) {
+      alpha = (1 - probabilityLevel) / 2
+      quantile(
+        values[[parameterNames[[1L]]]],
+        probs = c(alpha, 1 - alpha),
+        names = FALSE,
+        type = 7
+      )
+    }, numeric(2L)))
+    colnames(intervals) = c("lower", "upper")
+    rownames(intervals) = as.character(level)
+
+    return(list(
+      dimension = 1L,
+      parameters = parameterNames,
+      level = level,
+      intervals = intervals
+    ))
+  }
+
+  region = makeSampleUncertaintyRegion(values, parameterNames, level)
+  list(
+    dimension = 2L,
+    parameters = parameterNames,
+    level = level,
+    contours = region$contours
+  )
+}
+
+#' Format a common credible-uncertainty representation for public return.
+#'
+#' @keywords internal
+#' @noRd
+formatCredibleUncertainty = function(uncertainty) {
+  if (identical(uncertainty$dimension, 1L)) {
+    intervals = uncertainty$intervals
+    if (nrow(intervals) == 1L) {
+      result = as.numeric(intervals[1L, ])
+      names(result) = c("lower", "upper")
+      return(result)
+    }
+    return(as.data.frame(intervals))
+  }
+
+  parameters = uncertainty$parameters
+  levelNames = paste0(format(100 * uncertainty$level, trim = TRUE), "%")
+  regions = lapply(uncertainty$level, function(probabilityLevel) {
+    matchingContours = Filter(
+      function(contour) isTRUE(all.equal(contour$level, probabilityLevel)),
+      uncertainty$contours
+    )
+    lapply(matchingContours, function(contour) {
+      result = list(
+        level = contour$densityLevel,
+        probability = contour$level
+      )
+      result[[parameters[[1L]]]] = contour$x
+      result[[parameters[[2L]]]] = contour$y
+      result
     })
+  })
+  names(regions) = levelNames
 
-    ## This section reorganises credRegion into a list of lists, with each
-    ## main element corresponding to a confidence level. This recognises that
-    ## there may be more than one contour for each credible level
-
-    cr.levels = sapply(credRegion, function(cr)cr$level)
-    i = match(cr.levels, levels)
-    credRegion = split(credRegion, i)
-    names(credRegion) = paste0(cont,"%")
-
-    if(plot){
-      plot(chain, pch = 'x', col = 'grey', ...)
-      for(l in seq_along(credRegion)){
-        for(cr in seq_along(credRegion[[l]])){
-          polygon(credRegion[[l]][[cr]]$pi, credRegion[[l]][[cr]]$shape, border = "red", lwd = 2)
-        }
-      }
-    }
-
-    ## If there is only one contour per level, then remove the list structure
-    if(length(credRegion) > 1 && all(sapply(credRegion, length) == 1)){
-      credRegion = lapply(credRegion, function(l)unlist(l, recursive = FALSE))
-    }
-    return(credRegion)
+  if (length(regions) > 1L && all(vapply(regions, length, integer(1L)) == 1L)) {
+    regions = lapply(regions, `[[`, 1L)
   }
+  regions
 }
 
 #' @describeIn credint Bayesian credible intervals or regions

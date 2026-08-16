@@ -102,26 +102,30 @@ ci$wald
 ci$prof
 ```
 
-### Bootstrapped and profile likelihood confidence regions for the zero-inflated zeta
+### Profile-likelihood and bootstrap confidence regions for the zero-inflated zeta
 
-The package includes the facility to compute both bootstrapped and profile likelihood confidence regions for the parameters of the zero-inflated zeta distribution. It also computes bootstrapped confidence intervals for the zeta distribution. The `confint` function returns a confidence region if the fitted object contains information from a zero-inflated zeta fit. As an example, we will first compute profile likelihood confidence regions for the Roux et al. (2001) data. To do this we use the fitted object we previously created, `fit.zi`, and, although not required, we supply a set of two levels so that we can compute both an 80% and a 95% confidence region. `confint` returns a list of confidence regions, one for each level, each of which is simply a set of $x$ and $y$ coordinates corresponding to the appropriate contour line.
+For a two-parameter zero-inflated zeta fit, `plotUncertainty()` provides the common parameter-uncertainty display used throughout fitPS. For an MLE fit it draws the established likelihood-ratio confidence region. The numerical contour coordinates remain available from `confint()` when they are needed for downstream calculations rather than plotting.
 
-```{r confidence-region, eval=FALSE, tidy=FALSE}
+```{r confidence-region, eval=FALSE}
+plotUncertainty(fit.zi, level = c(0.80, 0.95))
 cr = confint(fit.zi, level = c(0.80, 0.95))
-plot(cr[["0.95"]], type = "l")
-polygon(cr[["0.8"]], border = "red")
-legend("topright", lty = 1, lwd = 2, col = c("red", "black"),
-       legend = c("80%", "95%"), bty = "n")
 ```
 
-A bootstrapped confidence region can be computed using the `bootCI` function. The `bootCI` function includes the facility to plot the resulting confidence region or regions, and to hide or display the function's progress. The latter is important because this procedure is numerically intensive and, even when utilising parallel processing, can be quite slow.
+The same plotting call is used after fitting by ordinary nonparametric bootstrap. The bootstrap fit stores its successful parameter replicates, so drawing the smoothed KDE confidence region does not rerun the bootstrap. This can matter because the resampling and repeated model fitting are substantially more expensive than drawing the contours.
 
 ```{r boot-confidence-region, eval=FALSE}
-bcr = bootCI(roux,
-       model = "ziz",
-       plot = TRUE,
-       silent = TRUE)
+boot.fit = fit(
+  roux,
+  model = zizModel(),
+  method = "bootstrap",
+  B = 2000,
+  seed = 123,
+  silent = TRUE
+)
+plotUncertainty(boot.fit, level = c(0.80, 0.95))
 ```
+
+The older `bootCI()` interface remains available for compatibility but is deprecated. New code should obtain the bootstrap distribution through `fit(..., method = "bootstrap")` and use `plotUncertainty()` for the corresponding parameter-uncertainty display.
 
 ## Comparing two surveys
 

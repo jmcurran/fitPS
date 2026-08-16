@@ -5,60 +5,78 @@
 \alias{credInt}
 \title{Bayesian credible intervals or regions}
 \usage{
-credint(psFit, level = 0.95, plot = FALSE, silent = FALSE, ...)
+credint(
+  psFit,
+  level = 0.95,
+  plot = FALSE,
+  silent = FALSE,
+  parameters = NULL,
+  nGrid = 401,
+  ...
+)
 
-credInt(psFit, level = 0.95, plot = FALSE, silent = FALSE, ...)
+credInt(
+  psFit,
+  level = 0.95,
+  plot = FALSE,
+  silent = FALSE,
+  parameters = NULL,
+  nGrid = 401,
+  ...
+)
 }
 \arguments{
-\item{psFit}{a object of class \code{psFit}.}
+\item{psFit}{A Bayesian `psFit` object or a `psBayesianBootstrap` object.}
 
-\item{level}{the credible level required---restricted to [0.75, 1). This may
-be a vector, in which case multiple intervals, or credible regions will be
-returned.}
+\item{level}{One or more credible probability levels strictly between zero
+and one.}
 
-\item{plot}{if \code{TRUE} and \code{model == "ziz"}, then a plot of the
-bootstrapped values will be produced and confidence contour lines will be
-drawn for each value in level.}
+\item{plot}{Logical; if `TRUE`, draw the corresponding uncertainty display
+with [plotUncertainty()] after extracting the interval or region.}
 
-\item{silent}{if \code{TRUE}, then no output will be displayed whilst the the
-kernel density estimation is being undertaken.}
+\item{silent}{Logical; retained for backward compatibility. If `FALSE`, a
+short progress message is printed for two-dimensional regions.}
 
-\item{...}{other arguments fed to plot. If \code{plot == FALSE}, then these
-will be ignored}
+\item{parameters}{Optional character vector naming one or two parameters.
+By default all model parameters are used when there are at most two.}
+
+\item{nGrid}{Number of grid points used when a one-dimensional posterior
+density must be evaluated for interval extraction.}
+
+\item{...}{Additional graphical arguments passed to [plotUncertainty()] when
+`plot = TRUE`.}
 }
 \value{
-If \code{psData$model == "zeta"}, then either a \code{vector} or a \code{data.frame}
- with elements/columns named \code{"lower"} and \code{"upper"} representing
- the lower and upper bounds of the confidence interval(s). Multiple bounds
- are returned in a \code{data.frame} when \code{level} has more than one
- value. If \code{psData$model == "ziz"}, then a list with length equal to the
- length of \code{level} is returned. The name of each element in the list is
- the level with % attached. For example if \code{level == 0.95}, then the
- list has a single element named \code{"95\%"}. It is possible for there to
- be multiple contours for the confidence region for a given \code{level}. If
- there is only one contour for each value of \code{level}, then each element
- of the list consists of a \code{list} with elements named \code{pi} and
- \code{shape} which specify the coordinates of the contour(s) for that level.
- There is a third element named \code{level} which gives the height of the
- kernel density estimate at that contour. If there are multiple contours for
- a given value of \code{level} then each list element is a list of lists with
- the structure given above (\code{level}, \code{pi}, and \code{shape}). NOTE:
- it is quite possible that there are multiple contours for a given height. If
- you want a way of thinking about this consider a mountain range with two
- mountains of equal height. If you draw the contours for (almost) any
- elevation, then you would expect to capture a region from each mountain.
+For one parameter, a named numeric vector for one requested level or
+  a data frame of lower and upper limits for multiple levels. For two
+  parameters, a named list of credible-region contour coordinates. Each
+  contour records its probability content and density threshold where one is
+  available.
 }
 \description{
-Use kernel density estimation to generate credible intervals, or credible
-regions in the case of the zero-inflated model.
+Extract one-dimensional credible intervals or two-dimensional credible
+regions from a fitted Bayesian uncertainty representation. Parametric
+Bayesian fits reuse the posterior representation stored by [fit()], while
+Rubin Bayesian Bootstrap objects reuse their stored weighted-fit parameter
+replicates.
 }
 \details{
-This function uses kernel density estimation to compute a Bayesian
- credible interval for the shape parameter in the case of the zeta model and
- a credible region in the case of the zero-inflated zeta model. A smoothing
- approach is taken rather than a simple percentile method. The
- kernel density estimation is performed by the \code{ks} package using a
- smoothed cross-validated bandwidth selection procedure.
+`credint()` is the Bayesian numerical extractor corresponding to the visual
+[plotUncertainty()] interface. It does not rerun posterior fitting merely to
+obtain an interval or region.
+
+For one-dimensional numerical posteriors, credible limits are interpolated
+from the stored cumulative posterior representation. For MCMC posteriors,
+stored draws are used. Importance-sampling regions preserve their stored
+importance weights, Laplace regions use the stored Gaussian covariance
+approximation, and two-dimensional numerical posteriors use the stored
+posterior grid and quadrature mass. Rubin Bayesian Bootstrap regions are
+derived from the stored weighted-fit parameter replicates.
+
+The returned intervals are equal-tailed in one dimension. Sample-based
+two-dimensional regions use probability-content KDE contours; numerical
+posterior grids use highest-density probability-content contours; Laplace
+regions use the corresponding Gaussian probability ellipse.
 }
 \section{Functions}{
 \itemize{
@@ -66,16 +84,16 @@ This function uses kernel density estimation to compute a Bayesian
 
 }}
 \examples{
-\dontrun{
-data(Psurveys)
-roux = Psurveys$roux
-fit = fitzidist(roux, method == "bayes")
-credRegion = credint(roux, plot = TRUE)
-
-## This will not work unless you have the sp package installed
-## Count how many of the points lie within the 95\% confidence region
-lapply(credRegion, function(cr){
-  table(sp::point.in.polygon(fit$pi,fit$shape, cr$pi, cr$shape))
-. })
+if (interactive()) {
+  data(Psurveys)
+  bayesFit = fit(
+    Psurveys$roux,
+    model = zizModel(),
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical")
+  )
+  credint(bayesFit, level = c(0.80, 0.95))
+  plotUncertainty(bayesFit, level = c(0.80, 0.95))
 }
+
 }

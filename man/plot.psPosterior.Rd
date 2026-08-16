@@ -48,14 +48,15 @@ does not change \code{plot.psFit()}, which continues to display fitted model
 probabilities and observed proportions.
 }
 \examples{
-data(Psurveys)
-fit = fitZIDist(
-  Psurveys$roux,
-  method = "bayes",
-  bayesOptions = list(posteriorMethod = "numerical"),
-  nPiGrid = 31,
-  nShapeGrid = 31
-)
-plot(fit$posterior, n = 5)
+if (interactive()) {
+  data(Psurveys)
+  fit = fit(
+    Psurveys$roux,
+    model = zizModel(),
+    method = "bayes",
+    bayesOptions = list(posteriorMethod = "numerical")
+  )
+  plot(fit$posterior, n = 5)
+}
 
 }

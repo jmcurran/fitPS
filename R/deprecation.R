@@ -10,7 +10,7 @@
 #' @return Invisibly returns `NULL`.
 #' @keywords internal
 #' @noRd
-signalDeprecatedFitter = function(old, replacement) {
+signalDeprecatedInterface = function(old, replacement) {
   if (!isTRUE(getOption("fitPS.deprecationWarnings", TRUE))) {
     return(invisible(NULL))
   }
@@ -23,4 +23,15 @@ signalDeprecatedFitter = function(old, replacement) {
     call. = FALSE
   )
   invisible(NULL)
+}
+
+#' Signal use of a deprecated fitting interface
+#'
+#' @param old Name of the deprecated fitting helper.
+#' @param replacement Replacement call to recommend.
+#' @return Invisibly returns `NULL`.
+#' @keywords internal
+#' @noRd
+signalDeprecatedFitter = function(old, replacement) {
+  signalDeprecatedInterface(old, replacement)
 }

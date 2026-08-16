@@ -1,6 +1,6 @@
 #' S3 confint method for objects of class psFit
 #'
-#' @param object an object of class \code{psFit}---see fitDist for more details
+#' @param object An object of class \code{psFit} returned by \code{fit()}.
 #' @param parm added for compatibility. Should be left empty as it is ignored.
 #' @param level the confidence level required---restricted to [0.75, 1)
 #' @param ... in theory other parameters to be passed to \code{confint}, but in
@@ -10,14 +10,13 @@
 #' and possibly (almost certainly) unstable.
 #'
 #' @return if the zeta model is used (i.e \code{object} comes from a call to
-#'   \code{\link{fitDist}}),then a list with two items: \code{wald} and
+#'   \code{fit(..., model = zetaModel())}), then a list with two items: \code{wald} and
 #'   \code{prof} containing the Wald and profile likelihood confidence intervals
 #'   respectively for the shape parameter of the fitted zeta distribution is
 #'   returned. In general these should be relatively close to each other. These
 #'   values use the zeta distribution shape parameter and must satisfy
 #'   \code{shape > 1}. If a
-#'   zero-inflated zeta model is used (i.e. \code{object} comes from a call to
-#'   \code{\link{fitZIDist}}) then list of a confidence regions is returned with
+#'   zero-inflated zeta model is used then a list of a confidence regions is returned with
 #'   and element for each value of \code{level}. The confidence regions are
 #'   \code{data.frame}s with variables \code{pi} and \code{shape} which can be
 #'   used with \code{\link[graphics]{lines}} or \code{\link[graphics]{polygon}}
@@ -26,21 +25,13 @@
 #' @examples
 #' data(Psurveys)
 #' roux = Psurveys$roux
-#' fit = fitDist(roux)
-#' confint(fit)
+#' mleFit = fit(roux, model = zetaModel())
+#' confint(mleFit)
 #'
-#' \dontrun{
-#' fit.zi = fitZIDist(roux)
-#' cr = confint(fit.zi, level = c(0.80, 0.95))
-#' plot(cr[["0.95"]], type = "l")
-#' polygon(cr[["0.8"]])
-#' }
-#'
-#' \dontrun{
-#' fit.zi = fitZIDist(roux, method = "bayes")
-#' cr = confint(fit.zi, level = c(0.80, 0.95))
-#' plot(cr[["0.95"]], type = "l")
-#' polygon(cr[["0.8"]])
+#' if (interactive()) {
+#'   zizFit = fit(roux, model = zizModel())
+#'   confint(zizFit, level = c(0.80, 0.95))
+#'   plotUncertainty(zizFit, level = c(0.80, 0.95))
 #' }
 #'
 #' @importFrom stats confint qchisq uniroot
@@ -50,8 +41,8 @@ confint.psFit = function(object, parm, level = 0.95, ...){
     stop("Level must be in the interval [0.75,1)")
   }
 
-  if(object$method == "bayes"){
-    stop("This method gives confidence intervals.\nUse credint to get a Bayesian credible interval.")
+  if (object$method == "bayes") {
+    stop("confint() reports frequentist confidence intervals; use plotUncertainty() for Bayesian credible uncertainty.")
   }
 
   if(object$model == "ziz"){

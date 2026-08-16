@@ -225,10 +225,19 @@ cbind(
 
 The fitted probability plots above answer a different question from plots of parameter uncertainty. `plotUncertainty()` provides a common public interface for the latter while retaining the statistical interpretation of each inferential method. For the two-parameter ZIZ example, the same call structure gives four visually comparable regions:
 
-```{r uncertainty-regions, eval=FALSE}
+```{r uncertainty-region-mle, fig.cap="Likelihood-ratio confidence regions for the MLE fit."}
 plotUncertainty(mleFit, level = c(0.80, 0.95))
+```
+
+```{r uncertainty-region-bootstrap, fig.cap="Smoothed bootstrap confidence regions from the stored bootstrap parameter replicates."}
 plotUncertainty(bootFit, level = c(0.80, 0.95))
+```
+
+```{r uncertainty-region-bayes, fig.cap="Posterior credible regions from the stored parametric Bayesian posterior representation."}
 plotUncertainty(bayesFit, level = c(0.80, 0.95))
+```
+
+```{r uncertainty-region-bayesian-bootstrap, fig.cap="Rubin Bayesian Bootstrap uncertainty regions from the stored weighted-fit parameter replicates."}
 plotUncertainty(bayesBoot, level = c(0.80, 0.95))
 ```
 
@@ -237,6 +246,16 @@ The common appearance should not be read as a claim that the regions have the sa
 The implementation also reuses the uncertainty representation produced during fitting. Bootstrap and Bayesian-Bootstrap plots use the already stored parameter replicates. MCMC plots use the retained posterior chain; importance-sampling plots retain the importance weights in their KDE; and Laplace plots use the stored Gaussian covariance approximation. For the default two-dimensional numerical Bayesian fit, `fitPS` uses the stored posterior summary grid, orders grid points by posterior density, and cumulatively sums their stored quadrature mass. That cumulative mass determines the probability-content threshold for each requested credible region, so drawing a contour does not rerun adaptive cubature. In one dimension, the numerical posterior retains an evaluated density grid and its cumulative probability. The cumulative integral uses composite Simpson quadrature whenever the equally spaced grid permits it, with a trapezoidal contribution only for an unmatched final interval or a non-uniform fallback. Credible limits are then obtained by interpolation from that stored cumulative representation rather than repeatedly integrating the density while locating interval endpoints.
 
 For models with more than two parameters, select one or two parameters explicitly with `parameters = c(...)`. A later extension could provide a pairs-style display for higher-dimensional posterior or replicate representations; `plotUncertainty()` does not pretend that an ordinary contour is a useful representation of a three- or higher-dimensional region.
+
+The numerical and visual interfaces are deliberately separate. `confint()` remains the frequentist extractor for likelihood-based confidence intervals or region coordinates, while `credint()` is the Bayesian extractor for credible intervals or regions. `credint()` now reuses the posterior representation stored by `fit()`, including numerical, MCMC, importance-sampling, Laplace, and Rubin Bayesian Bootstrap representations where applicable. `plotUncertainty()` is the common visual layer over those uncertainty representations. The older `bootCI()` helper predates the modern `psBootstrap` object and can rerun a bootstrap solely to construct a confidence region, so it remains only as a deprecated compatibility path.
+
+The same distinction is useful when no plot is required. For example, Bayesian credible regions can be extracted numerically with `credint()`:
+
+```{r credible-region-extract}
+credint(bayesFit, level = c(0.80, 0.95), silent = TRUE)
+```
+
+For one-dimensional Bayesian fits, `credint()` returns equal-tailed credible limits. For two-dimensional fits it returns contour coordinates with the requested probability content, using the same stored posterior representation that `plotUncertainty()` visualises.
 
 ## Prediction interfaces
 

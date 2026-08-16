@@ -5,7 +5,7 @@
 \alias{bootCI.default}
 \alias{bootCI.psData}
 \alias{bootCI.psFit}
-\title{Bootstrap confidence intervals or regions}
+\title{Legacy bootstrap confidence intervals or regions}
 \usage{
 bootCI(x, ...)
 
@@ -95,11 +95,13 @@ If \code{returnBootVals == TRUE} then the results are returned in a
  elevation, then you would expect to capture a region from each mountain.
 }
 \description{
-Use boostrapping to generate confidence intervals, or confidence regions in
-the case of the zero-inflated model.
+`bootCI()` is a deprecated compatibility interface. New code should fit the
+model with [fit()] using `method = "bootstrap"` and use
+[plotUncertainty()] for parameter-uncertainty intervals or regions. The
+historical return structure is retained for existing code.
 }
 \details{
-This function uses bootstrapping to compute a confidence interval for
+This compatibility function uses bootstrapping to compute a confidence interval for
  the shape parameter in the case of the zeta model and a confidence region in
  the case of the zero-inflated zeta model. A smoothed bootstrap approach is
  taken rather than a simple percentile method. The kernel density estimation
@@ -116,15 +118,18 @@ This function uses bootstrapping to compute a confidence interval for
 
 }}
 \examples{
-\dontrun{
-data(Psurveys)
-roux = Psurveys$roux
-confRegion = bootCI(roux, model = "ziz", parallel = FALSE, plot = TRUE)
-
-## This will not work unless you have the sp package installed
-## Count how many of the points lie within the 95\% confidence region
-lapply(confRegion, function(cr){
-  table(sp::point.in.polygon(fit$pi,fit$shape, cr$pi, cr$shape))
-. })
+if (interactive()) {
+  data(Psurveys)
+  roux = Psurveys$roux
+  bootFit = fit(
+    roux,
+    model = zizModel(),
+    method = "bootstrap",
+    B = 200,
+    seed = 123,
+    silent = TRUE,
+    parallel = FALSE
+  )
+  plotUncertainty(bootFit, level = c(0.80, 0.95))
 }
 }

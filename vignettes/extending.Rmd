@@ -1,8 +1,8 @@
 ---
-title: "Extending fitPS with external models"
+title: "Adding a new model to fitPS"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Extending fitPS with external models}
+  %\VignetteIndexEntry{Adding a new model to fitPS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,11 +17,11 @@ knitr::opts_chunk$set(
 suppressPackageStartupMessages(library(fitPS))
 ```
 
-## Why this vignette exists
+## When to add a new model
 
-`fitPS` supports models defined outside the package. A downstream package or an ordinary R script can construct a `psModel` subclass, provide methods for a small public S3 contract, and pass that model directly to `fit()`.
+`fitPS` can fit models defined outside the package. This is useful when the built-in zeta, ZIZ, or logarithmic models do not represent the probability distribution required for an analysis. A separate package or an ordinary R script can define a `psModel` subclass, provide the required public S3 methods, and pass that model directly to `fit()`.
 
-The important architectural point is that the distribution-specific mathematics stays outside `fitPS`. The package supplies generic maximum-likelihood optimisation, low-dimensional numerical posterior integration, MCMC orchestration, and fitted-object machinery. The external model supplies its parameter names, observation mapping, probabilities, likelihood, priors, parameter constraints or transformations, and any model-specific starting information it needs.
+The division of responsibilities is straightforward: the new model supplies its statistical mathematics, while `fitPS` supplies the common fitting and fitted-object interfaces. The model therefore needs to describe its parameters, observation mapping, probabilities, likelihood, priors when Bayesian fitting is required, parameter constraints or transformations, and suitable starting information.
 
 This vignette develops two examples:
 
@@ -30,7 +30,7 @@ This vignette develops two examples:
 
 Neither example requires editing or rebuilding `fitPS`.
 
-## The public model contract
+## What a model must provide
 
 An external model starts with the following public maximum-likelihood pieces:
 
@@ -66,7 +66,7 @@ and the zeta shape used by `fitPS` satisfies
 
 Those constraints are scientifically meaningful, but they are awkward for a generic random-walk MCMC algorithm. A proposal made directly on the natural scale can easily produce an impossible value such as a negative rate or a probability greater than one. The generic `fitPS` MCMC engine therefore proposes on an **unconstrained scale**, where every coordinate can range over the whole real line.
 
-The public transformation contract has three parts:
+For MCMC, the model describes its transformation with three methods:
 
 1. `modelToUnconstrained(model, parameters)` maps a named vector of natural parameters \(\theta\) to unconstrained coordinates \(z\).
 2. `modelFromUnconstrained(model, unconstrained)` maps \(z\) back to the natural parameters \(\theta\). It must be the inverse of `modelToUnconstrained()` over the parameter region used for Bayesian fitting.
@@ -112,7 +112,7 @@ and the log-Jacobian is
 
 If a natural parameter is already unconstrained, the identity transformation is appropriate and its log-Jacobian contribution is zero. For several independently transformed parameters, the log-Jacobian is the sum of the component terms. A coupled multivariate transformation instead requires the log absolute determinant of the full inverse-transformation Jacobian matrix.
 
-All three transformation methods must return or accept named vectors whose names and order match `modelParameterNames(model)`. Keeping that contract exact is important because the generic MCMC engine has no model-specific knowledge with which to repair ambiguous parameter ordering.
+All three transformation methods must return or accept named vectors whose names and order match `modelParameterNames(model)`. Keeping the names and order exact is important because the MCMC fitter cannot infer a model-specific parameter ordering.
 
 The deterministic numerical engines are different: they integrate over the model's natural parameter scale using the bounds supplied by `modelBayesControl()`. They do not use these MCMC transformations. One-parameter models use one-dimensional numerical integration, two-parameter models use adaptive cubature, and models with three or more parameters should use MCMC. If a higher-dimensional model explicitly requests the numerical engine, `fitPS` refuses rather than silently changing the requested engine.
 
@@ -142,7 +142,7 @@ zeroBasedSurveySupport = function(n, type) {
 }
 ```
 
-A distribution whose natural support starts at 1 can use a different mapping. For example, the logarithmic model's first probability is naturally associated with both `P0` and `S1`. The extension contract therefore asks each model to define its support mapping explicitly rather than imposing truncation.
+A distribution whose natural support starts at 1 can use a different mapping. For example, the logarithmic model's first probability is naturally associated with both `P0` and `S1`. Each model therefore defines this support mapping explicitly rather than relying on a single hard-coded truncation rule.
 
 ## Example 1: an external Poisson model
 
@@ -180,7 +180,7 @@ If the observed count value `y_i` occurs with survey frequency `r_i`, the weight
 \right].
 \]
 
-This closed-form probability mass function makes Poisson a useful minimal example of the public extension contract.
+This closed-form probability mass function makes Poisson a useful minimal example of the extension interface.
 
 ### Construct the model
 
@@ -396,7 +396,7 @@ fitted(poissonFit)
 predict(poissonFit, newdata = 0:4, interval = "none")
 ```
 
-The common model-comparison infrastructure also works without any Poisson-specific AIC or BIC implementation.
+The standard model-comparison functions also work without any Poisson-specific AIC or BIC code.
 
 ```{r poisson-comparison}
 logLik(poissonFit)
@@ -516,7 +516,7 @@ P(Y=y_i\mid Z=z) f_Z(z;\mu,\sigma)\,dz
 \qquad \sigma > 0.
 \]
 
-This is a substantially stronger extensibility test than the ordinary Poisson model. The inner integral defining each likelihood contribution remains distribution-specific downstream mathematics, while `fitPS` owns the generic MLE optimizer and the outer Bayesian posterior integration or MCMC machinery.
+This second example is deliberately more demanding than the ordinary Poisson model. Each likelihood contribution contains an inner numerical integral, so it demonstrates how a model can retain its own specialised calculations while still using the standard `fitPS` fitting interface.
 
 ### Construct the two-parameter descriptor
 
@@ -669,7 +669,7 @@ modelLogLikelihood.externalPoissonNormalModel = function(model,
 }
 ```
 
-### Add the Poisson-normal Bayesian contract
+### Add Bayesian methods for the Poisson-normal model
 
 The two-parameter example uses a Normal prior for `mu` and a half-Normal prior for positive `sigma`. The Bayesian control reuses the finite MLE bounds; these give the two-dimensional numerical engine a finite integration rectangle. MCMC leaves the unconstrained location parameter `mu` unchanged and uses a log transform for positive `sigma`. Consequently the two-dimensional inverse transformation is `(mu, exp(zSigma))`, whose Jacobian determinant is `exp(zSigma)` and whose log-Jacobian is simply `zSigma`.
 
@@ -856,10 +856,10 @@ A real external package does not need to copy fitPS fitting code. Its distributi
 
 For an MLE-only model, there is no requirement to advertise a posterior engine. For Bayesian models, advertise only the engines supported by the public mathematics supplied by the model. One- and two-parameter models can use generic numerical integration; MCMC is the general route and is required for models with three or more parameters. External model authors do not implement those engines themselves.
 
-## Design lessons from the two examples
+## Practical lessons from the two examples
 
 The Poisson example shows that a distribution with a closed-form probability mass function can be added without another public fitting function and without any fitPS source modification.
 
-The Poisson-normal example demonstrates something stronger. Its marginal probability and likelihood require an inner numerical integral, yet that distribution-specific calculation and all prior/parameter mathematics remain external. `fitPS` provides MLE optimisation, adaptive two-dimensional posterior cubature, generic MCMC, posterior summaries, and the standard `psFit` interface. No Poisson-normal branch is needed in `fit()`, `predict()`, `logLik()`, AIC, BIC, deviance, or the posterior engines.
+The Poisson-normal example shows that a model can contain substantial distribution-specific mathematics, including an inner numerical integral, without requiring a special fitting function. Once the public model methods are supplied, the model can use the standard `fit()`, `predict()`, `logLik()`, AIC, BIC, deviance, and Bayesian interfaces.
 
-That is the intended extension boundary: **new statistical models supply model mathematics; fitPS supplies common fitting, posterior orchestration, and fitted-object infrastructure.**
+The practical rule is: **the new model supplies the statistical mathematics; `fitPS` supplies the common fitting, posterior, prediction, and fitted-object interfaces.**

@@ -47,7 +47,7 @@ mleFits = list(
 )
 ```
 
-For a maximum-likelihood fit, `logLik()` returns the maximized log-likelihood together with the number of fitted parameters and the sample size. That common contract allows the standard `AIC()` and `BIC()` functions to work for all three models.
+For each maximum-likelihood fit, `logLik()` gives the maximized log-likelihood and the information needed by the standard `AIC()` and `BIC()` functions. This makes the three models directly comparable with the familiar likelihood-based criteria.
 
 ```{r mle-comparison}
 mleComparison = do.call(
@@ -84,7 +84,7 @@ A difference of only a small number of criterion units should not be read as def
 
 ## Bayesian fits and DIC
 
-For the same models we can also fit Bayesian versions. These models have one or two parameters, so the generic numerical posterior engines established by `fitPS` are appropriate here. We request that core deterministic path explicitly.
+The same models can also be fitted in a Bayesian analysis. Because these examples have only one or two parameters, deterministic numerical posterior integration is a natural choice and makes the comparison reproducible without Monte Carlo variation.
 
 ```{r bayesian-fits}
 bayesFits = list(
@@ -204,7 +204,7 @@ A useful comparison should therefore ask both questions: which model is favoured
 
 Bayesian output involves several probability statements that are easy to conflate.
 
-First, the posterior distribution describes uncertainty about the model parameters after observing the data. For example, the Bayesian ZIZ fit contains posterior uncertainty about both the inflation parameter and the zeta shape parameter.
+First, the posterior distribution describes uncertainty about the model parameters after observing the data and incorporating the prior. For example, the Bayesian ZIZ fit contains posterior uncertainty about both the inflation parameter and the zeta shape parameter.
 
 Second, for any particular parameter vector \(\theta\), the model implies a conditional probability \(P_k(\theta)\). Evaluating the model at one representative parameter value, such as a posterior mean, is a plug-in calculation and does not average over parameter uncertainty.
 

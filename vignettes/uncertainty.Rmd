@@ -1,8 +1,8 @@
 ---
-title: "Probability uncertainty with fitPS"
+title: "Quantifying uncertainty with fitPS"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Probability uncertainty with fitPS}
+  %\VignetteIndexEntry{Quantifying uncertainty with fitPS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,9 +17,18 @@ knitr::opts_chunk$set(
 suppressPackageStartupMessages(library(fitPS))
 ```
 
-## Roux et al. footwear survey
+## What uncertainty means in fitPS
 
-We illustrate the functionality using the Roux et al. (2001) footwear data set, supplied with `fitPS` as a P survey. In this survey, the response is the number of different sources of glass found on each surveyed pair of shoes.
+A fitted probability model gives more than a single set of estimated probabilities. The survey is finite, so both the fitted model parameters and the probabilities derived from them are uncertain.
+
+It is useful to keep two questions separate:
+
+1. **Parameter uncertainty:** how precisely have parameters such as the zeta shape parameter or the ZIZ inflation parameter been estimated?
+2. **Probability uncertainty:** after allowing for parameter or sampling uncertainty, how uncertain are the fitted P or S probability terms used in an application?
+
+`fitPS` supports several inferential approaches to these questions. They do not produce interchangeable intervals, because they represent uncertainty in different ways.
+
+This vignette uses the Roux et al. (2001) footwear survey and the two-parameter zero-inflated zeta (ZIZ) model. A two-parameter model is useful for illustration because uncertainty can be shown as a region rather than only as separate one-dimensional intervals.
 
 ```{r roux-data}
 data("Psurveys")
@@ -27,217 +36,86 @@ roux = Psurveys$roux
 roux
 ```
 
-We use the zero-inflated zeta (ZIZ) model as the worked example throughout this vignette. This is a deliberately rich example: it accommodates additional probability at zero and lets us show uncertainty in both an inflation probability, `pi`, and the standard fitPS zeta `shape` parameter, which is greater than 1. The uncertainty methods described below are not specific to ZIZ; the same `fit()` interface applies to other supported models. Choosing among plausible models is a separate task, discussed in the model-comparison vignette.
+## Choosing an uncertainty method
 
-The uncertainty calculations in this vignette build directly on Curran, Buzzini, and Trejos (2024), who extend the P/S methodology for background glass probabilities, derive frequentist uncertainty for the fitted probability terms, introduce more flexible treatment of excess zeros and ones, and demonstrate the fitPS package. Their paper identifies Bayesian estimation as future work; the parametric Bayesian and Rubin Bayesian Bootstrap methods below are later fitPS extensions beyond that published frequentist analysis. These uncertainty procedures answer different inferential questions and should not be interpreted as interchangeable.
+The main choices currently available in `fitPS` are summarised below.
 
-## Plug-in probabilities
+| Method | How to request it | Main interpretation |
+|:--|:--|:--|
+| Maximum likelihood | `fit(..., method = "mle")` | Sampling uncertainty for parameter estimates, usually through Wald or profile likelihood intervals/regions |
+| Ordinary bootstrap | `fit(..., method = "bootstrap")` | Sampling uncertainty estimated by repeatedly resampling the observed survey and refitting the model |
+| Parametric Bayes | `fit(..., method = "bayes")` | Posterior uncertainty about model parameters given the data and prior |
+| Rubin Bayesian Bootstrap | `fit(..., method = "bayesianBootstrap")` | Uncertainty induced by random weights on the observed empirical distribution followed by weighted refitting |
 
-The conventional maximum-likelihood fit evaluates each P term at the fitted parameter values.
+There is no single method that is best in every setting. Maximum likelihood is often the natural starting point when a frequentist analysis is required. The ordinary bootstrap is useful when the sampling behaviour of the fitted estimator is of interest and the repeated fitting cost is acceptable. Parametric Bayesian fitting is appropriate when posterior inference is desired and the prior model is scientifically defensible. Rubin's Bayesian Bootstrap provides a Bayesian treatment of uncertainty in the empirical distribution without placing the same kind of parametric prior on the model parameters.
 
-```{r mle-fit}
-mleFit = fit(roux, model = zizModel(), nterms = 6)
-fitted(mleFit, type = "plugIn")
-```
+The numerical values from these approaches should therefore not be treated as competing estimates of exactly the same quantity. Their interpretations differ, even when their plots look similar.
 
-These are plug-in estimates of the form
+## Fit the ZIZ model in four ways
 
-\[
-P_k(\widehat{\theta}),
-\]
+The same model can be fitted under each inferential approach.
 
-where \(\widehat{\theta}=(\widehat{\pi},\widehat{\mathrm{shape}})\).
-
-## Bayesian posterior probabilities
-
-A Bayesian zero-inflated fit is requested with `method = "bayes"`. The default posterior engine is deterministic numerical integration over the joint posterior.
-
-```{r bayes-fit}
-bayesFit = fit(
+```{r fit-mle}
+mleFit = fit(
   roux,
-  model = zizModel(),
-  nterms = 6,
-  method = "bayes",
-  bayesOptions = list(
-    posteriorMethod = "numerical"
-  )
-)
-
-bayesFit$posterior
-```
-
-The default prior for `pi` is Beta(1, 1). The shape prior is created by `makePrior()` and is log-uniform on `shape - 1` over its default support. Alternative beta-prior parameters can be supplied with `shape1` and `shape2`, and an alternative shape prior can be supplied through `bayesOptions$prior`.
-
-The probability summaries are obtained directly from the joint posterior distribution of `pi` and `shape`.
-
-```{r posterior-probs}
-posteriorProbs(bayesFit, n = 6)
-```
-
-The `estimate` column is the posterior mean probability,
-
-\[
-E\{P_k(\theta)\mid x\},
-\]
-
-not the probability evaluated at posterior mean parameters. Because the P terms are nonlinear functions of the parameters, those two quantities need not agree.
-
-```{r posterior-vs-plugin}
-cbind(
-  plugIn = fitted(bayesFit, n = 6, type = "plugIn"),
-  posteriorMean = fitted(bayesFit, n = 6, type = "posteriorMean")
+  model = zizModel()
 )
 ```
 
-The posterior object can also be plotted directly. Points are posterior means and vertical lines are equal-tailed credible intervals.
-
-```{r posterior-plot}
-plot(bayesFit$posterior, n = 6)
-```
-
-### Inference about the inflation component
-
-The inflation parameter `pi` is itself scientifically useful. It measures the extra probability assigned to the inflated value beyond that supplied by the zeta component. For a P survey this is extra mass at `P0`; for an S survey it is extra mass at `S1`. The marginal posterior for `pi` can therefore be inspected directly.
-
-```{r pi-posterior}
-plotPosterior(bayesFit, parameter = "pi")
-```
-
-For practical model assessment, it is more useful to ask whether the inflation is *negligibly small* than whether `pi` is exactly zero. Let `epsilon` be an application-specific threshold below which the effect of inflation would make little practical difference. We can then calculate
-
-\[
-\Pr(\pi < \epsilon \mid x).
-\]
-
-For the present application, `epsilon = 0.01` is a useful illustrative choice: an inflation probability of one percent or less would often have only a small effect on the fitted P probabilities. The threshold is not universal, however, and should be chosen according to the practical consequences in the application.
-
-```{r pi-practical-probability}
-posteriorInflation(bayesFit, epsilon = 0.01)
-summary(bayesFit, inflationEpsilon = 0.01)
-```
-
-A large value of `Pr(pi < 0.01 | data)` indicates that the posterior places substantial probability on inflation values that are practically negligible, so the additional zero-inflation component may add little in practice. A small value indicates that most posterior mass is on materially larger inflation values. This provides a graded assessment of the practical importance of inflation rather than forcing a binary model-selection decision.
-
-This diagnostic also avoids a technical limitation of asking for the posterior probability of exactly `pi = 0`. Under the continuous beta prior used here, that point has posterior probability zero. A formal posterior probability for the exact no-inflation model would require a point mass at zero or explicit model comparison, whereas `Pr(pi < epsilon | data)` is available directly under the current model and answers the practically relevant question.
-
-### Posterior engine choice
-
-For one- and two-parameter models, `fitPS` uses deterministic numerical integration when the model advertises numerical support. The ZIZ model is two-dimensional, so its numerical posterior is evaluated by adaptive cubature. MCMC is the core simulation-based alternative and is the route used for models with three or more parameters.
-
-```{r mcmc-engine, eval=FALSE}
-mcmcFit = fit(
-  roux,
-  model = zizModel(),
-  method = "bayes",
-  bayesOptions = list(posteriorMethod = "mcmc"),
-  nIter = 5000,
-  nBurnIn = 1000,
-  seed = 1234
-)
-```
-
-Laplace and importance-sampling engines remain available for the built-in ZIZ model, primarily for compatibility and specialised experimentation. They are not the main extension path: external models should normally target numerical integration when they have at most two parameters and MCMC otherwise.
-
-For numerical fitting, posterior expectations are computed by deterministic integration. For MCMC, each retained parameter draw is transformed into P or S terms before posterior summaries are calculated.
-
-## Bootstrap probability distributions
-
-The ordinary- and Bayesian-Bootstrap objects used below are precomputed with fixed seeds because each contains 1,000 refitted parameter realizations. The repository retains the exact regeneration script in `dev/regenerate-uncertainty-comparison.R`; keeping these expensive simulation results as vignette assets makes routine package and vignette builds much faster without hiding the code needed to reproduce them.
-
-```{r uncertainty-bootstrap-cache, include=FALSE}
-uncertaintyCache = readRDS(file.path("figures", "uncertainty-bootstrap-cache.rds"))
-bootFit = uncertaintyCache$bootFit
-bayesBoot = uncertaintyCache$bayesBoot
-```
-
-The frequentist analogue uses the nonparametric bootstrap distribution of the fitted parameter estimator. Bootstrap inference is requested through the same `fit()` interface as maximum-likelihood and parametric Bayesian fitting. For `method = "bootstrap"`, fitPS repeatedly resamples the Roux survey observations, refits the model by maximum likelihood, and transforms each successful bootstrap parameter replicate into P terms.
-
-```{r bootstrap-fit, eval=FALSE}
+```{r fit-bootstrap, eval=FALSE}
 bootFit = fit(
   roux,
   model = zizModel(),
   method = "bootstrap",
-  nterms = 6,
   B = 1000,
   seed = 1234,
-  silent = TRUE,
-  parallel = FALSE
+  silent = TRUE
 )
 ```
 
-```{r bootstrap-probabilities}
-bootstrapProbs(bootFit, n = 6)
-```
-
-The bootstrap probability estimate is
-
-\[
-E_*\{P_k(\widehat{\theta}^*)\},
-\]
-
-where \(E_*\) denotes expectation over the bootstrap distribution. It is not a Bayesian posterior mean and it is generally not identical to the plug-in probability.
-
-There is nevertheless a useful Bayesian perspective on the bootstrap. Efron described the bootstrap as moving from the observed-data world to a "bootstrap world" by replacing the unknown data-generating distribution with an estimated one, and later showed that parametric-bootstrap draws can be reweighted by importance sampling to compute Bayesian posterior quantities. Thus bootstrap and posterior simulation remain different inferential procedures, but they support closely parallel calculations for derived quantities. In `fitPS`, the frequentist calculation averages \(P_k(\widehat{\theta}^*)\) over bootstrap replicates, whereas the Bayesian calculation averages \(P_k(\theta)\) over the posterior distribution. This parallel is one reason the package represents bootstrap and posterior uncertainty using closely related objects while retaining their different interpretations.
-
-```{r compare-three}
-cbind(
-  plugIn = fitted(mleFit, n = 6, type = "plugIn"),
-  bootstrapMean = fitted(bootFit, n = 6, type = "bootstrapMean"),
-  posteriorMean = fitted(bayesFit, n = 6, type = "posteriorMean")
+```{r fit-bayes}
+bayesFit = fit(
+  roux,
+  model = zizModel(),
+  method = "bayes"
 )
 ```
 
-The bootstrap probability object reports percentile confidence intervals and can be plotted in the same style as the posterior object.
-
-```{r bootstrap-plot}
-plot(bootFit$bootstrap, n = 6)
-```
-
-The vignette uses 1,000 ordinary-bootstrap replicates so that the two-dimensional KDE confidence regions are based on a reasonably stable realization cloud while remaining practical to rebuild.
-
-## Rubin's Bayesian Bootstrap
-
-Rubin's Bayesian Bootstrap is also requested through `fit()`, but it represents a different source of uncertainty. Instead of resampling observations, it keeps the observed support fixed and assigns random positive weights to the empirical observations. For aggregated fitPS survey data, the category weights are drawn directly from
-
-\[
-(W_1, \ldots, W_k) \sim \operatorname{Dirichlet}(n_1, \ldots, n_k),
-\]
-
-which is equivalent to drawing `Dirichlet(1, ..., 1)` weights on the individual observations and summing weights belonging to identical observed values. Each draw is then refitted by weighted maximum likelihood.
-
-```{r bayesian-bootstrap-fit, eval=FALSE}
+```{r fit-bayesian-bootstrap, eval=FALSE}
 bayesBoot = fit(
   roux,
   model = zizModel(),
   method = "bayesianBootstrap",
-  nterms = 6,
   B = 1000,
   seed = 1234
 )
 ```
 
-```{r bayesian-bootstrap-summary}
-summary(bayesBoot, nterms = 6)
+The bootstrap fits above are marked `eval = FALSE` because 1,000 repeated model fits make package vignette builds unnecessarily slow. The comparison figure later in this vignette was generated from those analyses using fixed seeds.
+
+## Numerical intervals and regions
+
+For frequentist fits, `confint()` is the main numerical extractor.
+
+```{r frequentist-intervals}
+confint(mleFit, level = c(0.80, 0.95))
 ```
 
-This is not the same as the parametric Bayesian posterior. Parametric Bayesian fitting places a prior on model parameters and averages over `p(theta | x)`. Rubin's Bayesian Bootstrap instead places uncertainty on the empirical distribution through random observation weights and then refits the model. The resulting intervals may therefore differ legitimately from both percentile bootstrap confidence intervals and parametric Bayesian credible intervals. Failed weighted fits remain recorded in the Bayesian Bootstrap diagnostics rather than being silently redrawn or smoothed.
+For a one-parameter model this gives intervals. For a two-parameter ZIZ model, profile likelihood can also describe joint confidence regions for the inflation parameter and shape parameter.
 
-The four inferential routes can therefore be requested from one public fitting interface while retaining different uncertainty objects and interpretations.
+Bayesian fits use `credint()`.
 
-```{r compare-four}
-cbind(
-  plugIn = fitted(mleFit, n = 6, type = "plugIn"),
-  bootstrapMean = fitted(bootFit, n = 6, type = "bootstrapMean"),
-  posteriorMean = fitted(bayesFit, n = 6, type = "posteriorMean"),
-  bayesianBootstrapMean = bayesBoot$probabilities$estimate[1:6]
-)
+```{r bayesian-intervals}
+credint(bayesFit, level = c(0.80, 0.95), silent = TRUE)
 ```
 
-## A common parameter-uncertainty plotting interface
+For one-dimensional Bayesian fits, `credint()` returns equal-tailed credible limits. For two-dimensional fits it returns credible-region contour coordinates with the requested posterior probability content.
 
-The fitted probability plots above answer a different question from plots of parameter uncertainty. `plotUncertainty()` provides a common public interface for the latter while retaining the statistical interpretation of each inferential method. For the two-parameter ZIZ example, the four methods are most informative when they are shown together on the same parameter scale.
+The distinction in terminology matters. A 95% frequentist confidence interval and a 95% Bayesian credible interval do not make the same probability statement. The former is defined by the repeated-sampling procedure; the latter describes posterior probability conditional on the observed data and prior model.
 
-The comparison below uses common axis limits derived from every displayed confidence or credible contour and from both bootstrap realization clouds, then draws all four methods in one 2 by 2 panel. The ordinary bootstrap and Rubin Bayesian Bootstrap panels also show the actual fitted parameter realizations beneath their KDE contours, preserving the visual character of the original smoothed-bootstrap display.
+## Visualising parameter uncertainty
+
+`plotUncertainty()` provides one plotting interface for the different inferential approaches. The plotting command is intentionally similar across fitted objects:
 
 ```{r uncertainty-region-comparison-code, eval=FALSE}
 plotUncertainty(mleFit, level = c(0.80, 0.95))
@@ -246,13 +124,20 @@ plotUncertainty(bayesFit, level = c(0.80, 0.95))
 plotUncertainty(bayesBoot, level = c(0.80, 0.95))
 ```
 
-```{r uncertainty-region-comparison, echo=FALSE, out.width="100%", fig.cap="Comparable ZIZ parameter-uncertainty regions on common axes. Top left: profile-likelihood confidence regions. Top right: ordinary-bootstrap KDE confidence regions with bootstrap realizations. Bottom left: parametric-Bayesian posterior credible regions. Bottom right: Rubin Bayesian-Bootstrap KDE regions with weighted-fit realizations."}
+The figure below compares the four methods on common axes. The bootstrap panels also show the fitted parameter realizations used to construct the smoothed regions.
+
+```{r uncertainty-region-comparison, echo=FALSE, out.width="100%", fig.cap="ZIZ parameter uncertainty under four inferential approaches. Top left: profile-likelihood confidence regions. Top right: ordinary-bootstrap KDE confidence regions with bootstrap realizations. Bottom left: parametric-Bayesian posterior credible regions. Bottom right: Rubin Bayesian-Bootstrap KDE regions with weighted-fit realizations."}
 knitr::include_graphics(file.path("figures", "uncertainty-comparison.png"))
 ```
 
-The comparison image is regenerated from fixed seeds by `dev/regenerate-uncertainty-comparison.R`. As part of that regeneration, the ordinary-bootstrap contour coordinates produced by `plotUncertainty()` are checked directly against an independent unconstrained `Hscv()`/`kde()`/`contourLevels()`/`contourLines()` construction from the same 1,000 bootstrap realizations. The regeneration stops if those geometries diverge.
+The similar visual form should not obscure the different interpretations:
 
-The contours are defined from the smoothed KDE rather than by selecting an exact fraction of the realized points. The table below reports the actual fraction of the 1,000 parameter realizations lying inside each displayed contour. These empirical containment values should be reasonably close to the nominal probability content, but they need not be identical because the regions are probability regions of the fitted KDE.
+- the MLE panel is a **profile-likelihood confidence region**;
+- the ordinary-bootstrap panel is a **smoothed region based on the bootstrap distribution of the fitted estimator**;
+- the parametric-Bayesian panel is a **posterior credible region**;
+- the Bayesian-Bootstrap panel is a **smoothed region from the distribution of weighted maximum-likelihood fits**.
+
+For the sample-based bootstrap methods, a KDE contour with nominal probability content does not have to contain exactly that proportion of the finite set of realizations. The empirical proportions for the displayed 80% and 95% regions are shown below as a useful diagnostic.
 
 ```{r uncertainty-region-containment, echo=FALSE}
 containmentTable = utils::read.csv(
@@ -266,37 +151,56 @@ knitr::kable(
 )
 ```
 
-The common appearance should not be read as a claim that the regions have the same meaning. The MLE display is a profile-likelihood confidence region. The ordinary bootstrap display is a smoothed KDE confidence region based on the sampling distribution of the fitted estimator. The parametric Bayesian display is a posterior credible region. The Rubin Bayesian Bootstrap display is a KDE region for the distribution of weighted maximum-likelihood fits induced by random empirical weights.
+For models with more than two parameters, specify one or two parameters with the `parameters` argument when a focused uncertainty plot is useful.
 
-The ZIZ bootstrap KDE uses the same `Hscv()` bandwidth-selection and probability-content contour construction as the original `bootCI()` display, but deliberately does **not** request `positive = TRUE` from `ks::kde()`. Diagnostic comparison with the realized `(pi, shape)` bootstrap cloud showed that the positive-support transformation could rotate and over-smooth the joint density even though the replicates lie well inside the relevant parameter bounds. The unconstrained KDE follows the observed bootstrap geometry substantially more closely. The modern route also reuses the bootstrap realizations already stored by `fit(..., method = "bootstrap")` rather than rerunning the bootstrap merely to make the plot.
+## Uncertainty in fitted probabilities
 
-For models with more than two parameters, select one or two parameters explicitly with `parameters = c(...)`. A later extension could provide a pairs-style display for higher-dimensional posterior or replicate representations; `plotUncertainty()` does not pretend that an ordinary contour is a useful representation of a three- or higher-dimensional region.
+Parameter uncertainty matters because the P and S probability terms are functions of the fitted parameters. There are several useful summaries, and they answer different questions.
 
-The numerical and visual interfaces are deliberately separate. `confint()` remains the frequentist extractor for profile-likelihood confidence intervals or region coordinates, while `credint()` is the Bayesian extractor for credible intervals or regions. `credint()` now reuses the posterior representation stored by `fit()`, including numerical, MCMC, importance-sampling, Laplace, and Rubin Bayesian Bootstrap representations where applicable. `plotUncertainty()` is the common visual layer over those uncertainty representations. The older `bootCI()` helper predates the modern `psBootstrap` object and can rerun a bootstrap solely to construct a confidence region, so it remains only as a deprecated compatibility path.
+For an MLE fit, the usual fitted probabilities are plug-in estimates:
 
-The same distinction is useful when no plot is required. For example, Bayesian credible regions can be extracted numerically with `credint()`:
+\[
+P_k(\widehat{\theta}).
+\]
 
-```{r credible-region-extract}
-credint(bayesFit, level = c(0.80, 0.95), silent = TRUE)
+```{r mle-probabilities}
+fitted(mleFit, n = 6, type = "plugIn")
 ```
 
-For one-dimensional Bayesian fits, `credint()` returns equal-tailed credible limits. For two-dimensional fits it returns contour coordinates with the requested probability content, using the same stored posterior representation that `plotUncertainty()` visualises.
+For an ordinary bootstrap, the fitted probabilities can be averaged across bootstrap refits, and percentile intervals can describe their sampling uncertainty:
 
-The implementation also reuses the uncertainty representation produced during fitting. Bootstrap and Bayesian-Bootstrap plots use the already stored parameter replicates. MCMC plots use the retained posterior chain; importance-sampling plots retain the importance weights in their KDE; and Laplace plots use the stored Gaussian covariance approximation. For the default two-dimensional numerical Bayesian fit, `fitPS` uses the stored posterior summary grid, orders grid points by posterior density, and cumulatively sums their stored quadrature mass. That cumulative mass determines the probability-content threshold for each requested credible region, so drawing a contour does not rerun adaptive cubature. In one dimension, the numerical posterior retains an evaluated density grid and its cumulative probability. The cumulative integral uses composite Simpson quadrature whenever the equally spaced grid permits it, with a trapezoidal contribution only for an unmatched final interval or a non-uniform fallback. Credible limits are then obtained by interpolation from that stored cumulative representation rather than repeatedly integrating the density while locating interval endpoints.
-
-## Prediction interfaces
-
-The same distinction is available through `predict()`.
-
-```{r predict-interface}
-predict(mleFit, newdata = 0:5, type = "plugIn")
-predict(bootFit, newdata = 0:5, type = "bootstrapMean", interval = "percentile")
-predict(bayesFit, newdata = 0:5, type = "posteriorMean", interval = "credible")
+```{r bootstrap-probabilities, eval=FALSE}
+fitted(bootFit, n = 6, type = "bootstrapMean")
+predict(
+  bootFit,
+  newdata = 0:5,
+  type = "bootstrapMean",
+  interval = "percentile"
+)
 ```
 
-Thus the fitted-object prediction interface exposes the plug-in, frequentist-bootstrap, and parametric-posterior summaries directly. Rubin's Bayesian Bootstrap remains a separate uncertainty object returned by `fit()` and is summarised through its own `summary()` and probability table.
+For a parametric Bayesian fit, posterior-mean probabilities average the model probability over the posterior distribution of the parameters:
 
-The four probability calculations are conceptually distinct:
+\[
+E\{P_k(\theta) \mid x\}.
+\]
+
+```{r posterior-probabilities}
+predict(
+  bayesFit,
+  newdata = 0:5,
+  type = "posteriorMean",
+  interval = "credible"
+)
+```
+
+The Bayesian Bootstrap instead averages probabilities over the distribution of weighted refits. Its summary method reports the corresponding probability estimates and intervals.
+
+```{r bayesian-bootstrap-summary, eval=FALSE}
+summary(bayesBoot, nterms = 6)
+```
+
+These four calculations can be written schematically as
 
 \[
 P_k(\widehat{\theta}), \qquad
@@ -305,15 +209,38 @@ E\{P_k(\theta)\mid x\}, \qquad
 E_{BB}\{P_k(\widehat{\theta}_W)\}.
 \]
 
-`probfun()` remains the plug-in probability interface. Use `posteriorProbs()` for Bayesian posterior probability summaries and `bootstrapProbs()` for bootstrap probability summaries.
+They are related, but they are not synonyms. In particular, a posterior-mean probability is not simply the probability evaluated at the posterior mean parameter vector.
+
+## Posterior method choice
+
+For Bayesian fitting, `fitPS` can use different computational methods to represent the posterior. For the one- and two-parameter built-in models used in most examples, the default numerical method is usually a good choice because it is deterministic and directly suited to low-dimensional posteriors.
+
+MCMC can be requested when simulation-based posterior inference is preferred:
+
+```{r mcmc-method, eval=FALSE}
+mcmcFit = fit(
+  roux,
+  model = zizModel(),
+  method = "bayes",
+  bayesOptions = list(posteriorMethod = "mcmc")
+)
+```
+
+The statistical interpretation remains Bayesian in either case. The posterior method is primarily a computational choice; users should generally choose it based on model dimension, numerical suitability, and the diagnostics available for the chosen method rather than because it changes the inferential framework.
+
+## Practical recommendations
+
+For most analyses, start by deciding what kind of uncertainty statement is required rather than by choosing a plotting function.
+
+If the analysis is frequentist, fit by maximum likelihood and use `confint()` for numerical intervals or regions. Use the ordinary bootstrap when resampling-based uncertainty is useful and the additional computation is acceptable. If the analysis is Bayesian, use `credint()` for parameter uncertainty and posterior probability summaries for derived P or S terms. Use Rubin's Bayesian Bootstrap when uncertainty in the empirical distribution is the inferential target.
+
+Use `plotUncertainty()` when the shape and dependence of parameter uncertainty are scientifically informative, especially for two-parameter models such as ZIZ. When reporting results, name the inferential method and the type of interval or region rather than reporting a percentage alone.
 
 ## References
 
 Curran, J. M., Buzzini, P., and Trejos, T. (2024). Estimating probability terms for the background presence of glass when considering activity in forensic casework. *Forensic Science International*, 364, 112221. https://doi.org/10.1016/j.forsciint.2024.112221
 
 Efron, B. (1979). Bootstrap methods: Another look at the jackknife. *The Annals of Statistics*, 7(1), 1-26.
-
-Efron, B. (2003). Second thoughts on the bootstrap. *Statistical Science*, 18(2), 135-140.
 
 Rubin, D. B. (1981). The Bayesian bootstrap. *The Annals of Statistics*, 9(1), 130-134.
 

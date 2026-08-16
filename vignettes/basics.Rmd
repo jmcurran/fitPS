@@ -1,8 +1,8 @@
 ---
-title: "fitPS basics: fitting probability surveys"
+title: "Getting started with fitPS"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{fitPS basics}
+  %\VignetteIndexEntry{Getting started with fitPS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -30,21 +30,21 @@ data("Psurveys")
 roux = Psurveys$roux
 ```
 
-The package includes a special printing function that summarises the data for reading rather than displaying it in the way it is stored. R prints the values of objects, or variables, simply by typing their name. For example:
+Printing the survey object gives a compact summary of the observed frequencies:
 
 ```{r print-roux}
 roux
 ```
 
-It is very simple to fit a zeta distribution to this data set. The current public interface uses `fit()` with an explicit zeta model descriptor.
+Fit a zeta distribution with `fit()` and the `zetaModel()` model descriptor:
 
 ```{r fit-roux}
 fit = fit(roux, model = zetaModel())
 ```
 
-The older `fitDist()` function remains as a deprecated compatibility wrapper, but new code should use `fit()`.
+New analyses should use this generic `fit()` interface; older distribution-specific fitting functions are retained only for backward compatibility.
 
-We have assigned the result of the fitting to an arbitrarily chosen variable name, `fit`, chosen because it is easy to remember that it is a fitted object. The package includes specialised functions for both printing and plotting the fitted object. The `print` method displays an estimate of the shape parameter $\alpha$ and the standard error of that estimate, $\widehat{\mathrm{sd}}(\hat{\alpha}) = \mathrm{se}(\hat{\alpha})$. The reported value is the same shape parameter used throughout `fitPS` and stored in the fitted object.
+The fitted object contains the estimated shape parameter $\alpha$, its standard error, and the fitted probability terms. Printing the object gives a concise summary of these quantities.
 
 ### Using the fitted distribution to estimate P terms
 
@@ -54,13 +54,13 @@ The `print` method displays the first 10 fitted probabilities from the model by 
 fit
 ```
 
-This information is probably sufficient for most casework. However, the package has a function, `probfun`, that returns a bespoke function that can calculate any probability term. This function is applied to a fitted object. For example:
+For probability terms beyond those printed by default, `probfun()` creates a function that evaluates the fitted model at any requested term:
 
 ```{r probability-function}
 P = probfun(fit)
 ```
 
-`P` is just a variable name and we could have used anything. We have chosen `P` because this probability function returns $P$ terms. To use it, we only need to provide the value of $k$, and the function will return $P_k$. For example:
+Calling the returned function with a value of $k$ gives the corresponding fitted $P_k$:
 
 ```{r probability-example}
 P(5)
@@ -75,7 +75,7 @@ fit.zi = fit(roux, model = zizModel())
 fit.zi
 ```
 
-The older `fitZIDist()` function remains as a deprecated compatibility wrapper.
+The same generic fitting interface is used for both zeta and ZIZ models.
 
 In the example above we fit a zero-inflated model to Roux et al.'s data and print the resulting fit. We get estimates of the parameters and a default set of fitted values. The output is interesting because the value of $\hat{\pi}$ shows that the zero part of the zero-inflated model is picking up about `r round(100 * fit.zi$pi)`% of the zeros. It is interesting to compare the estimates from the raw frequencies, the zeta model, and the ZIZ model. The estimates are shown in Table \ref{tab:ex1}.
 
@@ -104,14 +104,14 @@ ci$prof
 
 ### Profile-likelihood and bootstrap confidence regions for the zero-inflated zeta
 
-For a two-parameter zero-inflated zeta fit, `plotUncertainty()` provides the common parameter-uncertainty display used throughout fitPS. For an MLE fit it draws the established profile-likelihood confidence region. The numerical contour coordinates remain available from `confint()` when they are needed for downstream calculations rather than plotting.
+For a two-parameter zero-inflated zeta fit, `plotUncertainty()` shows joint parameter uncertainty. For an MLE fit it draws profile-likelihood confidence regions. Use `confint()` when numerical interval or region information is required.
 
 ```{r confidence-region, eval=FALSE}
 plotUncertainty(fit.zi, level = c(0.80, 0.95))
 cr = confint(fit.zi, level = c(0.80, 0.95))
 ```
 
-The same plotting call is used after fitting by ordinary nonparametric bootstrap. The bootstrap fit stores its successful parameter replicates, so drawing the smoothed KDE confidence region does not rerun the bootstrap. This can matter because the resampling and repeated model fitting are substantially more expensive than drawing the contours.
+The same plotting call can be used after an ordinary bootstrap fit. In that case the plot shows a smoothed region based on the distribution of bootstrap parameter estimates.
 
 ```{r boot-confidence-region, eval=FALSE}
 boot.fit = fit(
@@ -125,7 +125,7 @@ boot.fit = fit(
 plotUncertainty(boot.fit, level = c(0.80, 0.95))
 ```
 
-The older `bootCI()` interface remains available for compatibility but is deprecated. New code should obtain the bootstrap distribution through `fit(..., method = "bootstrap")` and use `plotUncertainty()` for the corresponding parameter-uncertainty display.
+For new analyses, obtain the bootstrap distribution with `fit(..., method = "bootstrap")` and use `plotUncertainty()` to display the corresponding parameter uncertainty.
 
 ## Comparing two surveys
 

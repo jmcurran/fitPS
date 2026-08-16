@@ -12,6 +12,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.026
+
+- Rework all package vignettes to read as user-facing statistical documentation rather than development notes.
+- Rename and restructure the uncertainty vignette around parameter uncertainty, probability uncertainty, method choice, numerical extraction, plotting, and practical interpretation.
+- Simplify the basics and model-comparison narratives and reframe the extension vignette as a practical guide for authors adding statistical models.
+- Preserve the existing fitting APIs, examples, cached uncertainty figure, and inferential behaviour; this stage changes documentation only.
+- Validate the four vignette sources with a lightweight knit-based documentation check.
+
 ## fitPS 1.1.3.025
 
 - Repaired two-dimensional ordinary and Rubin Bayesian Bootstrap uncertainty regions to use an unconstrained bivariate KDE rather than the ks positive-support transformation.

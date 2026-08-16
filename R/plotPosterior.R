@@ -229,6 +229,27 @@ getSamplePosteriorPlotData = function(object, parameter, level, samples){
 #' @keywords internal
 #' @noRd
 getDensityPosteriorPlotData = function(object, parameter, level, nGrid){
+  storedGrid = getStoredPosteriorGrid(object, parameter)
+  if (!is.null(storedGrid)) {
+    alpha = (1 - level) / 2
+    interval = approx(
+      x = storedGrid$cumulative,
+      y = storedGrid$x,
+      xout = c(alpha, 1 - alpha),
+      rule = 2,
+      ties = "ordered"
+    )$y
+
+    return(list(
+      x = storedGrid$x,
+      density = storedGrid$density,
+      estimate = getPosteriorEstimate(object, parameter),
+      interval = interval,
+      cumulative = storedGrid$cumulative,
+      integrationRule = storedGrid$integrationRule
+    ))
+  }
+
   densityFunction = getPosteriorDensityFunction(object, parameter)
 
   if(is.null(densityFunction)){
@@ -257,8 +278,41 @@ getDensityPosteriorPlotData = function(object, parameter, level, nGrid){
     x = grid,
     density = densityValues,
     estimate = getPosteriorEstimate(object, parameter),
-    interval = interval
+    interval = interval,
+    cumulative = posteriorFunctions$cumulative$cumulative,
+    integrationRule = posteriorFunctions$integrationRule
   )
+}
+
+#' Extract a stored one-dimensional numerical posterior grid.
+#'
+#' @param object Bayesian `psFit` object.
+#' @param parameter Requested model parameter.
+#' @return Stored grid information or `NULL` when unavailable.
+#' @keywords internal
+#' @noRd
+getStoredPosteriorGrid = function(object, parameter) {
+  if (!inherits(object$posterior, "psPosterior")) {
+    return(NULL)
+  }
+
+  representation = object$posterior$representation
+  if (!inherits(representation, "numericalPosteriorRepresentation")) {
+    return(NULL)
+  }
+
+  grid = representation$value$grid
+  if (is.null(grid) || is.null(grid$parameter) || !identical(grid$parameter, parameter) ||
+      is.null(grid$x) || is.null(grid$density) || is.null(grid$cumulative)) {
+    return(NULL)
+  }
+
+  if (length(grid$x) != length(grid$density) ||
+      length(grid$x) != length(grid$cumulative)) {
+    return(NULL)
+  }
+
+  grid
 }
 
 
@@ -411,27 +465,31 @@ getPosteriorSpread = function(object, parameter){
 makePosteriorGridFunctions = function(x, y){
   densityFun = approxfun(x, y, yleft = 0, yright = 0, rule = 1)
   xRange = range(x)
-  area = integrate(densityFun, lower = xRange[1], upper = xRange[2])$value
-
-  if(!is.finite(area) || area <= 0){
-    stop("The stored posterior density could not be normalized.", call. = FALSE)
-  }
-
+  cumulativeIntegral = cumulativePosteriorIntegral(x, y)
+  cumulativeArea = cumulativeIntegral$cumulative
+  area = cumulativeIntegral$area
+  cumulativeProbability = cumulativeArea / area
+  cdfInterpolation = approxfun(
+    x,
+    cumulativeProbability,
+    yleft = 0,
+    yright = 1,
+    rule = 2
+  )
   cdfFun = function(q){
     q = pmin(pmax(q, xRange[1]), xRange[2])
-    vapply(
-      q,
-      function(value){
-        integrate(densityFun, lower = xRange[1], upper = value)$value / area
-      },
-      numeric(1)
-    )
+    cdfInterpolation(q)
   }
 
   list(
     density = densityFun,
     cdf = cdfFun,
-    area = area
+    area = area,
+    cumulative = data.frame(
+      x = x,
+      cumulative = cumulativeProbability
+    ),
+    integrationRule = cumulativeIntegral$method
   )
 }
 

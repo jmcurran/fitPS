@@ -44,7 +44,12 @@ fitNumericalPosteriorModel.psModel = function(model, engine, x, prior, ...) {
 #'
 #' @keywords internal
 #' @noRd
-fitNumericalPosterior1d = function(model, engine, x, prior, ...) {
+fitNumericalPosterior1d = function(model,
+                                     engine,
+                                     x,
+                                     prior,
+                                     summaryGridSize = 513L,
+                                     ...) {
   parameterNames = modelParameterNames(model)
   parameterName = parameterNames[[1L]]
   control = modelBayesControl(model, x, engine, prior, ...)
@@ -176,12 +181,44 @@ fitNumericalPosterior1d = function(model, engine, x, prior, ...) {
     dimnames = list(parameterName, parameterName)
   )
 
+  summaryGridSize = as.integer(summaryGridSize)
+  if (length(summaryGridSize) != 1L || is.na(summaryGridSize) || summaryGridSize < 33L) {
+    stop("summaryGridSize must be at least 33", call. = FALSE)
+  }
+
+  posteriorSd = sqrt(max(0, posteriorVariance))
+  gridLower = lower
+  gridUpper = upper
+  if (!is.finite(gridLower)) {
+    gridLower = posteriorMean - 8 * posteriorSd
+  }
+  if (!is.finite(gridUpper)) {
+    gridUpper = posteriorMean + 8 * posteriorSd
+  }
+  if (!is.finite(gridLower) || !is.finite(gridUpper) || gridLower >= gridUpper) {
+    gridLower = initial - max(1, abs(initial))
+    gridUpper = initial + max(1, abs(initial))
+  }
+
+  summaryGrid = seq(gridLower, gridUpper, length.out = summaryGridSize)
+  summaryDensity = pmax(as.numeric(density(summaryGrid)), 0)
+  summaryIntegral = cumulativePosteriorIntegral(summaryGrid, summaryDensity)
+  summaryDensity = summaryDensity / summaryIntegral$area
+  summaryCumulative = summaryIntegral$cumulative / summaryIntegral$area
+
   newPsPosteriorRepresentation(
     engine = engine,
     value = list(
       density = density,
       mean = meanValue,
-      variance = variance
+      variance = variance,
+      grid = list(
+        parameter = parameterName,
+        x = summaryGrid,
+        density = summaryDensity,
+        cumulative = summaryCumulative,
+        integrationRule = summaryIntegral$method
+      )
     ),
     metadata = list(
       model = model$model,
@@ -192,6 +229,8 @@ fitNumericalPosterior1d = function(model, engine, x, prior, ...) {
       normalisingError = normalisingIntegral$abs.error,
       meanError = meanIntegral$abs.error,
       secondMomentError = secondMomentIntegral$abs.error,
+      summaryGridSize = summaryGridSize,
+      summaryIntegrationRule = summaryIntegral$method,
       generic = TRUE
     )
   )
@@ -399,19 +438,23 @@ fitNumericalPosterior2d = function(model,
   })
   parameterGrid = expand.grid(gridAxes[[1L]], gridAxes[[2L]])
   names(parameterGrid) = parameterNames
-  logWeights = apply(parameterGrid, 1L, naturalLogPosterior)
-  finiteWeights = is.finite(logWeights)
-  if (!any(finiteWeights)) {
+  logDensityValues = apply(parameterGrid, 1L, naturalLogPosterior) -
+    logNormalisingConstant
+  densityValues = exp(logDensityValues)
+  densityValues[!is.finite(densityValues)] = 0
+  if (!any(densityValues > 0)) {
     stop("Unable to construct a two-dimensional posterior summary grid", call. = FALSE)
   }
-  gridShift = max(logWeights[finiteWeights])
-  weights = exp(logWeights - gridShift)
-  weights[!is.finite(weights)] = 0
-  weightTotal = sum(weights)
-  if (!is.finite(weightTotal) || weightTotal <= 0) {
+
+  xQuadrature = posteriorQuadratureWeights(gridAxes[[1L]])
+  yQuadrature = posteriorQuadratureWeights(gridAxes[[2L]])
+  cellWeights = as.vector(outer(xQuadrature$weights, yQuadrature$weights))
+  mass = densityValues * cellWeights
+  massTotal = sum(mass)
+  if (!is.finite(massTotal) || massTotal <= 0) {
     stop("Unable to normalize the two-dimensional posterior summary grid", call. = FALSE)
   }
-  weights = weights / weightTotal
+  mass = mass / massTotal
 
   newPsPosteriorRepresentation(
     engine = engine,
@@ -421,7 +464,14 @@ fitNumericalPosterior2d = function(model,
       variance = posteriorVariance,
       grid = list(
         parameters = parameterGrid,
-        weights = weights
+        density = densityValues,
+        mass = mass,
+        weights = mass,
+        integrationRule = paste(
+          xQuadrature$method,
+          yQuadrature$method,
+          sep = " x "
+        )
       )
     ),
     metadata = list(
@@ -435,6 +485,12 @@ fitNumericalPosterior2d = function(model,
       expectedDeviance = integrals[[7L]] / normalisingScaled,
       functionEvaluations = cubatureResult$functionEvaluations,
       tolerance = tol,
+      summaryGridSize = summaryGridSize,
+      summaryIntegrationRule = paste(
+        xQuadrature$method,
+        yQuadrature$method,
+        sep = " x "
+      ),
       generic = TRUE
     )
   )

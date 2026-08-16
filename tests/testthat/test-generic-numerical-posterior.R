@@ -29,6 +29,18 @@ test_that("external one-parameter models fit through the generic numerical engin
     tolerance = 1e-7
   )
   expect_identical(fitObject$posterior$diagnostics$generic, TRUE)
+  expect_identical(
+    fitObject$posterior$representation$value$grid$integrationRule,
+    "simpson"
+  )
+  expect_equal(
+    tail(fitObject$posterior$representation$value$grid$cumulative, 1L),
+    1,
+    tolerance = 1e-12
+  )
+  expect_true(all(diff(
+    fitObject$posterior$representation$value$grid$cumulative
+  ) >= 0))
   expect_equal(
     integrate(
       fitObject$posterior$representation$value$density,
@@ -94,6 +106,9 @@ test_that("external two-parameter models fit through adaptive cubature", {
   expect_gt(representation$value$mean[["sigma"]], 0)
   expect_true(all(is.finite(representation$value$variance)))
   expect_true(is.finite(representation$metadata$expectedDeviance))
+  expect_true(all(c("density", "mass", "integrationRule") %in% names(representation$value$grid)))
+  expect_equal(sum(representation$value$grid$mass), 1, tolerance = 1e-12)
+  expect_match(representation$value$grid$integrationRule, "simpson")
 })
 
 

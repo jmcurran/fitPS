@@ -12,6 +12,13 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.016
+
+- Repaired the cumulative posterior integration helper to use direct vector indexing instead of unqualified head() and tail() calls.
+- Removed the resulting R CMD check NOTE without adding unnecessary package imports or changing numerical results.
+- Carried forward the Stage 11.7 uncertainty-plotting interface, Simpson cumulative integration, and weighted KDE repair unchanged.
+- Validated with the strict fitPS documentation, test, package-check, build, and installation workflow.
+
 ## fitPS 1.1.3.013
 
 - Corrected plotPosterior() credible-region hatching so the shaded polygon follows the posterior density curve rather than joining only the interval endpoint heights.

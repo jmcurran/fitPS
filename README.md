@@ -176,6 +176,19 @@ summary(bayesBoot, nterms = 6)
 
 At the individual-observation level, Rubin's Bayesian Bootstrap assigns `Dirichlet(1, ..., 1)` weights. For aggregated fitPS survey data, equivalent category weights are drawn from `Dirichlet(n1, ..., nk)`, where the `nj` are the observed category counts. All originally occupied categories therefore retain positive weight with probability one. This differs from both the ordinary bootstrap and a parametric Bayesian posterior.
 
+## Plotting parameter uncertainty
+
+`plotUncertainty()` gives the four inferential methods a common plotting interface while retaining their different statistical interpretations:
+
+```r
+plotUncertainty(mleFit, level = c(0.80, 0.95))
+plotUncertainty(bootFit, level = c(0.80, 0.95))
+plotUncertainty(bayesFit, level = c(0.80, 0.95))
+plotUncertainty(bayesBoot, level = c(0.80, 0.95))
+```
+
+For a two-parameter model such as ZIZ, these are respectively likelihood-ratio confidence regions, smoothed bootstrap confidence regions, posterior credible regions, and Rubin Bayesian-Bootstrap weighted-fit regions. Sample-based methods reuse stored parameter draws, importance sampling retains its weights, and Laplace fitting uses its stored Gaussian covariance approximation. Numerical Bayesian fits reuse the posterior representation retained during fitting; in one dimension the stored cumulative representation uses Simpson quadrature where the grid permits it, and in two dimensions stored posterior density and quadrature mass are used to determine credible-region contour thresholds without rerunning adaptive cubature.
+
 ## Model comparison
 
 Fitted models can be compared with AIC and BIC, and Bayesian fits can also provide DIC where the posterior representation supports it. These criteria address model comparison; they are conceptually separate from bootstrap or posterior probability uncertainty.

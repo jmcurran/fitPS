@@ -221,6 +221,23 @@ cbind(
 )
 ```
 
+## A common parameter-uncertainty plotting interface
+
+The fitted probability plots above answer a different question from plots of parameter uncertainty. `plotUncertainty()` provides a common public interface for the latter while retaining the statistical interpretation of each inferential method. For the two-parameter ZIZ example, the same call structure gives four visually comparable regions:
+
+```{r uncertainty-regions, eval=FALSE}
+plotUncertainty(mleFit, level = c(0.80, 0.95))
+plotUncertainty(bootFit, level = c(0.80, 0.95))
+plotUncertainty(bayesFit, level = c(0.80, 0.95))
+plotUncertainty(bayesBoot, level = c(0.80, 0.95))
+```
+
+The common appearance should not be read as a claim that the regions have the same meaning. The MLE display is a likelihood-ratio confidence region. The ordinary bootstrap display is a smoothed KDE confidence region based on the sampling distribution of the fitted estimator. The parametric Bayesian display is a posterior credible region. The Rubin Bayesian Bootstrap display is a KDE region for the distribution of weighted maximum-likelihood fits induced by random empirical weights.
+
+The implementation also reuses the uncertainty representation produced during fitting. Bootstrap and Bayesian-Bootstrap plots use the already stored parameter replicates. MCMC plots use the retained posterior chain; importance-sampling plots retain the importance weights in their KDE; and Laplace plots use the stored Gaussian covariance approximation. For the default two-dimensional numerical Bayesian fit, `fitPS` uses the stored posterior summary grid, orders grid points by posterior density, and cumulatively sums their stored quadrature mass. That cumulative mass determines the probability-content threshold for each requested credible region, so drawing a contour does not rerun adaptive cubature. In one dimension, the numerical posterior retains an evaluated density grid and its cumulative probability. The cumulative integral uses composite Simpson quadrature whenever the equally spaced grid permits it, with a trapezoidal contribution only for an unmatched final interval or a non-uniform fallback. Credible limits are then obtained by interpolation from that stored cumulative representation rather than repeatedly integrating the density while locating interval endpoints.
+
+For models with more than two parameters, select one or two parameters explicitly with `parameters = c(...)`. A later extension could provide a pairs-style display for higher-dimensional posterior or replicate representations; `plotUncertainty()` does not pretend that an ordinary contour is a useful representation of a three- or higher-dimensional region.
+
 ## Prediction interfaces
 
 The same distinction is available through `predict()`.

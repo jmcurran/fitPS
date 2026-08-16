@@ -324,7 +324,7 @@ plotUncertainty(bayesFit, level = c(0.80, 0.95))
 plotUncertainty(bayesBoot, level = c(0.80, 0.95))
 ```
 
-```{r uncertainty-region-comparison, echo=FALSE, fig.width=8, fig.height=8, fig.cap="Comparable ZIZ parameter-uncertainty regions on common axes. Top left: profile-likelihood confidence regions. Top right: ordinary-bootstrap KDE confidence regions with bootstrap realizations. Bottom left: parametric-Bayesian posterior credible regions. Bottom right: Rubin Bayesian-Bootstrap KDE regions with weighted-fit realizations."}
+```{r uncertainty-region-comparison, echo=FALSE, fig.keep="last", fig.width=8, fig.height=8, fig.cap="Comparable ZIZ parameter-uncertainty regions on common axes. Top left: profile-likelihood confidence regions. Top right: ordinary-bootstrap KDE confidence regions with bootstrap realizations. Bottom left: parametric-Bayesian posterior credible regions. Bottom right: Rubin Bayesian-Bootstrap KDE regions with weighted-fit realizations."}
 plotUncertainty(
   mleFit,
   level = uncertaintyLevels,

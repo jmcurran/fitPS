@@ -12,6 +12,13 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.022
+
+- Restored the uncertainty vignette's single four-panel ZIZ comparison by retaining only the final base-graphics device state from the shared-scale plotting chunk.
+- Kept the visible vignette code focused on the four plotUncertainty() calls while leaving panel layout and shared-axis plumbing hidden.
+- Preserved the Stage 11.8.4 bootstrap containment diagnostics and 1,000-realization uncertainty calculations unchanged.
+- Validated through the strict fitPS documentation, test, package-check, vignette-build, build, and installation workflow.
+
 ## fitPS 1.1.3.021
 
 - Increased ordinary and Rubin Bayesian Bootstrap vignette runs from 100 to 1,000 realizations for more stable two-dimensional KDE uncertainty regions.

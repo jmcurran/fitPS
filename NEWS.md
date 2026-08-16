@@ -12,6 +12,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.019
+
+- Corrected the four-panel uncertainty vignette so shared axes include the final bootstrap KDE contour coordinates as well as the realization clouds, preventing contour clipping.
+- Kept the four ZIZ uncertainty panels on exactly the same padded pi and shape scales for direct visual comparison.
+- Hid panel-layout, KDE-boundary, and shared-axis bookkeeping from the rendered vignette while leaving only the four meaningful plotUncertainty() calls visible to readers.
+- Preserved the established profile-likelihood, ordinary-bootstrap, parametric-Bayesian, and Rubin Bayesian-Bootstrap interpretations and plotting behavior.
+- Validated through the strict fitPS documentation, test, package-check, vignette-build, build, and installation workflow.
+
 ## fitPS 1.1.3.018
 
 - Made the uncertainty vignette compare MLE, ordinary bootstrap, parametric Bayes, and Rubin Bayesian Bootstrap ZIZ regions in a single 2 by 2 panel with shared parameter axes.

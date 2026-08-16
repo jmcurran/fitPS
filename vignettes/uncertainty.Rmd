@@ -225,9 +225,9 @@ cbind(
 
 The fitted probability plots above answer a different question from plots of parameter uncertainty. `plotUncertainty()` provides a common public interface for the latter while retaining the statistical interpretation of each inferential method. For the two-parameter ZIZ example, the four methods are most informative when they are shown together on the same parameter scale.
 
-The comparison below derives common axis limits from the stored uncertainty representations and then draws all four methods in one 2 by 2 panel. The ordinary bootstrap and Rubin Bayesian Bootstrap panels also show the actual fitted parameter realizations beneath their KDE contours, preserving the visual character of the original smoothed-bootstrap display.
+The comparison below uses common axis limits derived from every displayed confidence or credible contour and from both bootstrap realization clouds, then draws all four methods in one 2 by 2 panel. The ordinary bootstrap and Rubin Bayesian Bootstrap panels also show the actual fitted parameter realizations beneath their KDE contours, preserving the visual character of the original smoothed-bootstrap display.
 
-```{r uncertainty-region-comparison, fig.width=8, fig.height=8, fig.cap="Comparable ZIZ parameter-uncertainty regions on common axes. Top left: profile-likelihood confidence regions. Top right: ordinary-bootstrap KDE confidence regions with bootstrap realizations. Bottom left: parametric-Bayesian posterior credible regions. Bottom right: Rubin Bayesian-Bootstrap KDE regions with weighted-fit realizations."}
+```{r uncertainty-region-comparison-setup, include=FALSE}
 uncertaintyLevels = c(0.80, 0.95)
 
 mleRegions = confint(
@@ -257,6 +257,28 @@ collectCoordinate = function(x, coordinate) {
   numeric(0)
 }
 
+bootstrapContourCoordinates = function(replicates) {
+  values = as.matrix(replicates[, c("pi", "shape"), drop = FALSE])
+  values = values[complete.cases(values), , drop = FALSE]
+  bandwidth = ks::Hscv(values)
+  densityEstimate = ks::kde(
+    x = values,
+    H = bandwidth,
+    positive = TRUE
+  )
+  contourHeights = ks::contourLevels(
+    densityEstimate,
+    cont = sort(100 * uncertaintyLevels),
+    approx = TRUE
+  )
+  grDevices::contourLines(
+    x = densityEstimate$eval.points[[1L]],
+    y = densityEstimate$eval.points[[2L]],
+    z = densityEstimate$estimate,
+    levels = contourHeights
+  )
+}
+
 expandRange = function(x, fraction = 0.05) {
   limits = range(x, finite = TRUE)
   width = diff(limits)
@@ -268,18 +290,24 @@ expandRange = function(x, fraction = 0.05) {
 
 bootstrapReplicates = bootFit$bootstrap$replicates
 bayesianBootstrapReplicates = bayesBoot$replicates$parameters
+bootstrapContours = bootstrapContourCoordinates(bootstrapReplicates)
+bayesianBootstrapContours = bootstrapContourCoordinates(bayesianBootstrapReplicates)
 
 sharedPi = c(
   collectCoordinate(mleRegions, "pi"),
   bootstrapReplicates$pi,
+  collectCoordinate(bootstrapContours, "x"),
   collectCoordinate(bayesRegions, "pi"),
-  bayesianBootstrapReplicates$pi
+  bayesianBootstrapReplicates$pi,
+  collectCoordinate(bayesianBootstrapContours, "x")
 )
 sharedShape = c(
   collectCoordinate(mleRegions, "shape"),
   bootstrapReplicates$shape,
+  collectCoordinate(bootstrapContours, "y"),
   collectCoordinate(bayesRegions, "shape"),
-  bayesianBootstrapReplicates$shape
+  bayesianBootstrapReplicates$shape,
+  collectCoordinate(bayesianBootstrapContours, "y")
 )
 
 sharedXlim = expandRange(sharedPi)
@@ -287,7 +315,16 @@ sharedYlim = expandRange(sharedShape)
 
 oldPar = par(no.readonly = TRUE)
 par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))
+```
 
+```{r uncertainty-region-comparison-code, eval=FALSE}
+plotUncertainty(mleFit, level = c(0.80, 0.95))
+plotUncertainty(bootFit, level = c(0.80, 0.95))
+plotUncertainty(bayesFit, level = c(0.80, 0.95))
+plotUncertainty(bayesBoot, level = c(0.80, 0.95))
+```
+
+```{r uncertainty-region-comparison, echo=FALSE, fig.width=8, fig.height=8, fig.cap="Comparable ZIZ parameter-uncertainty regions on common axes. Top left: profile-likelihood confidence regions. Top right: ordinary-bootstrap KDE confidence regions with bootstrap realizations. Bottom left: parametric-Bayesian posterior credible regions. Bottom right: Rubin Bayesian-Bootstrap KDE regions with weighted-fit realizations."}
 plotUncertainty(
   mleFit,
   level = uncertaintyLevels,
@@ -298,7 +335,6 @@ plotUncertainty(
 plotUncertainty(
   bootFit,
   level = uncertaintyLevels,
-  showPoints = TRUE,
   xlim = sharedXlim,
   ylim = sharedYlim,
   main = "Ordinary bootstrap"
@@ -313,12 +349,13 @@ plotUncertainty(
 plotUncertainty(
   bayesBoot,
   level = uncertaintyLevels,
-  showPoints = TRUE,
   xlim = sharedXlim,
   ylim = sharedYlim,
   main = "Bayesian Bootstrap"
 )
+```
 
+```{r uncertainty-region-comparison-restore, include=FALSE}
 par(oldPar)
 ```
 

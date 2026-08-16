@@ -34,3 +34,5 @@
 ^vignettes/.*_files(/|$)$
 ^vignettes/.*_cache(/|$)$
 ^vignettes/figure(/|$)$
+^doc$
+^Meta$

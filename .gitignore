@@ -31,3 +31,5 @@ vignettes/*.utf8.md
 vignettes/*.knit.md
 vignettes/*_cache/
 vignettes/figure/
+/doc/
+/Meta/

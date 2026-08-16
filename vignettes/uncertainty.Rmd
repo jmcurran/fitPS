@@ -17,18 +17,16 @@ knitr::opts_chunk$set(
 suppressPackageStartupMessages(library(fitPS))
 ```
 
-## What uncertainty means in fitPS
+## Two kinds of uncertainty
 
-A fitted probability model gives more than a single set of estimated probabilities. The survey is finite, so both the fitted model parameters and the probabilities derived from them are uncertain.
+A fitted probability model gives point estimates, but those estimates come from a finite survey. In `fitPS`, it is useful to distinguish two related questions:
 
-It is useful to keep two questions separate:
+1. **Parameter uncertainty:** which values of the fitted model parameters remain plausible after observing the survey?
+2. **Probability uncertainty:** how much uncertainty does that imply for the fitted P or S probabilities used in an application?
 
-1. **Parameter uncertainty:** how precisely have parameters such as the zeta shape parameter or the ZIZ inflation parameter been estimated?
-2. **Probability uncertainty:** after allowing for parameter or sampling uncertainty, how uncertain are the fitted P or S probability terms used in an application?
+The second question is often the more important one in practice. Model parameters are intermediate quantities; P and S probabilities are usually the quantities that enter the scientific or forensic calculation.
 
-`fitPS` supports several inferential approaches to these questions. They do not produce interchangeable intervals, because they represent uncertainty in different ways.
-
-This vignette uses the Roux et al. (2001) footwear survey and the two-parameter zero-inflated zeta (ZIZ) model. A two-parameter model is useful for illustration because uncertainty can be shown as a region rather than only as separate one-dimensional intervals.
+This vignette uses the Roux et al. (2001) footwear survey and the two-parameter zero-inflated zeta (ZIZ) model. The ZIZ model is especially useful for illustrating parameter uncertainty because its inflation parameter, `pi`, and its zeta `shape` parameter can be displayed together as a two-dimensional region.
 
 ```{r roux-data}
 data("Psurveys")
@@ -36,24 +34,22 @@ roux = Psurveys$roux
 roux
 ```
 
-## Choosing an uncertainty method
+## Four approaches available in fitPS
 
-The main choices currently available in `fitPS` are summarised below.
+The same probability model can be fitted using four different approaches to uncertainty.
 
-| Method | How to request it | Main interpretation |
+| Method | Request | What the uncertainty represents |
 |:--|:--|:--|
-| Maximum likelihood | `fit(..., method = "mle")` | Sampling uncertainty for parameter estimates, usually through Wald or profile likelihood intervals/regions |
-| Ordinary bootstrap | `fit(..., method = "bootstrap")` | Sampling uncertainty estimated by repeatedly resampling the observed survey and refitting the model |
-| Parametric Bayes | `fit(..., method = "bayes")` | Posterior uncertainty about model parameters given the data and prior |
-| Rubin Bayesian Bootstrap | `fit(..., method = "bayesianBootstrap")` | Uncertainty induced by random weights on the observed empirical distribution followed by weighted refitting |
+| Maximum likelihood | `fit(..., method = "mle")` | Frequentist uncertainty about fitted parameters, including profile-likelihood confidence regions |
+| Ordinary bootstrap | `fit(..., method = "bootstrap")` | Repeated-sampling uncertainty estimated by resampling the observed survey and refitting the model |
+| Parametric Bayes | `fit(..., method = "bayes")` | Posterior uncertainty about parameters and probabilities given the observed data and prior model |
+| Rubin Bayesian Bootstrap | `fit(..., method = "bayesianBootstrap")` | Bayesian uncertainty in the empirical distribution, propagated through weighted refits |
 
-There is no single method that is best in every setting. Maximum likelihood is often the natural starting point when a frequentist analysis is required. The ordinary bootstrap is useful when the sampling behaviour of the fitted estimator is of interest and the repeated fitting cost is acceptable. Parametric Bayesian fitting is appropriate when posterior inference is desired and the prior model is scientifically defensible. Rubin's Bayesian Bootstrap provides a Bayesian treatment of uncertainty in the empirical distribution without placing the same kind of parametric prior on the model parameters.
+These methods do not attach the same interpretation to an 80% or 95% region. The purpose of comparing them is therefore not to decide which one has the "correct" contour. It is to see how different inferential treatments of the same survey affect the fitted parameters and, ultimately, the probabilities of interest.
 
-The numerical values from these approaches should therefore not be treated as competing estimates of exactly the same quantity. Their interpretations differ, even when their plots look similar.
+## Fit the ZIZ model
 
-## Fit the ZIZ model in four ways
-
-The same model can be fitted under each inferential approach.
+The public `fit()` interface keeps the model fixed while changing the inferential method.
 
 ```{r fit-mle}
 mleFit = fit(
@@ -91,31 +87,46 @@ bayesBoot = fit(
 )
 ```
 
-The bootstrap fits above are marked `eval = FALSE` because 1,000 repeated model fits make package vignette builds unnecessarily slow. The comparison figure later in this vignette was generated from those analyses using fixed seeds.
-
-## Numerical intervals and regions
-
-For frequentist fits, `confint()` is the main numerical extractor.
-
-```{r frequentist-intervals}
-confint(mleFit, level = c(0.80, 0.95))
+```{r load-bootstrap-results, include=FALSE}
+uncertaintyCache = readRDS(file.path("figures", "uncertainty-bootstrap-cache.rds"))
+bootFit = uncertaintyCache$bootFit
+bayesBoot = uncertaintyCache$bayesBoot
 ```
 
-For a one-parameter model this gives intervals. For a two-parameter ZIZ model, profile likelihood can also describe joint confidence regions for the inflation parameter and shape parameter.
+## Confidence and credible regions for the parameters
 
-Bayesian fits use `credint()`.
+For the two-parameter ZIZ model, separate intervals for `pi` and `shape` would miss an important feature: the two parameters can trade off against one another. A **joint region** shows which combinations of the parameters are supported together.
 
-```{r bayesian-intervals}
-credint(bayesFit, level = c(0.80, 0.95), silent = TRUE)
+For a maximum-likelihood fit, `confint()` computes profile-likelihood confidence regions. For example, the following obtains 80% and 95% regions:
+
+```{r mle-regions, results='hide'}
+mleRegions = confint(
+  mleFit,
+  level = c(0.80, 0.95)
+)
 ```
 
-For one-dimensional Bayesian fits, `credint()` returns equal-tailed credible limits. For two-dimensional fits it returns credible-region contour coordinates with the requested posterior probability content.
+`mleRegions` contains the coordinates of the region boundaries so that they are available for further analysis if required. There is normally little value in printing hundreds of coordinate pairs. The region is much easier to understand graphically:
 
-The distinction in terminology matters. A 95% frequentist confidence interval and a 95% Bayesian credible interval do not make the same probability statement. The former is defined by the repeated-sampling procedure; the latter describes posterior probability conditional on the observed data and prior model.
+```{r mle-region-plot, fig.cap="Profile-likelihood confidence regions for the ZIZ inflation and shape parameters."}
+plotUncertainty(mleFit, level = c(0.80, 0.95))
+```
 
-## Visualising parameter uncertainty
+For a Bayesian fit, the analogous calculation is a posterior credible region. `credint()` computes the requested region and `plotUncertainty()` displays it:
 
-`plotUncertainty()` provides one plotting interface for the different inferential approaches. The plotting command is intentionally similar across fitted objects:
+```{r bayes-regions, results='hide'}
+bayesRegions = credint(
+  bayesFit,
+  level = c(0.80, 0.95),
+  silent = TRUE
+)
+```
+
+A 95% confidence region and a 95% credible region are not the same probability statement. The confidence region belongs to a repeated-sampling procedure; the credible region describes posterior probability conditional on the observed data and prior model.
+
+## Comparing parameter uncertainty across the four methods
+
+The four methods are most informative when shown on the same parameter scale.
 
 ```{r uncertainty-region-comparison-code, eval=FALSE}
 plotUncertainty(mleFit, level = c(0.80, 0.95))
@@ -124,40 +135,19 @@ plotUncertainty(bayesFit, level = c(0.80, 0.95))
 plotUncertainty(bayesBoot, level = c(0.80, 0.95))
 ```
 
-The figure below compares the four methods on common axes. The bootstrap panels also show the fitted parameter realizations used to construct the smoothed regions.
-
-```{r uncertainty-region-comparison, echo=FALSE, out.width="100%", fig.cap="ZIZ parameter uncertainty under four inferential approaches. Top left: profile-likelihood confidence regions. Top right: ordinary-bootstrap KDE confidence regions with bootstrap realizations. Bottom left: parametric-Bayesian posterior credible regions. Bottom right: Rubin Bayesian-Bootstrap KDE regions with weighted-fit realizations."}
+```{r uncertainty-region-comparison, echo=FALSE, out.width="100%", fig.cap="ZIZ parameter uncertainty under four inferential approaches. Top left: profile-likelihood confidence regions. Top right: ordinary-bootstrap regions with bootstrap realizations. Bottom left: parametric-Bayesian credible regions. Bottom right: Rubin Bayesian-Bootstrap regions with weighted-fit realizations."}
 knitr::include_graphics(file.path("figures", "uncertainty-comparison.png"))
 ```
 
-The similar visual form should not obscure the different interpretations:
+The plots have a common visual language, but their meanings differ. The MLE panel shows a profile-likelihood confidence region. The ordinary-bootstrap panel shows the sampling distribution of repeated fitted estimates. The parametric-Bayesian panel shows posterior probability for the parameters. The Bayesian-Bootstrap panel shows the uncertainty induced by changing the empirical weights assigned to the observed survey.
 
-- the MLE panel is a **profile-likelihood confidence region**;
-- the ordinary-bootstrap panel is a **smoothed region based on the bootstrap distribution of the fitted estimator**;
-- the parametric-Bayesian panel is a **posterior credible region**;
-- the Bayesian-Bootstrap panel is a **smoothed region from the distribution of weighted maximum-likelihood fits**.
+The bootstrap realization clouds are useful because they show the actual fitted values behind the smoothed regions. The shape and orientation of all four panels also make clear why reporting separate marginal intervals for `pi` and `shape` would lose information about their dependence.
 
-For the sample-based bootstrap methods, a KDE contour with nominal probability content does not have to contain exactly that proportion of the finite set of realizations. The empirical proportions for the displayed 80% and 95% regions are shown below as a useful diagnostic.
+## From parameter uncertainty to probability uncertainty
 
-```{r uncertainty-region-containment, echo=FALSE}
-containmentTable = utils::read.csv(
-  file.path("figures", "uncertainty-containment.csv"),
-  stringsAsFactors = FALSE
-)
-knitr::kable(
-  containmentTable,
-  digits = 3,
-  col.names = c("Method", "Nominal region", "Empirical containment")
-)
-```
+The fitted P and S probabilities are functions of the model parameters. Uncertainty in `pi` and `shape` therefore propagates to uncertainty in the probabilities.
 
-For models with more than two parameters, specify one or two parameters with the `parameters` argument when a focused uncertainty plot is useful.
-
-## Uncertainty in fitted probabilities
-
-Parameter uncertainty matters because the P and S probability terms are functions of the fitted parameters. There are several useful summaries, and they answer different questions.
-
-For an MLE fit, the usual fitted probabilities are plug-in estimates:
+For maximum likelihood, the usual reported probabilities are the plug-in estimates
 
 \[
 P_k(\widehat{\theta}).
@@ -167,25 +157,132 @@ P_k(\widehat{\theta}).
 fitted(mleFit, n = 6, type = "plugIn")
 ```
 
-For an ordinary bootstrap, the fitted probabilities can be averaged across bootstrap refits, and percentile intervals can describe their sampling uncertainty:
+The ordinary bootstrap refits the model to resampled surveys and evaluates the probabilities for each refit. This produces both a bootstrap mean and percentile confidence intervals:
 
-```{r bootstrap-probabilities, eval=FALSE}
-fitted(bootFit, n = 6, type = "bootstrapMean")
+```{r bootstrap-probabilities}
+bootstrapProbs(bootFit, n = 6)
+```
+
+For parametric Bayesian inference, each probability is averaged over the joint posterior distribution of the parameters. `posteriorProbs()` reports posterior means and equal-tailed credible intervals:
+
+```{r posterior-probabilities}
+posteriorProbs(bayesFit, n = 6)
+```
+
+The posterior mean probability
+
+\[
+E\{P_k(\theta) \mid x\}
+\]
+
+is not, in general, the same as evaluating the probability at the posterior mean parameter values. That distinction matters because P and S probabilities are nonlinear functions of the parameters.
+
+Rubin's Bayesian Bootstrap instead repeatedly changes the empirical weights on the observed survey and refits the model. Its stored probability summaries describe the resulting distribution of model-implied probabilities:
+
+```{r bayesian-bootstrap-probabilities}
+bayesBoot$probabilities[1:6, ]
+```
+
+## Comparing the probability estimates
+
+Putting the four methods side by side shows how much the treatment of uncertainty changes the central probability estimates for the same ZIZ model.
+
+```{r compare-four-probability-estimates}
+probabilityComparison = data.frame(
+  term = bootstrapProbs(bootFit, n = 6)$term,
+  mlePlugIn = unname(fitted(mleFit, n = 6, type = "plugIn")),
+  bootstrapMean = bootstrapProbs(bootFit, n = 6)$estimate,
+  posteriorMean = posteriorProbs(bayesFit, n = 6)$estimate,
+  bayesianBootstrapMean = bayesBoot$probabilities$estimate[1:6]
+)
+
+knitr::kable(
+  probabilityComparison,
+  digits = 5,
+  col.names = c(
+    "Term",
+    "MLE plug-in",
+    "Bootstrap mean",
+    "Posterior mean",
+    "Bayesian Bootstrap mean"
+  )
+)
+```
+
+This comparison is useful because it separates two effects. The first is the fitted model itself: all four analyses use ZIZ. The second is how uncertainty is represented and averaged. Similar values indicate that the central fitted probabilities are relatively insensitive to that choice for this survey; visible differences identify terms for which the uncertainty treatment matters more.
+
+The interval estimates tell the complementary story. The ordinary bootstrap gives percentile confidence intervals, the parametric Bayesian fit gives posterior credible intervals, and the Bayesian Bootstrap gives intervals induced by uncertainty in the empirical weights. The MLE plug-in estimate is included as a reference point.
+
+```{r probability-uncertainty-comparison, echo=FALSE, fig.height=5, fig.cap="Uncertainty in the first six fitted P probabilities. The MLE plug-in value is a point estimate; the other three methods show their stored 95% uncertainty intervals."}
+bootProb = bootstrapProbs(bootFit, n = 6)
+posteriorProb = posteriorProbs(bayesFit, n = 6)
+bayesBootProb = bayesBoot$probabilities[1:6, ]
+
+terms = bootProb$term
+methodNames = c(
+  "MLE plug-in",
+  "Ordinary bootstrap",
+  "Parametric Bayes",
+  "Bayesian Bootstrap"
+)
+methodOffset = c(-0.27, -0.09, 0.09, 0.27)
+termPosition = seq_along(terms)
+
+allLower = c(
+  fitted(mleFit, n = 6, type = "plugIn"),
+  bootProb$lower,
+  posteriorProb$lower,
+  bayesBootProb$lower
+)
+allUpper = c(
+  fitted(mleFit, n = 6, type = "plugIn"),
+  bootProb$upper,
+  posteriorProb$upper,
+  bayesBootProb$upper
+)
+
+plot(
+  NA,
+  xlim = range(c(allLower, allUpper), finite = TRUE),
+  ylim = c(0.5, length(terms) + 0.5),
+  yaxt = "n",
+  ylab = "",
+  xlab = "Fitted probability"
+)
+axis(2, at = termPosition, labels = terms, las = 1)
+
+mleValues = unname(fitted(mleFit, n = 6, type = "plugIn"))
+points(mleValues, termPosition + methodOffset[1], pch = 16)
+
+intervalSets = list(bootProb, posteriorProb, bayesBootProb)
+for (methodIndex in seq_along(intervalSets)) {
+  intervalData = intervalSets[[methodIndex]]
+  y = termPosition + methodOffset[methodIndex + 1L]
+  segments(intervalData$lower, y, intervalData$upper, y)
+  points(intervalData$estimate, y, pch = methodIndex)
+}
+
+legend(
+  "topright",
+  legend = methodNames,
+  pch = c(16, 1, 2, 3),
+  bty = "n",
+  cex = 0.8
+)
+```
+
+The figure should be read by comparing methods **within each probability term**, rather than by comparing interval widths as though they had identical interpretations. In particular, a bootstrap confidence interval and a Bayesian credible interval answer different inferential questions even when their numerical endpoints are close.
+
+The same probability summaries are available directly through the fitted-object prediction interface:
+
+```{r probability-prediction-interface}
+predict(mleFit, newdata = 0:5, type = "plugIn")
 predict(
   bootFit,
   newdata = 0:5,
   type = "bootstrapMean",
   interval = "percentile"
 )
-```
-
-For a parametric Bayesian fit, posterior-mean probabilities average the model probability over the posterior distribution of the parameters:
-
-\[
-E\{P_k(\theta) \mid x\}.
-\]
-
-```{r posterior-probabilities}
 predict(
   bayesFit,
   newdata = 0:5,
@@ -194,47 +291,34 @@ predict(
 )
 ```
 
-The Bayesian Bootstrap instead averages probabilities over the distribution of weighted refits. Its summary method reports the corresponding probability estimates and intervals.
+## What does the inflation parameter mean?
 
-```{r bayesian-bootstrap-summary, eval=FALSE}
-summary(bayesBoot, nterms = 6)
-```
+For the ZIZ model, `pi` is more than a technical fitting parameter. It measures extra probability at the inflated value beyond that supplied by the zeta component. For a P survey this is extra mass at `P0`; for an S survey it is extra mass at `S1`.
 
-These four calculations can be written schematically as
+A Bayesian analysis can therefore ask whether the inflation is practically negligible. If `epsilon` is an application-specific threshold, `posteriorInflation()` calculates
 
 \[
-P_k(\widehat{\theta}), \qquad
-E_*\{P_k(\widehat{\theta}^*)\}, \qquad
-E\{P_k(\theta)\mid x\}, \qquad
-E_{BB}\{P_k(\widehat{\theta}_W)\}.
+\Pr(\pi < \epsilon \mid x).
 \]
 
-They are related, but they are not synonyms. In particular, a posterior-mean probability is not simply the probability evaluated at the posterior mean parameter vector.
-
-## Posterior method choice
-
-For Bayesian fitting, `fitPS` can use different computational methods to represent the posterior. For the one- and two-parameter built-in models used in most examples, the default numerical method is usually a good choice because it is deterministic and directly suited to low-dimensional posteriors.
-
-MCMC can be requested when simulation-based posterior inference is preferred:
-
-```{r mcmc-method, eval=FALSE}
-mcmcFit = fit(
-  roux,
-  model = zizModel(),
-  method = "bayes",
-  bayesOptions = list(posteriorMethod = "mcmc")
-)
+```{r practical-inflation}
+posteriorInflation(bayesFit, epsilon = 0.01)
 ```
 
-The statistical interpretation remains Bayesian in either case. The posterior method is primarily a computational choice; users should generally choose it based on model dimension, numerical suitability, and the diagnostics available for the chosen method rather than because it changes the inferential framework.
+This is often more informative than asking whether `pi` is exactly zero. Under a continuous prior, the posterior probability of one exact parameter value is zero; a practically meaningful threshold asks whether the inflation is small enough not to matter in the application.
 
-## Practical recommendations
+## Which method should I use?
 
-For most analyses, start by deciding what kind of uncertainty statement is required rather than by choosing a plotting function.
+The choice should follow the inferential question.
 
-If the analysis is frequentist, fit by maximum likelihood and use `confint()` for numerical intervals or regions. Use the ordinary bootstrap when resampling-based uncertainty is useful and the additional computation is acceptable. If the analysis is Bayesian, use `credint()` for parameter uncertainty and posterior probability summaries for derived P or S terms. Use Rubin's Bayesian Bootstrap when uncertainty in the empirical distribution is the inferential target.
+- Use **maximum likelihood and profile likelihood** when a frequentist analysis is required and joint parameter uncertainty is important.
+- Use the **ordinary bootstrap** when you want sampling uncertainty propagated directly through the fitting procedure to the derived probabilities.
+- Use **parametric Bayes** when posterior inference is appropriate and the prior model is scientifically defensible.
+- Use **Rubin's Bayesian Bootstrap** when the Bayesian uncertainty of interest is attached primarily to the empirical distribution rather than to a parametric prior on the model parameters.
 
-Use `plotUncertainty()` when the shape and dependence of parameter uncertainty are scientifically informative, especially for two-parameter models such as ZIZ. When reporting results, name the inferential method and the type of interval or region rather than reporting a percentage alone.
+Whichever method is used, report its name together with the interval or region. A percentage such as "95%" is not enough on its own because confidence regions, percentile bootstrap intervals, and posterior credible intervals do not have the same interpretation.
+
+For two-parameter models, `plotUncertainty()` is particularly useful because it shows parameter dependence that separate intervals cannot. For applied work, however, the final step should usually be to examine the uncertainty in the P or S probabilities themselves. Those are the quantities through which parameter uncertainty affects the substantive calculation.
 
 ## References
 

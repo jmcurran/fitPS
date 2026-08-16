@@ -12,6 +12,14 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+## fitPS 1.1.3.027
+
+- Refocus the uncertainty vignette on confidence and credible regions as statistical methods rather than on numerical extractor terminology.
+- Stop printing full confidence- and credible-region coordinate sets in the vignette while retaining the programmatic region objects for users who need them.
+- Restore the four-way comparison of fitted P probabilities across MLE, ordinary bootstrap, parametric Bayes, and Rubin Bayesian Bootstrap.
+- Add a direct visual comparison of probability uncertainty while keeping plotting and cached-computation plumbing out of the user narrative.
+- Preserve package behaviour and validate all four vignette sources with the lightweight knit-based documentation check.
+
 ## fitPS 1.1.3.026
 
 - Rework all package vignettes to read as user-facing statistical documentation rather than development notes.

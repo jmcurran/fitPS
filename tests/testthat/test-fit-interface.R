@@ -63,3 +63,35 @@ test_that("fit rejects objects that are not psModel descriptors", {
     "model must inherit from psModel"
   )
 })
+
+
+test_that("fit forwards seeds to parametric Bayesian fitting", {
+  pData = makePSData(n = c(0, 1, 2), count = c(20, 5, 1), type = "P")
+  options = list(posteriorMethod = "mcmc")
+
+  fit1 = fit(
+    pData,
+    model = zizModel(),
+    method = "bayes",
+    bayesOptions = options,
+    seed = 779,
+    nterms = 4,
+    nIter = 1020,
+    nBurnIn = 20
+  )
+  fit2 = fit(
+    pData,
+    model = zizModel(),
+    method = "bayes",
+    bayesOptions = options,
+    seed = 779,
+    nterms = 4,
+    nIter = 1020,
+    nBurnIn = 20
+  )
+
+  expect_identical(
+    fit1$posterior$representation$value$chain,
+    fit2$posterior$representation$value$chain
+  )
+})

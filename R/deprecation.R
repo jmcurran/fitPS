@@ -1,11 +1,11 @@
-#' Signal use of a deprecated distribution-specific fitter
+#' Signal use of a deprecated fitting interface
 #'
-#' The legacy fitters remain callable for compatibility, but new code should
+#' Legacy fitting helpers remain callable for compatibility, but new code should
 #' use the model-oriented `fit()` interface. The package option
 #' `fitPS.deprecationWarnings` may be set to `FALSE` by automated test suites or
 #' other controlled callers that deliberately exercise compatibility paths.
 #'
-#' @param old Name of the deprecated fitter.
+#' @param old Name of the deprecated fitting helper.
 #' @param replacement Replacement call to recommend.
 #' @return Invisibly returns `NULL`.
 #' @keywords internal

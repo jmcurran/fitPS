@@ -37,7 +37,7 @@ fitted.psFit = function(object,
     if (!inherits(object$bootstrap, "psBootstrap")) {
       stop(
         "bootstrapMean fitted values require a psFit object with an attached ",
-        "bootstrap; run bootstrapFit() first"
+        "bootstrap; use fit(..., method = 'bootstrap')"
       )
     }
 
@@ -85,8 +85,10 @@ fitted.psFit = function(object,
 #' observations, allowing [stats::AIC()] and [stats::BIC()] to use the shared
 #' fitPS model-comparison contract.
 #'
-#' Bayesian fits are rejected because their stored representative parameter
-#' values are posterior summaries rather than maximum-likelihood estimates.
+#' Parametric Bayesian fits are rejected because their stored representative
+#' parameter values are posterior summaries rather than maximum-likelihood
+#' estimates. Bootstrap fits retain the underlying maximum-likelihood point fit
+#' and therefore remain valid for AIC and BIC calculations.
 #'
 #' @param object An object of class `psFit`.
 #' @param ... Additional arguments retained for S3 compatibility.
@@ -96,7 +98,7 @@ logLik.psFit = function(object, ...) {
   if (!is(object, "psFit")) {
     stop("object must be an object of class psFit")
   }
-  if (!identical(object$method, "mle")) {
+  if (!object$method %in% c("mle", "bootstrap")) {
     stop("AIC and BIC require a maximum-likelihood psFit object", call. = FALSE)
   }
 

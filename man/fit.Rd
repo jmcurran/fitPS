@@ -8,9 +8,17 @@ fit(
   x,
   model,
   nterms = 10,
-  method = c("mle", "bayes", "integrate", "numerical", "mcmc", "laplace", "importance"),
+  method = c("mle", "bayes", "bootstrap", "bayesianBootstrap", "integrate", "numerical",
+    "mcmc", "laplace", "importance"),
   prior,
   bayesOptions = NULL,
+  B = 2000,
+  level = 0.95,
+  seed = NULL,
+  silent = FALSE,
+  parallel = TRUE,
+  progressBar = FALSE,
+  pbopts = list(type = "txt"),
   ...
 )
 }
@@ -22,29 +30,71 @@ returned by `zetaModel()`, `zizModel()`, or `logarithmicModel()`.}
 
 \item{nterms}{Number of fitted P/S probability terms to retain.}
 
-\item{method}{Fitting method. External models support `"mle"` and generic
-`"bayes"` fitting when they advertise numerical or MCMC posterior engines.
-Legacy `"mcmc"` selection remains accepted and is normalised to Bayesian fitting.}
+\item{method}{Inferential method. Use `"mle"` for maximum likelihood,
+`"bayes"` for parametric Bayesian inference, `"bootstrap"` for the
+observation-level nonparametric bootstrap, or `"bayesianBootstrap"` for
+Rubin's Bayesian Bootstrap. Legacy Bayesian engine names remain accepted
+and are normalised to `"bayes"`.}
 
-\item{prior}{Optional prior used for Bayesian fitting. For external Bayesian
-models this may be any model-specific object understood by `modelLogPrior()`.}
+\item{prior}{Optional prior used for parametric Bayesian fitting. For
+external Bayesian models this may be any model-specific object understood
+by `modelLogPrior()`.}
 
-\item{bayesOptions}{Optional Bayesian fitting controls.}
+\item{bayesOptions}{Optional parametric Bayesian fitting controls.}
+
+\item{B}{Number of bootstrap or Bayesian Bootstrap replicates.}
+
+\item{level}{Confidence or equal-tail interval level used by bootstrap
+methods.}
+
+\item{seed}{Optional random-number seed used by bootstrap methods.}
+
+\item{silent}{Logical; suppress ordinary bootstrap progress messages when
+`TRUE`.}
+
+\item{parallel}{Logical; use parallel ordinary-bootstrap fitting when
+`TRUE`.}
+
+\item{progressBar}{Logical; display an ordinary-bootstrap progress bar when
+`TRUE`.}
+
+\item{pbopts}{Options passed to `pbapply::pboptions()` when an ordinary
+bootstrap progress bar is requested.}
 
 \item{...}{Additional controls passed to the model-specific fitting path.}
 }
 \value{
-An object of class `psFit` retaining the originating model descriptor
-  in `modelObject` and the established character identifier in `model`.
+For `method = "mle"` or `"bayes"`, an object of class `psFit`.
+  For `method = "bootstrap"`, a maximum-likelihood `psFit` with a
+  `psBootstrap` object attached as `bootstrap`. For
+  `method = "bayesianBootstrap"`, a `psBayesianBootstrap` object.
 }
 \description{
-Fits a `psModel` object to forensic P- or S-survey data. Built-in models
-retain their established fitting implementations. External models may use
-the public model contract for fitPS-owned maximum-likelihood optimisation and
-generic numerical or MCMC Bayesian fitting without modifying or rebuilding fitPS.
+Fits a `psModel` object to forensic P- or S-survey data using maximum
+likelihood, parametric Bayesian inference, the ordinary nonparametric
+bootstrap, or Rubin's Bayesian Bootstrap. `fit()` is the canonical public
+entry point for model fitting and uncertainty procedures.
 }
 \examples{
 data(Psurveys)
 zetaFit = fit(Psurveys$roux, model = zetaModel())
 logFit = fit(Psurveys$roux, model = logarithmicModel())
+if (interactive()) {
+  bootFit = fit(
+    Psurveys$roux,
+    model = zizModel(),
+    method = "bootstrap",
+    B = 20,
+    seed = 123,
+    silent = TRUE,
+    parallel = FALSE
+  )
+  bayesBoot = fit(
+    Psurveys$roux,
+    model = zetaModel(),
+    method = "bayesianBootstrap",
+    B = 20,
+    seed = 123
+  )
+}
 }

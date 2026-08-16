@@ -1,8 +1,8 @@
 #' Compute a bootstrap distribution for a fitted fitPS model
 #'
-#' Compute and attach a nonparametric bootstrap distribution to a maximum
-#' likelihood \code{psFit} object. The returned fitted object contains a
-#' \code{psBootstrap} object in \code{object$bootstrap}.
+#' `bootstrapFit()` is a deprecated compatibility wrapper. New code should use
+#' [fit()] with `method = "bootstrap"`. The wrapper computes and attaches a
+#' nonparametric bootstrap distribution to a maximum-likelihood `psFit` object.
 #'
 #' @param object A maximum likelihood \code{psFit} object.
 #' @param B Number of bootstrap replicates.
@@ -29,19 +29,24 @@
 #' @examples
 #' if (interactive()) {
 #' data(Psurveys)
-#' fit = fitZIDist(Psurveys$roux, nterms = 4)
-#' fit = bootstrapFit(
-#'   fit,
+#' fit = fit(
+#'   Psurveys$roux,
+#'   model = zizModel(),
+#'   method = "bootstrap",
+#'   nterms = 4,
 #'   B = 20,
 #'   seed = 123,
 #'   silent = TRUE,
 #'   parallel = FALSE
 #' )
 #' bootstrapProbs(fit)
-#'
 #' }
 #' @export
 bootstrapFit = function(object, ...) {
+  signalDeprecatedFitter(
+    "bootstrapFit",
+    "fit(x, model = ..., method = \"bootstrap\")"
+  )
   UseMethod("bootstrapFit")
 }
 
@@ -98,7 +103,7 @@ bootstrapProbs.psFit = function(object, n = NULL, ...) {
   if (!inherits(object$bootstrap, "psBootstrap")) {
     stop(
       "bootstrapProbs() requires a psFit object with an attached bootstrap; ",
-      "run bootstrapFit() first"
+      "use fit(..., method = 'bootstrap')"
     )
   }
 

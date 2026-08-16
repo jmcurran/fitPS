@@ -83,7 +83,7 @@ predict.psFit = function(object,
     if (!inherits(object$bootstrap, "psBootstrap")) {
       stop(
         "bootstrapMean predictions require a psFit object with an attached ",
-        "bootstrap; run bootstrapFit() first"
+        "bootstrap; use fit(..., method = 'bootstrap')"
       )
     }
     if (!interval %in% c("none", "percentile")) {

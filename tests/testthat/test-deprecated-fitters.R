@@ -50,3 +50,27 @@ test_that("legacy fitters retain model metadata and delegate through fit", {
   expect_equal(legacyLogarithmic$pi, genericLogarithmic$pi)
   expect_equal(fitted(legacyLogarithmic), fitted(genericLogarithmic))
 })
+
+
+test_that("bootstrapFit warns and directs users to fit bootstrap inference", {
+  oldOption = getOption("fitPS.deprecationWarnings")
+  on.exit(options(fitPS.deprecationWarnings = oldOption), add = TRUE)
+  options(fitPS.deprecationWarnings = TRUE)
+
+  pData = makePSData(n = c(0, 1, 2), count = c(20, 5, 1), type = "P")
+  mleFit = fit(pData, model = zizModel(), nterms = 3)
+
+  expect_warning(
+    bootstrapFit(
+      mleFit,
+      B = 5,
+      seed = 1115,
+      silent = TRUE,
+      parallel = FALSE
+    ),
+    regexp = paste0(
+      "bootstrapFit\\(\\) is deprecated; use ",
+      "fit\\(x, model = \\.\\.\\., method = \\\"bootstrap\\\"\\) instead"
+    )
+  )
+})

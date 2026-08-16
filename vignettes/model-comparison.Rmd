@@ -225,7 +225,7 @@ predict(
 )
 ```
 
-These distinctions matter for later uncertainty work. DIC uses the posterior distribution of model deviance; posterior predictive probabilities average model probabilities over parameter uncertainty; and a future Bayesian Bootstrap analysis would represent a different source or formulation of uncertainty. They should not be treated as synonyms.
+These distinctions also matter for uncertainty analysis. DIC uses the posterior distribution of model deviance; posterior predictive probabilities average model probabilities over parameter uncertainty; and Rubin's Bayesian Bootstrap represents uncertainty in the empirical distribution through random observation weights followed by weighted refitting. They should not be treated as synonyms.
 
 ## What should be concluded?
 

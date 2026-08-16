@@ -140,11 +140,14 @@ For numerical fitting, posterior expectations are computed by deterministic inte
 
 ## Bootstrap probability distributions
 
-The frequentist analogue uses the nonparametric bootstrap distribution of the fitted parameter estimator. Starting from the maximum-likelihood fit, `bootstrapFit()` repeatedly resamples the Roux survey observations, refits the model, and transforms each successful bootstrap parameter replicate into P terms.
+The frequentist analogue uses the nonparametric bootstrap distribution of the fitted parameter estimator. Bootstrap inference is requested through the same `fit()` interface as maximum-likelihood and parametric Bayesian fitting. For `method = "bootstrap"`, fitPS repeatedly resamples the Roux survey observations, refits the model by maximum likelihood, and transforms each successful bootstrap parameter replicate into P terms.
 
 ```{r bootstrap-fit}
-bootFit = bootstrapFit(
-  mleFit,
+bootFit = fit(
+  roux,
+  model = zizModel(),
+  method = "bootstrap",
+  nterms = 6,
   B = 100,
   seed = 1234,
   silent = TRUE,
@@ -180,6 +183,42 @@ plot(bootFit$bootstrap, n = 6)
 
 For applied work, substantially more than 100 bootstrap replicates would normally be used. The smaller value here keeps vignette building practical while demonstrating the complete workflow on the real Roux data.
 
+## Rubin's Bayesian Bootstrap
+
+Rubin's Bayesian Bootstrap is also requested through `fit()`, but it represents a different source of uncertainty. Instead of resampling observations, it keeps the observed support fixed and assigns random positive weights to the empirical observations. For aggregated fitPS survey data, the category weights are drawn directly from
+
+\[
+(W_1, \ldots, W_k) \sim \operatorname{Dirichlet}(n_1, \ldots, n_k),
+\]
+
+which is equivalent to drawing `Dirichlet(1, ..., 1)` weights on the individual observations and summing weights belonging to identical observed values. Each draw is then refitted by weighted maximum likelihood.
+
+```{r bayesian-bootstrap-fit}
+bayesBoot = fit(
+  roux,
+  model = zizModel(),
+  method = "bayesianBootstrap",
+  nterms = 6,
+  B = 100,
+  seed = 1234
+)
+
+summary(bayesBoot, nterms = 6)
+```
+
+This is not the same as the parametric Bayesian posterior. Parametric Bayesian fitting places a prior on model parameters and averages over `p(theta | x)`. Rubin's Bayesian Bootstrap instead places uncertainty on the empirical distribution through random observation weights and then refits the model. The resulting intervals may therefore differ legitimately from both percentile bootstrap confidence intervals and parametric Bayesian credible intervals. Failed weighted fits remain recorded in the Bayesian Bootstrap diagnostics rather than being silently redrawn or smoothed.
+
+The four inferential routes can therefore be requested from one public fitting interface while retaining different uncertainty objects and interpretations.
+
+```{r compare-four}
+cbind(
+  plugIn = fitted(mleFit, n = 6, type = "plugIn"),
+  bootstrapMean = fitted(bootFit, n = 6, type = "bootstrapMean"),
+  posteriorMean = fitted(bayesFit, n = 6, type = "posteriorMean"),
+  bayesianBootstrapMean = bayesBoot$probabilities$estimate[1:6]
+)
+```
+
 ## Prediction interfaces
 
 The same distinction is available through `predict()`.
@@ -190,12 +229,15 @@ predict(bootFit, newdata = 0:5, type = "bootstrapMean", interval = "percentile")
 predict(bayesFit, newdata = 0:5, type = "posteriorMean", interval = "credible")
 ```
 
-Thus the three probability summaries have distinct interpretations:
+Thus the fitted-object prediction interface exposes the plug-in, frequentist-bootstrap, and parametric-posterior summaries directly. Rubin's Bayesian Bootstrap remains a separate uncertainty object returned by `fit()` and is summarised through its own `summary()` and probability table.
+
+The four probability calculations are conceptually distinct:
 
 \[
 P_k(\widehat{\theta}), \qquad
 E_*\{P_k(\widehat{\theta}^*)\}, \qquad
-E\{P_k(\theta)\mid x\}.
+E\{P_k(\theta)\mid x\}, \qquad
+E_{BB}\{P_k(\widehat{\theta}_W)\}.
 \]
 
 `probfun()` remains the plug-in probability interface. Use `posteriorProbs()` for Bayesian posterior probability summaries and `bootstrapProbs()` for bootstrap probability summaries.
@@ -205,5 +247,7 @@ E\{P_k(\theta)\mid x\}.
 Efron, B. (2003). Second thoughts on the bootstrap. *Statistical Science*, 18(2), 135-140.
 
 Efron, B. (2012). Bayesian inference and the parametric bootstrap. *The Annals of Applied Statistics*, 6(4), 1971-1997.
+
+Rubin, D. B. (1981). The Bayesian bootstrap. *The Annals of Statistics*, 9(1), 130-134.
 
 Roux, C., Kirk, R., Benson, S., Van Haren, T., and Petterd, C. I. (2001). Glass particles in footwear of members of the public in south-eastern Australia: a survey. *Forensic Science International*, 116(2), 149-156.

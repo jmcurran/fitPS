@@ -1,21 +1,24 @@
-test_that("bootstrapFit attaches a public psBootstrap object", {
+test_that("fit method bootstrap attaches a public psBootstrap object", {
   pData = makePSData(
     n = c(0, 1, 2),
     count = c(12, 6, 2),
     type = "P"
   )
-  fit = fitZIDist(pData, nterms = 3)
-  fit = bootstrapFit(
-    fit,
+  fitObject = fit(
+    pData,
+    model = zizModel(),
+    method = "bootstrap",
+    nterms = 3,
     B = 30,
     seed = 921,
     silent = TRUE,
     parallel = FALSE
   )
 
-  expect_s3_class(fit, "psFit")
-  expect_s3_class(fit$bootstrap, "psBootstrap")
-  expect_identical(fit$bootstrap$diagnostics$B, 30L)
+  expect_s3_class(fitObject, "psFit")
+  expect_identical(fitObject$method, "bootstrap")
+  expect_s3_class(fitObject$bootstrap, "psBootstrap")
+  expect_identical(fitObject$bootstrap$diagnostics$B, 30L)
 })
 
 test_that("bootstrapProbs dispatches on psFit and psBootstrap", {
@@ -24,18 +27,23 @@ test_that("bootstrapProbs dispatches on psFit and psBootstrap", {
     count = c(12, 6, 2),
     type = "P"
   )
-  fit = fitZIDist(pData, nterms = 3)
-  fit = bootstrapFit(
-    fit,
+  fitObject = fit(
+    pData,
+    model = zizModel(),
+    method = "bootstrap",
+    nterms = 3,
     B = 35,
     seed = 922,
     silent = TRUE,
     parallel = FALSE
   )
 
-  expect_equal(bootstrapProbs(fit), bootstrapProbs(fit$bootstrap))
-  expect_equal(bootstrapProbs(fit, n = 2)$term, c("P0", "P1"))
-  expect_equal(bootstrapProbs(fit, n = c(0, 2))$term, c("P0", "P2"))
+  expect_equal(
+    bootstrapProbs(fitObject),
+    bootstrapProbs(fitObject$bootstrap)
+  )
+  expect_equal(bootstrapProbs(fitObject, n = 2)$term, c("P0", "P1"))
+  expect_equal(bootstrapProbs(fitObject, n = c(0, 2))$term, c("P0", "P2"))
 })
 
 test_that("bootstrapProbs uses S indexing rules", {
@@ -44,29 +52,34 @@ test_that("bootstrapProbs uses S indexing rules", {
     count = c(12, 5, 2),
     type = "S"
   )
-  fit = fitZIDist(sData, nterms = 3)
-  fit = bootstrapFit(
-    fit,
+  fitObject = fit(
+    sData,
+    model = zizModel(),
+    method = "bootstrap",
+    nterms = 3,
     B = 30,
     seed = 923,
     silent = TRUE,
     parallel = FALSE
   )
 
-  expect_equal(bootstrapProbs(fit, n = c(1, 3))$term, c("S1", "S3"))
-  expect_error(bootstrapProbs(fit, n = c(0, 1)), "S indices")
+  expect_equal(bootstrapProbs(fitObject, n = c(1, 3))$term, c("S1", "S3"))
+  expect_error(bootstrapProbs(fitObject, n = c(0, 1)), "S indices")
 })
 
-test_that("bootstrapProbs requires an attached bootstrap", {
+test_that("bootstrapProbs requires bootstrap inference", {
   pData = makePSData(
     n = c(0, 1, 2),
     count = c(12, 6, 2),
     type = "P"
   )
-  fit = fitZIDist(pData, nterms = 3)
+  fitObject = fit(pData, model = zizModel(), nterms = 3)
 
-  expect_error(bootstrapProbs(fit), "bootstrapFit")
-  expect_error(fitted(fit, type = "bootstrapMean"), "bootstrapFit")
+  expect_error(bootstrapProbs(fitObject), "method = 'bootstrap'")
+  expect_error(
+    fitted(fitObject, type = "bootstrapMean"),
+    "method = 'bootstrap'"
+  )
 })
 
 test_that("fitted bootstrapMean returns bootstrap probability means", {
@@ -75,22 +88,25 @@ test_that("fitted bootstrapMean returns bootstrap probability means", {
     count = c(12, 6, 2),
     type = "P"
   )
-  fit = fitZIDist(pData, nterms = 3)
-  plugIn = fitted(fit)
-  fit = bootstrapFit(
-    fit,
+  mleFit = fit(pData, model = zizModel(), nterms = 3)
+  plugIn = fitted(mleFit)
+  fitObject = fit(
+    pData,
+    model = zizModel(),
+    method = "bootstrap",
+    nterms = 3,
     B = 40,
     seed = 924,
     silent = TRUE,
     parallel = FALSE
   )
 
-  expected = bootstrapProbs(fit)$estimate
-  names(expected) = bootstrapProbs(fit)$term
+  expected = bootstrapProbs(fitObject)$estimate
+  names(expected) = bootstrapProbs(fitObject)$term
 
-  expect_equal(fitted(fit, type = "bootstrapMean"), expected)
-  expect_equal(fitted(fit), plugIn)
-  expect_equal(fitted(fit, type = "plugIn"), plugIn)
+  expect_equal(fitted(fitObject, type = "bootstrapMean"), expected)
+  expect_equal(fitted(fitObject), plugIn)
+  expect_equal(fitted(fitObject, type = "plugIn"), plugIn)
 })
 
 test_that("plot.psBootstrap returns plotted summaries invisibly", {
@@ -99,9 +115,11 @@ test_that("plot.psBootstrap returns plotted summaries invisibly", {
     count = c(12, 6, 2),
     type = "P"
   )
-  fit = fitZIDist(pData, nterms = 3)
-  fit = bootstrapFit(
-    fit,
+  fitObject = fit(
+    pData,
+    model = zizModel(),
+    method = "bootstrap",
+    nterms = 3,
     B = 25,
     seed = 925,
     silent = TRUE,
@@ -110,20 +128,37 @@ test_that("plot.psBootstrap returns plotted summaries invisibly", {
 
   plotFile = tempfile(fileext = ".pdf")
   grDevices::pdf(plotFile)
-  plotted = plot(fit$bootstrap, n = 2)
+  plotted = plot(fitObject$bootstrap, n = 2)
   grDevices::dev.off()
 
   expect_equal(plotted$term, c("P0", "P1"))
   expect_true(file.exists(plotFile))
 })
 
-test_that("bootstrapFit rejects Bayesian fits", {
+test_that("fit method bootstrap reports unsupported model coverage", {
   pData = makePSData(
     n = c(0, 1, 2),
     count = c(12, 6, 2),
     type = "P"
   )
-  fit = structure(
+
+  expect_error(
+    fit(pData, model = logarithmicModel(), method = "bootstrap", B = 10),
+    "currently supports zeta and ziz"
+  )
+})
+
+test_that("bootstrapFit retains its historical MLE-fit requirement", {
+  oldOption = getOption("fitPS.deprecationWarnings")
+  on.exit(options(fitPS.deprecationWarnings = oldOption), add = TRUE)
+  options(fitPS.deprecationWarnings = FALSE)
+
+  pData = makePSData(
+    n = c(0, 1, 2),
+    count = c(12, 6, 2),
+    type = "P"
+  )
+  bayesFit = structure(
     list(
       psData = pData,
       method = "bayes",
@@ -133,5 +168,5 @@ test_that("bootstrapFit rejects Bayesian fits", {
     class = "psFit"
   )
 
-  expect_error(bootstrapFit(fit, B = 10), "MLE psFit")
+  expect_error(bootstrapFit(bayesFit, B = 10), "MLE psFit")
 })

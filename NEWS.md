@@ -9,6 +9,17 @@ This file records user-facing and developer-facing changes for fitPS. It is a re
 
 
 
+
+## fitPS 1.1.3.011
+
+- Made fit() the canonical public entry point for maximum likelihood, parametric Bayesian inference, the ordinary nonparametric bootstrap, and Rubin's Bayesian Bootstrap.
+- Added method = "bootstrap" to return the maximum-likelihood psFit with psBootstrap uncertainty attached, and method = "bayesianBootstrap" to return psBayesianBootstrap inference.
+- Removed the standalone bayesianBootstrap() public wrapper while retaining the psBayesianBootstrap class and its summary/print methods.
+- Deprecated bootstrapFit() with guidance to use fit(..., method = "bootstrap") while preserving its historical compatibility behaviour.
+- Updated bootstrap diagnostics, examples, README material, and uncertainty/model-comparison vignettes to use the unified fit interface and explain all four inferential routes.
+- Added deterministic regression coverage for fit-based bootstrap dispatch, deprecation behaviour, Bayesian Bootstrap dispatch, and unsupported ordinary-bootstrap model coverage.
+- Validated with the strict fitPS documentation, test, and package-check workflow.
+
 ## fitPS 1.1.3.007
 
 - Added the public bayesianBootstrap() interface for Rubin Bayesian Bootstrap inference with built-in zeta, zero-inflated zeta, and logarithmic models.

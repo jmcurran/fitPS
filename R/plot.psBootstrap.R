@@ -19,9 +19,11 @@
 #' @examples
 #' if (interactive()) {
 #' data(Psurveys)
-#' fit = fitZIDist(Psurveys$roux, nterms = 4)
-#' fit = bootstrapFit(
-#'   fit,
+#' fit = fit(
+#'   Psurveys$roux,
+#'   model = zizModel(),
+#'   method = "bootstrap",
+#'   nterms = 4,
 #'   B = 20,
 #'   seed = 123,
 #'   silent = TRUE,

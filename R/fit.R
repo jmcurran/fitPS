@@ -1,38 +1,80 @@
 #' Fit a fitPS model
 #'
-#' Fits a `psModel` object to forensic P- or S-survey data. Built-in models
-#' retain their established fitting implementations. External models may use
-#' the public model contract for fitPS-owned maximum-likelihood optimisation and
-#' generic numerical or MCMC Bayesian fitting without modifying or rebuilding fitPS.
+#' Fits a `psModel` object to forensic P- or S-survey data using maximum
+#' likelihood, parametric Bayesian inference, the ordinary nonparametric
+#' bootstrap, or Rubin's Bayesian Bootstrap. `fit()` is the canonical public
+#' entry point for model fitting and uncertainty procedures.
 #'
 #' @param x An object of class `psData`.
 #' @param model A model descriptor inheriting from `psModel`, such as an object
 #'   returned by `zetaModel()`, `zizModel()`, or `logarithmicModel()`.
 #' @param nterms Number of fitted P/S probability terms to retain.
-#' @param method Fitting method. External models support `"mle"` and generic
-#'   `"bayes"` fitting when they advertise numerical or MCMC posterior engines.
-#'   Legacy `"mcmc"` selection remains accepted and is normalised to Bayesian fitting.
-#' @param prior Optional prior used for Bayesian fitting. For external Bayesian
-#'   models this may be any model-specific object understood by `modelLogPrior()`.
-#' @param bayesOptions Optional Bayesian fitting controls.
+#' @param method Inferential method. Use `"mle"` for maximum likelihood,
+#'   `"bayes"` for parametric Bayesian inference, `"bootstrap"` for the
+#'   observation-level nonparametric bootstrap, or `"bayesianBootstrap"` for
+#'   Rubin's Bayesian Bootstrap. Legacy Bayesian engine names remain accepted
+#'   and are normalised to `"bayes"`.
+#' @param prior Optional prior used for parametric Bayesian fitting. For
+#'   external Bayesian models this may be any model-specific object understood
+#'   by `modelLogPrior()`.
+#' @param bayesOptions Optional parametric Bayesian fitting controls.
+#' @param B Number of bootstrap or Bayesian Bootstrap replicates.
+#' @param level Confidence or equal-tail interval level used by bootstrap
+#'   methods.
+#' @param seed Optional random-number seed used by bootstrap methods.
+#' @param silent Logical; suppress ordinary bootstrap progress messages when
+#'   `TRUE`.
+#' @param parallel Logical; use parallel ordinary-bootstrap fitting when
+#'   `TRUE`.
+#' @param progressBar Logical; display an ordinary-bootstrap progress bar when
+#'   `TRUE`.
+#' @param pbopts Options passed to `pbapply::pboptions()` when an ordinary
+#'   bootstrap progress bar is requested.
 #' @param ... Additional controls passed to the model-specific fitting path.
-#' @return An object of class `psFit` retaining the originating model descriptor
-#'   in `modelObject` and the established character identifier in `model`.
+#' @return For `method = "mle"` or `"bayes"`, an object of class `psFit`.
+#'   For `method = "bootstrap"`, a maximum-likelihood `psFit` with a
+#'   `psBootstrap` object attached as `bootstrap`. For
+#'   `method = "bayesianBootstrap"`, a `psBayesianBootstrap` object.
 #' @export
 #'
 #' @examples
 #' data(Psurveys)
 #' zetaFit = fit(Psurveys$roux, model = zetaModel())
 #' logFit = fit(Psurveys$roux, model = logarithmicModel())
+#' if (interactive()) {
+#'   bootFit = fit(
+#'     Psurveys$roux,
+#'     model = zizModel(),
+#'     method = "bootstrap",
+#'     B = 20,
+#'     seed = 123,
+#'     silent = TRUE,
+#'     parallel = FALSE
+#'   )
+#'   bayesBoot = fit(
+#'     Psurveys$roux,
+#'     model = zetaModel(),
+#'     method = "bayesianBootstrap",
+#'     B = 20,
+#'     seed = 123
+#'   )
+#' }
 fit = function(x,
                model,
                nterms = 10,
                method = c(
-                 "mle", "bayes", "integrate", "numerical", "mcmc",
-                 "laplace", "importance"
+                 "mle", "bayes", "bootstrap", "bayesianBootstrap",
+                 "integrate", "numerical", "mcmc", "laplace", "importance"
                ),
                prior,
                bayesOptions = NULL,
+               B = 2000,
+               level = 0.95,
+               seed = NULL,
+               silent = FALSE,
+               parallel = TRUE,
+               progressBar = FALSE,
+               pbopts = list(type = "txt"),
                ...) {
   if (!is(x, "psData")) {
     stop("x must be an object of class psData")
@@ -42,6 +84,52 @@ fit = function(x,
   }
 
   method = match.arg(method)
+
+  if (identical(method, "bootstrap")) {
+    if (!model$model %in% c("zeta", "ziz")) {
+      stop(
+        "method = 'bootstrap' currently supports zeta and ziz models",
+        call. = FALSE
+      )
+    }
+
+    mleFit = do.call(
+      fitModel,
+      c(
+        list(
+          model = model,
+          x = x,
+          nterms = nterms,
+          method = "mle"
+        ),
+        list(...)
+      )
+    )
+
+    result = bootstrapPsFit(
+      object = mleFit,
+      B = B,
+      level = level,
+      seed = seed,
+      silent = silent,
+      parallel = parallel,
+      progressBar = progressBar,
+      pbopts = pbopts
+    )
+    result$method = "bootstrap"
+    return(result)
+  }
+
+  if (identical(method, "bayesianBootstrap")) {
+    return(bayesianBootstrapModel(
+      x = x,
+      model = model,
+      B = B,
+      seed = seed,
+      nterms = nterms,
+      level = level
+    ))
+  }
 
   args = list(
     model = model,
@@ -53,6 +141,9 @@ fit = function(x,
   )
   if (!missing(prior)) {
     args$prior = prior
+  }
+  if (!is.null(seed)) {
+    args$seed = seed
   }
 
   do.call(fitModel, args)

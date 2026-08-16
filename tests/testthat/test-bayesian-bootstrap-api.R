@@ -1,13 +1,14 @@
-test_that("bayesianBootstrap exposes the Rubin Bayesian Bootstrap engine", {
+test_that("fit exposes Rubin Bayesian Bootstrap inference", {
   pData = makePSData(
     n = c(0, 1, 2, 3),
     count = c(40, 12, 4, 1),
     type = "P"
   )
 
-  result = bayesianBootstrap(
+  result = fit(
     pData,
     model = zetaModel(),
+    method = "bayesianBootstrap",
     B = 16,
     seed = 1114,
     nterms = 4,
@@ -27,16 +28,17 @@ test_that("bayesianBootstrap exposes the Rubin Bayesian Bootstrap engine", {
   )
 })
 
-test_that("bayesianBootstrap remains distinct from parametric Bayesian fitting", {
+test_that("Bayesian Bootstrap remains distinct from parametric Bayesian fitting", {
   pData = makePSData(
     n = c(0, 1, 2, 3),
     count = c(30, 10, 4, 1),
     type = "P"
   )
 
-  result = bayesianBootstrap(
+  result = fit(
     pData,
     model = logarithmicModel(),
+    method = "bayesianBootstrap",
     B = 10,
     seed = 1115,
     nterms = 3
@@ -54,9 +56,10 @@ test_that("Bayesian Bootstrap summary retains requested public information", {
     count = c(35, 12, 5, 2),
     type = "P"
   )
-  result = bayesianBootstrap(
+  result = fit(
     pData,
     model = zizModel(),
+    method = "bayesianBootstrap",
     B = 12,
     seed = 1116,
     nterms = 5
@@ -79,9 +82,10 @@ test_that("Bayesian Bootstrap print methods identify Rubin inference", {
     count = c(20, 7, 2),
     type = "P"
   )
-  result = bayesianBootstrap(
+  result = fit(
     pData,
     model = zetaModel(),
+    method = "bayesianBootstrap",
     B = 8,
     seed = 1117,
     nterms = 3
@@ -96,29 +100,41 @@ test_that("Bayesian Bootstrap print methods identify Rubin inference", {
   expect_true(any(grepl("Model-implied probability summaries", summaryPrinted, fixed = TRUE)))
 })
 
-test_that("Bayesian Bootstrap public API validates its inputs", {
+test_that("fit validates Bayesian Bootstrap inputs", {
   pData = makePSData(n = c(0, 1, 2), count = c(10, 4, 1), type = "P")
 
   expect_error(
-    bayesianBootstrap(pData, model = "zeta", B = 5),
+    fit(pData, model = "zeta", method = "bayesianBootstrap", B = 5),
     "model must inherit from psModel"
   )
   expect_error(
-    bayesianBootstrap(pData, model = zetaModel(), B = 0),
+    fit(pData, model = zetaModel(), method = "bayesianBootstrap", B = 0),
     "B must be one positive integer"
   )
   expect_error(
-    bayesianBootstrap(pData, model = zetaModel(), B = 5, level = 1),
+    fit(
+      pData,
+      model = zetaModel(),
+      method = "bayesianBootstrap",
+      B = 5,
+      level = 1
+    ),
     "level must be one finite number strictly between 0 and 1"
   )
 
-  result = bayesianBootstrap(
+  result = fit(
     pData,
     model = zetaModel(),
+    method = "bayesianBootstrap",
     B = 5,
     seed = 1118,
     nterms = 3
   )
   expect_error(summary(result, nterms = 0), "nterms must be one positive integer")
   expect_error(print(result, nterms = 0), "nterms must be one positive integer")
+})
+
+
+test_that("standalone bayesianBootstrap wrapper is no longer exported", {
+  expect_false("bayesianBootstrap" %in% getNamespaceExports("fitPS"))
 })

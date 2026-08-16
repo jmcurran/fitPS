@@ -162,10 +162,11 @@ For zero-inflated zeta models, `fitPS` can distinguish probabilities evaluated a
 data("Psurveys")
 roux = Psurveys$roux
 
-mleFit = fitZIDist(roux, nterms = 6)
+mleFit = fit(roux, model = zizModel(), nterms = 6)
 
-bayesFit = fitZIDist(
+bayesFit = fit(
   roux,
+  model = zizModel(),
   nterms = 6,
   method = "bayes",
   bayesOptions = list(posteriorMethod = "numerical")
@@ -178,11 +179,14 @@ plot(bayesFit$posterior, n = 6)
 
 The Bayesian estimate is the posterior mean of each probability, `E[P_k(theta) | x]`, rather than the probability evaluated at posterior mean parameters. The available posterior engines are `numerical`, `mcmc`, `laplace`, and `importance`.
 
-The corresponding frequentist uncertainty calculation is obtained by transforming the nonparametric bootstrap replicates:
+The corresponding frequentist uncertainty calculation is requested through the same `fit()` interface:
 
 ```r
-bootFit = bootstrapFit(
-  mleFit,
+bootFit = fit(
+  roux,
+  model = zizModel(),
+  method = "bootstrap",
+  nterms = 6,
   B = 2000,
   seed = 1234,
   silent = TRUE
@@ -192,6 +196,23 @@ bootstrapProbs(bootFit, n = 6)
 fitted(bootFit, n = 6, type = "bootstrapMean")
 plot(bootFit$bootstrap, n = 6)
 ```
+
+Rubin's Bayesian Bootstrap is also available through `fit()`:
+
+```r
+bayesBoot = fit(
+  roux,
+  model = zizModel(),
+  method = "bayesianBootstrap",
+  nterms = 6,
+  B = 2000,
+  seed = 1234
+)
+
+summary(bayesBoot, nterms = 6)
+```
+
+`bootstrapFit()` remains temporarily available as a deprecated compatibility wrapper, but new code should use `fit(..., method = "bootstrap")`.
 
 This gives the bootstrap mean `E*[P_k(thetaHat*)]` and percentile confidence intervals. Ordinary `fitted(fit)` and `probfun(fit)` remain plug-in interfaces for backward compatibility.
 

@@ -50,9 +50,11 @@ test_that("predict returns bootstrap means and percentile intervals", {
     count = c(12, 6, 2),
     type = "P"
   )
-  fit = fitZIDist(pData, nterms = 3)
-  fit = bootstrapFit(
-    fit,
+  fit = fit(
+    pData,
+    model = zizModel(),
+    method = "bootstrap",
+    nterms = 3,
     B = 30,
     seed = 931,
     silent = TRUE,
@@ -149,9 +151,11 @@ test_that("psFit presentation reports attached bootstrap uncertainty", {
     count = c(12, 6, 2),
     type = "P"
   )
-  fit = fitZIDist(pData, nterms = 3)
-  fit = bootstrapFit(
-    fit,
+  fit = fit(
+    pData,
+    model = zizModel(),
+    method = "bootstrap",
+    nterms = 3,
     B = 25,
     seed = 932,
     silent = TRUE,

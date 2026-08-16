@@ -44,9 +44,9 @@ The input \code{psFit} object with a \code{psBootstrap} object
   attached as \code{bootstrap}.
 }
 \description{
-Compute and attach a nonparametric bootstrap distribution to a maximum
-likelihood \code{psFit} object. The returned fitted object contains a
-\code{psBootstrap} object in \code{object$bootstrap}.
+`bootstrapFit()` is a deprecated compatibility wrapper. New code should use
+[fit()] with `method = "bootstrap"`. The wrapper computes and attaches a
+nonparametric bootstrap distribution to a maximum-likelihood `psFit` object.
 }
 \details{
 The bootstrap is an observation-level nonparametric bootstrap. Each
@@ -59,15 +59,16 @@ parameter values.
 \examples{
 if (interactive()) {
 data(Psurveys)
-fit = fitZIDist(Psurveys$roux, nterms = 4)
-fit = bootstrapFit(
-  fit,
+fit = fit(
+  Psurveys$roux,
+  model = zizModel(),
+  method = "bootstrap",
+  nterms = 4,
   B = 20,
   seed = 123,
   silent = TRUE,
   parallel = FALSE
 )
 bootstrapProbs(fit)
-
 }
 }

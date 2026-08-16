@@ -22,8 +22,11 @@ test_that("Roux data support harmonised probability workflows", {
   expect_true(all(posteriorProbs(bayesFit, n = 4)$lower >= 0))
   expect_true(all(posteriorProbs(bayesFit, n = 4)$upper <= 1))
 
-  bootFit = bootstrapFit(
-    mleFit,
+  bootFit = fit(
+    roux,
+    model = zizModel(),
+    method = "bootstrap",
+    nterms = 4,
     B = 12,
     seed = 51511,
     silent = TRUE,

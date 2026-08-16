@@ -21,6 +21,8 @@ observations, allowing [stats::AIC()] and [stats::BIC()] to use the shared
 fitPS model-comparison contract.
 }
 \details{
-Bayesian fits are rejected because their stored representative parameter
-values are posterior summaries rather than maximum-likelihood estimates.
+Parametric Bayesian fits are rejected because their stored representative
+parameter values are posterior summaries rather than maximum-likelihood
+estimates. Bootstrap fits retain the underlying maximum-likelihood point fit
+and therefore remain valid for AIC and BIC calculations.
 }
